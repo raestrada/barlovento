@@ -7,11 +7,10 @@ agent implementing gameplay or writing content must follow it.
 
 ## 1. Elevator pitch
 
-A 3D turn-based space strategy game in the spirit of *Homeworld*: real spatial
-depth, naval inertia and mass — but played in turns. The player is an admiral
-who positions a fleet (simultaneous phase) and then commands it in battle
-(turn-based tactical phase), while also piloting and developing a personal
-squad of ace heroes in the spirit of *Gundam*.
+A 3D turn-based space strategy game with real spatial depth, naval inertia and
+mass — played in turns. The player is an admiral who positions a fleet
+(simultaneous phase) and then commands it in battle (turn-based tactical
+phase), while also piloting and developing a personal squad of ace heroes.
 
 The world: a sea of dark energy — **the Éther** — is dying. A slow front of
 decay called **the Calm** is spreading. Three civilizations answer with three
@@ -20,10 +19,10 @@ incompatible war goals.
 ## 2. Genre and references
 
 - **Genre:** turn-based 3D space tactical strategy.
-- **Spiritual ancestors:** *Homeworld* (3D RTS, spatial realism),
-  *Battlestar Galactica: Deadlock* (WEGO 3D space tactics), *XCOM* (turn-based
-  tactics, roster progression), *Gundam* (ace hero + fleet), *Frozen Synapse*
-  (simultaneous planning), *Dune* (scarce resource drives civilization).
+- **References:** *Battlestar Galactica: Deadlock* (WEGO 3D space tactics),
+  *XCOM* (turn-based tactics, roster progression), *Gundam* (ace hero + fleet),
+  *Frozen Synapse* (simultaneous planning), *Dune* (scarce resource drives
+  civilization).
 
 ## 3. Core fantasy and pillars
 
@@ -97,6 +96,8 @@ triad: **Body / Mind / Spirit**.
 
 ### 7.1 The Armada of Acero (steel)
 
+> Full faction deep-dive: [`docs/factions/acero.md`](factions/acero.md).
+
 - Capital ships + escort fighters. Heavy inertia, firepower, line-of-battle.
 - **Relationship to the Éther:** consumes it as an **energy source** — the
   "spice" (Dune). Cheap, abundant dark energy underpinned their entire
@@ -109,6 +110,8 @@ triad: **Body / Mind / Spirit**.
 
 ### 7.2 The Vinculados (soul)
 
+> Full faction deep-dive: [`docs/factions/vinculados.md`](factions/vinculados.md).
+
 - Mobile suits + carriers. Low inertia, very high skill ceiling.
 - **Relationship to the Éther:** discovered it couples to neural states — "the
   soul is made of the same stuff as the vacuum." This enables the pilot-frame
@@ -119,6 +122,8 @@ triad: **Body / Mind / Spirit**.
   covers them — escape the dying sea.
 
 ### 7.3 The Free Tide (wind)
+
+> Full faction deep-dive: [`docs/factions/marea-libre.md`](factions/marea-libre.md).
 
 - Wood-and-brass sailing ships with **éther sails** that ride the wind's
   currents directly. No advanced drive tech; they *feel* the sea.

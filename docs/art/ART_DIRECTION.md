@@ -30,11 +30,46 @@ a new look per-asset; always derive from the tokens below.
 | --- | --- | --- | --- | --- |
 | **Armada of Acero** | angular, brutalist, massed | dark gunmetal, riveted plate | ember orange (thrusters/energy) | disciplined, industrial |
 | **Vinculados** | sleek, organic-curved, humanoid frames | white ceramic + dark sinew, exposed core | cold magenta/violet (soul link) | elegant, transhuman |
-| **Free Tide** | wooden hulls, sails, ropes, brass | wood, brass, canvas | warm amber + cyan sails | romantic, weathered |
+| **Free Tide** | sealed sailing-ship hulls, radial booms, membrane sails | treated timber, brass, glass, sail membrane | warm amber hab-light + cyan sails | romantic, weathered, spaceworthy |
 
 These tokens are formalized in
 [`prompts/000-global-style.md`](prompts/000-global-style.md) and reused verbatim
 in every prompt.
+
+## Plausibility rule (Free Tide)
+
+The Free Tide must **evoke** sailing ships, not reproduce them literally.
+Their vessels are re-engineered for vacuum:
+
+- No open decks, oars, wheelhouses, or flapping cloth sails — nothing that
+  implies water, air, or gravity.
+- Hulls are **sealed and pressurized**; life shows as warm amber light through
+  viewports and lantern-banks.
+- "Sails" are **semi-rigid membrane panels** on spar booms that catch the
+  éther gradient (faint cyan), not canvas that billows. They must be **large**
+  — solar-sail scale, several times the hull's area — because the gradient is
+  faint and sail area buys thrust.
+- **Éther-oars:** banks of articulated field-vanes along the flanks that sweep
+  the éther like a galley's oars — the maneuvering and becalmed-emergency
+  propulsion. Clearly mechanical; never literal wooden oars in water.
+- "Rigging" is functional conduit: sensor spars, sail-furling booms, power
+  lines.
+- "Cannon" are brass-cased mass-drivers/field-lances, not gunpowder
+  muzzleloaders.
+- Brass maneuvering jets, docking collars and airlocks sell the space worthiness.
+
+A literal wooden boat floating in a vacuum is a bug, not an aesthetic.
+
+## Title & logo
+
+The game's name is rendered with a fixed wordmark: **"BARLOVENTO"** in a
+monumental engraved serif, wide-tracked and all-caps — the look of a ship's
+nameplate and a celestial chart at once. Brushed pewter/steel lettering with a
+cold cyan éther rim-glow, on deep indigo.
+
+The canonical file is `assets/brand/logo.png` (see
+[`prompts/logo.md`](prompts/logo.md)). **Whenever the title appears — README,
+cover, UI, store page — use that image, never a re-typeset wordmark.**
 
 ## Consistency rules
 

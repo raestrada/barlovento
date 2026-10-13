@@ -8,6 +8,7 @@ copies final images. The authoritative prompts live in
 
 ```
 assets/
+├── brand/
 ├── ships/
 │   ├── acero/
 │   ├── vinculados/
@@ -15,6 +16,7 @@ assets/
 ├── heroes/
 ├── environments/
 ├── ui/
+├── mockups/
 └── splash/
 ```
 

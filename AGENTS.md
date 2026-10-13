@@ -8,14 +8,12 @@ repository. Read it before doing anything else. All project content is in
 
 ## 1. What this project is
 
-**BARLOVENTO** is a **3D turn-based space strategy game** in the spirit of
-*Homeworld*, but turn-based. The core fantasy is naval warfare transposed to
-space: ships have **mass**, **inertia**, **momentum** and **facing**, and
-positioning matters as much as firepower.
+**BARLOVENTO** is a **3D turn-based space strategy game**. The core fantasy is
+naval warfare transposed to space: ships have **mass**, **inertia**,
+**momentum** and **facing**, and positioning matters as much as firepower.
 
 - **Turn-based**, not real-time.
-- **Fully 3D** battles with a free camera (like Homeworld / Battlestar
-  Galactica Deadlock).
+- **Fully 3D** battles with a free camera.
 - **Two combat phases**: a simultaneous "Admiral" phase for fleet
   positioning, then a turn-based "Ace" tactical phase for the actual fight.
 - **Hero units** (a squad of 2-4 aces) that the player chooses and develops,
@@ -69,6 +67,7 @@ barlovento/
 ├── docs/
 │   ├── DESIGN.md             # full game design + lore
 │   ├── TECH.md               # technology + architecture
+│   ├── factions/             # per-faction deep-dives (acero.md, ...)
 │   └── art/
 │       ├── ART_DIRECTION.md  # art bible + consistency rules
 │       └── prompts/          # versioned image prompts (see §7)
@@ -94,6 +93,10 @@ barlovento/
    (`GEMINI_API_KEY`, `AGY_BIN`).
 7. **Verify with Godot when possible.** Headless checks:
    `godot --headless --path . --quit`.
+8. **The title is a fixed image.** Whenever the name "BARLOVENTO" is shown
+   (README, UI, cover, store), use the canonical wordmark
+   `assets/brand/logo.png` (see `docs/art/prompts/logo.md`). Never re-typeset
+   the title.
 
 ## 6. Design pillars (non-negotiable)
 

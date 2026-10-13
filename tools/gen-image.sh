@@ -73,7 +73,9 @@ if [ -z "$IMG_PATH" ]; then
 fi
 
 if [ -n "$IMG_PATH" ] && [ -f "$IMG_PATH" ]; then
-  cp "$IMG_PATH" "$OUTPUT"
+  if [ "$(realpath "$IMG_PATH")" != "$(realpath "$OUTPUT")" ]; then
+    cp "$IMG_PATH" "$OUTPUT"
+  fi
   echo "IMAGE_PATH: $OUTPUT"
 else
   echo "WARN: could not locate the generated file (searched IMAGE_PATH and the reply)." >&2
