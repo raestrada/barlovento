@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["AGENTS.md"],
+  "skills": {
+    "paths": [".opencode/skill"]
+  },
+  "permission": {
+    "edit": "allow",
+    "bash": {
+      "git *": "allow",
+      "agy *": "allow",
+      "godot *": "allow",
+      "tools/*": "allow",
+      "npx *": "allow",
+      "npm *": "allow",
+      "node *": "allow",
+      "python* *": "allow",
+      "*": "ask"
+    },
+    "websearch": "allow",
+    "webfetch": "allow"
+  }
+}

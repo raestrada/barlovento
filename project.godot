@@ -1,0 +1,14 @@
+; Engine configuration file.
+; Godot 4.7.2-stable
+
+config_version=5
+
+[application]
+
+config/name="Barlovento"
+config/description="A 3D turn-based space strategy game in the spirit of Homeworld."
+config/features=PackedStringArray("4.7", "Forward Plus")
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
