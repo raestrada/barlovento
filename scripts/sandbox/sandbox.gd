@@ -36,6 +36,11 @@ func _ready() -> void:
     TurnManager.reset()
     _setup_input_actions()
 
+    PhysicsSim.bounds = AABB(
+        Vector3(-TacticalGrid.GRID_HALF_SPAN, -TacticalGrid.BOUNDS_HALF_HEIGHT, -TacticalGrid.GRID_HALF_SPAN),
+        Vector3(TacticalGrid.GRID_HALF_SPAN * 2.0, TacticalGrid.BOUNDS_HALF_HEIGHT * 2.0, TacticalGrid.GRID_HALF_SPAN * 2.0)
+    )
+
     _ether = EtherField.new()
     _ether.direction = Vector3(1.0, 0.2, 0.35).normalized()
     _ether.strength = 1.6
@@ -758,11 +763,11 @@ func _toggle_help() -> void:
 
 func _help_text() -> String:
     return """TACTICAL NAVIGATION & CAMERA
-  Right-Click Drag   Orbit tactical camera
-  Middle-Click Drag  Pan battlefield plane
-  Mouse Wheel        Zoom in / out
-  Click on Ship      Direct selection of friendly or hostile target
-  V                  Focus camera on selected ship
+  Left / Middle Drag  Pan battlefield plane
+  Left Click          Select ship under cursor
+  Right-Click Drag    Orbit tactical camera
+  Mouse Wheel         Zoom in / out
+  V                   Focus camera on selected ship
 
 ADMIRAL PHASE (SIMULTANEOUS WEGO MOVEMENT)
   A / D              Turn Port / Starboard (Yaw)
@@ -785,13 +790,28 @@ func _make_theme() -> Theme:
     var theme := Theme.new()
     theme.default_font_size = 14
 
-    var panel_style := StyleBoxFlat.new()
-    panel_style.bg_color = Color(0.04, 0.07, 0.12, 0.90)
-    panel_style.border_color = Color(0.25, 0.75, 0.90, 0.45)
-    panel_style.set_border_width_all(1)
-    panel_style.set_corner_radius_all(6)
-    panel_style.set_content_margin_all(12)
-    theme.set_stylebox("panel", "PanelContainer", panel_style)
+    var hud_tex: Texture2D = load("res://assets/ui/hud_panel.png")
+    if hud_tex != null:
+        var panel_style := StyleBoxTexture.new()
+        panel_style.texture = hud_tex
+        panel_style.texture_margin_left = 40.0
+        panel_style.texture_margin_right = 40.0
+        panel_style.texture_margin_top = 28.0
+        panel_style.texture_margin_bottom = 28.0
+        panel_style.content_margin_left = 18.0
+        panel_style.content_margin_right = 18.0
+        panel_style.content_margin_top = 14.0
+        panel_style.content_margin_bottom = 14.0
+        panel_style.modulate_color = Color(1.0, 1.0, 1.0, 0.94)
+        theme.set_stylebox("panel", "PanelContainer", panel_style)
+    else:
+        var panel_style := StyleBoxFlat.new()
+        panel_style.bg_color = Color(0.04, 0.07, 0.12, 0.90)
+        panel_style.border_color = Color(0.25, 0.75, 0.90, 0.45)
+        panel_style.set_border_width_all(1)
+        panel_style.set_corner_radius_all(6)
+        panel_style.set_content_margin_all(12)
+        theme.set_stylebox("panel", "PanelContainer", panel_style)
 
     var btn_normal := StyleBoxFlat.new()
     btn_normal.bg_color = Color(0.08, 0.13, 0.22, 0.92)

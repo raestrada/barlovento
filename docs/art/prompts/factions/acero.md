@@ -43,4 +43,5 @@ MOOD: disciplined, industrial, militaristic; line-of-battle formations.
 
 | Asset | File | Ratio | Version | Date | Note |
 | --- | --- | --- | --- | --- | --- |
-| _(none yet)_ | | | | | |
+| Dreadnought concept | `assets/ships/acero/dreadnought_concept.png` | 16:9 | v1 | 2026-10-14 | Heavy Acero dreadnought, 3/4 profile, ember thrusters, escort fighters for scale |
+

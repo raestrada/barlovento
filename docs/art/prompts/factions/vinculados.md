@@ -41,4 +41,4 @@ MOOD: elegant, transhuman, slightly uncanny; duels between aces.
 
 | Asset | File | Ratio | Version | Date | Note |
 | --- | --- | --- | --- | --- | --- |
-| _(none yet)_ | | | | | |
+| Suit Concept | assets/ships/vinculados/suit_concept.png | 1:1 | v1 | 2026-10-14 | White ceramic armor, dark sinew joints, glowing magenta core |

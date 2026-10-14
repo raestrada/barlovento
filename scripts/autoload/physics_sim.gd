@@ -1,6 +1,7 @@
 extends Node
 
 var time_scale: float = 1.0
+var bounds: AABB = AABB()
 
 func apply_order(ship: ShipState, order: ShipOrder, dt: float, ether: EtherField = null) -> void:
     step_state(ship, order, dt, ether)
@@ -11,6 +12,27 @@ func step_state(ship: ShipState, order: ShipOrder, dt: float, ether: EtherField 
     if ether != null:
         ship.velocity += ether.current_at(ship.position) * dt
     ship.position += ship.velocity * dt
+    _clamp_to_bounds(ship)
+
+func _clamp_to_bounds(ship: ShipState) -> void:
+    if bounds.get_volume() <= 0.0:
+        return
+    var min_pos := bounds.position
+    var max_pos := bounds.end
+    ship.position = ship.position.clamp(min_pos, max_pos)
+
+    if ship.position.x <= min_pos.x and ship.velocity.x < 0.0:
+        ship.velocity.x = 0.0
+    if ship.position.x >= max_pos.x and ship.velocity.x > 0.0:
+        ship.velocity.x = 0.0
+    if ship.position.y <= min_pos.y and ship.velocity.y < 0.0:
+        ship.velocity.y = 0.0
+    if ship.position.y >= max_pos.y and ship.velocity.y > 0.0:
+        ship.velocity.y = 0.0
+    if ship.position.z <= min_pos.z and ship.velocity.z < 0.0:
+        ship.velocity.z = 0.0
+    if ship.position.z >= max_pos.z and ship.velocity.z > 0.0:
+        ship.velocity.z = 0.0
 
 func turn_toward(ship: ShipState, target: Vector3, dt: float) -> void:
     var turn_rate := ship.turn_power / ship.mass

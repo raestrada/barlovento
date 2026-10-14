@@ -2,6 +2,7 @@ class_name TacticalGrid
 extends Node3D
 
 const GRID_HALF_SPAN := 220.0
+const BOUNDS_HALF_HEIGHT := 40.0
 const MAJOR_STEP := 20.0
 const MINOR_STEP := 5.0
 const RANGE_RINGS := [20.0, 40.0, 60.0, 80.0, 100.0, 140.0, 180.0, 220.0]
@@ -21,8 +22,58 @@ var _ruler_mesh: ImmediateMesh
 func _ready() -> void:
     _build_grid_mesh()
     _build_range_rings()
+    _build_bounds()
     _build_stems_system()
     _build_distance_ruler()
+
+func _build_bounds() -> void:
+    var half := GRID_HALF_SPAN
+    var top := BOUNDS_HALF_HEIGHT
+    var bottom := -BOUNDS_HALF_HEIGHT
+
+    var corners := [
+        Vector3(-half, 0.0, -half),
+        Vector3(half, 0.0, -half),
+        Vector3(half, 0.0, half),
+        Vector3(-half, 0.0, half),
+    ]
+
+    var vertices := PackedVector3Array()
+
+    for i in range(4):
+        vertices.push_back(corners[i])
+        vertices.push_back(corners[(i + 1) % 4])
+
+    for corner in corners:
+        vertices.push_back(Vector3(corner.x, bottom, corner.z))
+        vertices.push_back(Vector3(corner.x, top, corner.z))
+
+    for i in range(4):
+        vertices.push_back(Vector3(corners[i].x, top, corners[i].z))
+        vertices.push_back(Vector3(corners[(i + 1) % 4].x, top, corners[(i + 1) % 4].z))
+
+    for i in range(4):
+        vertices.push_back(Vector3(corners[i].x, bottom, corners[i].z))
+        vertices.push_back(Vector3(corners[(i + 1) % 4].x, bottom, corners[(i + 1) % 4].z))
+
+    var arrays := []
+    arrays.resize(Mesh.ARRAY_MAX)
+    arrays[Mesh.ARRAY_VERTEX] = vertices
+
+    var mesh := ArrayMesh.new()
+    mesh.add_surface_from_arrays(Mesh.PRIMITIVE_LINES, arrays)
+
+    var instance := MeshInstance3D.new()
+    instance.mesh = mesh
+
+    var mat := StandardMaterial3D.new()
+    mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    mat.albedo_color = Color(1.0, 0.55, 0.2, 0.55)
+    mat.emission_enabled = true
+    mat.emission = Color(0.8, 0.4, 0.1)
+    instance.material_override = mat
+    add_child(instance)
 
 func set_ships(fleet: Array[Ship]) -> void:
     ships = fleet

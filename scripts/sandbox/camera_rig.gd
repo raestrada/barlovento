@@ -9,8 +9,8 @@ extends Node3D
 @export var pitch_speed: float = 0.005
 @export var zoom_speed: float = 1.15
 @export var pan_speed: float = 0.0018
-@export var min_pitch: float = 0.08
-@export var max_pitch: float = PI * 0.48
+@export var min_pitch: float = -1.52
+@export var max_pitch: float = 1.52
 
 var _yaw: float = 0.0
 var _pitch: float = PI * 0.22
@@ -42,16 +42,19 @@ func _unhandled_input(event: InputEvent) -> void:
             _target_yaw -= event.relative.x * yaw_speed
             _target_pitch -= event.relative.y * pitch_speed
             _target_pitch = clamp(_target_pitch, min_pitch, max_pitch)
-        elif Input.is_mouse_button_pressed(MOUSE_BUTTON_MIDDLE):
-            var basis := _camera.global_transform.basis
-            var pan := _target_distance * pan_speed
-            _target_position -= basis.x * event.relative.x * pan
-            _target_position += basis.y * event.relative.y * pan
+        elif Input.is_mouse_button_pressed(MOUSE_BUTTON_MIDDLE) or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+            _pan(event.relative)
     elif event is InputEventMouseButton and event.pressed:
         if event.button_index == MOUSE_BUTTON_WHEEL_UP:
             _target_distance = clamp(_target_distance / zoom_speed, min_distance, max_distance)
         elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
             _target_distance = clamp(_target_distance * zoom_speed, min_distance, max_distance)
+
+func _pan(relative: Vector2) -> void:
+    var basis := _camera.global_transform.basis
+    var pan := _target_distance * pan_speed
+    _target_position -= basis.x * relative.x * pan
+    _target_position += basis.y * relative.y * pan
 
 func _process(delta: float) -> void:
     var smooth := clampf(delta * 10.0, 0.01, 1.0)
@@ -65,5 +68,20 @@ func _process(delta: float) -> void:
         distance * sin(_pitch),
         distance * cos(_pitch) * cos(_yaw)
     )
-    _camera.global_position = target + offset
-    _camera.look_at(target, Vector3.UP)
+    var cam_pos := target + offset
+    _camera.global_position = cam_pos
+
+    var forward := target - cam_pos
+    if forward.length_squared() > 0.0001:
+        forward = forward.normalized()
+    else:
+        forward = Vector3.FORWARD
+
+    var right := forward.cross(Vector3.UP)
+    if right.length_squared() < 0.0001:
+        right = Vector3.RIGHT
+    else:
+        right = right.normalized()
+    var up := right.cross(forward).normalized()
+
+    _camera.global_transform.basis = Basis(right, up, -forward)
