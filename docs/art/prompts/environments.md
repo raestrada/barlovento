@@ -17,8 +17,18 @@ ASSET: a vast empty deep-space background for a space tactics game, no ships and
 RATIO: 16:9
 ```
 
+## Star Sea 360 Skybox (v1)
+
+```
+STYLE: painterly sci-fi concept art, cinematic lighting, volumetric depth, cold deep-space indigo and near-black base.
+PALETTE: cold deep-space indigo, glowing cyan and silver Éther currents, deep violet nebulae, distant pinprick star clusters, dark shadow front (the Calm) at one horizon.
+ASSET: equirectangular 360-degree panoramic cosmic skybox environment map for Godot PanoramaSkyMaterial.
+RATIO: 2:1
+```
+
 ## Asset log
 
 | Asset | File | Ratio | Version | Date | Note |
 | --- | --- | --- | --- | --- | --- |
 | Space backdrop | assets/environments/space_backdrop.png | 16:9 | v1 | 2026-10-13 | Empty deep-space backdrop with cyan éther currents and peripheral nebula |
+| Star Sea Skybox | assets/environments/star_sea_skybox.jpg | 2:1 | v1 | 2026-10-13 | 360 equirectangular skybox with flowing Éther currents and encroaching Calm |
