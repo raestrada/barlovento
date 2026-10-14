@@ -42,9 +42,9 @@ done
 [ -n "$OUTPUT" ] || usage
 
 # Normalize output to an absolute path.
+mkdir -p "$(dirname "$OUTPUT")"
 OUTPUT="$(cd "$(dirname "$OUTPUT")" && pwd)/$(basename "$OUTPUT")"
 WORKSPACE="$(cd "$(dirname "$OUTPUT")" && pwd)"
-mkdir -p "$WORKSPACE"
 
 # agy must write somewhere we can find; request a deterministic absolute path.
 TMP_TARGET="${OUTPUT}"

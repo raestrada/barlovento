@@ -72,6 +72,29 @@ overturn a positional disadvantage.
 - The Éther provides *currents* — local field gradients that push ships and
   can be ridden (especially by the Free Tide faction).
 
+### Orders: target velocity, not raw throttle
+
+Movement orders are expressed as a **target velocity** (speed + heading), not
+an open-ended acceleration:
+
+- The player sets a `target_speed` (bounded by the ship's `max_speed`) and a
+  `target_heading`.
+- During resolution the ship burns toward the target: it accelerates along its
+  facing while below the target speed, and applies **retrograde thrust** (brakes)
+  along `-velocity` while above it. There is no passive friction: a ship keeps
+  drifting until it is ordered to stop.
+- **Stopping** is an explicit order (`target_speed = 0`); heavy ships take
+  longer to brake, so a committed capital cannot reverse course easily.
+- `max_speed` caps velocity; acceleration and braking are governed by `thrust`
+  and `brake_thrust` respectively, both divided by `mass`.
+
+This keeps inertia physical while giving the player a bounded, turn-friendly
+control ("go speed 5, heading 90°") instead of an unbounded throttle.
+
+> **Deferred:** `course` (movement direction) is currently conflated with
+> `facing` (weapon direction). A later pass will separate them, as in
+> sail-era line tactics where a ship sails one way and fires another.
+
 ## 6. The hero squad ("aces")
 
 - The player fields a **squad of 2-4 named heroes**, chosen and developed over

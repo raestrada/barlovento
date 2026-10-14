@@ -62,13 +62,34 @@ This is a *proposed* structure; implement in small, verifiable increments.
 
 ## Movement / inertia math
 
-- Each ship: `position`, `velocity`, `thrust`, `mass`, `facing`.
+- Each ship: `position`, `velocity`, `mass`, `facing`, `max_speed`,
+  `max_thrust`, `brake_thrust`, `turn_power`.
 - Integration: `velocity += (thrust/mass) * dt; position += velocity * dt`.
+- Orders are a **target velocity** (`target_speed`, `target_heading`), not raw
+  throttle. Per step `dt`:
+  1. Rotate `facing` toward `target_heading` by at most `(turn_power/mass)*dt`.
+  2. If `|velocity| < target_speed`, accelerate along `facing` by
+     `(max_thrust/mass)*dt`; if above, brake along `-velocity` by
+     `(brake_thrust/mass)*dt`. Clamp `|velocity|` to `[0, max_speed]`.
+  3. Add the éther current gradient to `velocity`.
+  4. `position += velocity * dt`.
 - `dt` is fixed-timestep during resolution; the Admiral phase advances a
   fixed window of simulated seconds; the Ace phase advances in discrete
   actions mapped onto the same simulator.
 - Éther currents are local gradient vectors added to `velocity` (strength
   depends on faction and current).
+
+## Combat (Ace phase)
+
+- The Ace phase is turn-based unit activation: ships are queued (player then
+  enemy) and each activation grants a fixed action budget (default 2 AP).
+- **Move** advances the active ship a fixed window of simulated seconds using
+  the same `PhysicsSim` integrator; **Shoot** resolves damage against a target.
+- A target is hittable when within `weapon_range` **and** inside the shooter's
+  forward firing arc (`weapon_arc_degrees`, a cone around `facing`).
+- Damage reduces `hp`; a ship at `0` hp is destroyed and removed from the queue.
+- Per-facing armor and subsystem targeting are deferred; all ships currently use
+  a single forward arc.
 
 ## Asset pipeline
 
