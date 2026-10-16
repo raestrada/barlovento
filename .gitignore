@@ -17,3 +17,11 @@ Thumbs.db
 
 # Generated scratch (prompts are committed, scratch images are not)
 tools/*.tmp
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+

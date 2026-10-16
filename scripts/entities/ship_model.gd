@@ -104,11 +104,13 @@ static func _build_vinculados(ship: Ship, root: Node3D, thrusters: Array[Node3D]
     var sinew := _colored(Color(0.12, 0.14, 0.18), 0.8, 0.4)
     var core := _emissive(Color(0.95, 0.2, 0.85), 4.0)
 
-    # Torso (tapered, smooth).
-    root.add_child(_cyl(
-        w * 0.22, w * 0.34, h * 0.3, 12, ceramic,
+    # Torso (broad chest, narrow waist, oval front-to-back).
+    var torso := _cyl(
+        w * 0.36, w * 0.24, h * 0.3, 12, ceramic,
         Vector3(0.0, h * 0.18, 0.0)
-    ))
+    )
+    torso.scale = Vector3(1.25, 1.0, 0.8)
+    root.add_child(torso)
 
     # Pelvis block.
     root.add_child(_box(
@@ -121,14 +123,14 @@ static func _build_vinculados(ship: Ship, root: Node3D, thrusters: Array[Node3D]
         w * 0.16, w * 0.32, core, Vector3(0.0, h * 0.26, -d * 0.4)
     ))
 
-    # Head with visor.
-    root.add_child(_box(
-        Vector3(w * 0.3, w * 0.28, w * 0.3), ceramic,
+    # Rounded head with visor.
+    root.add_child(_capsule(
+        w * 0.15, w * 0.34, ceramic,
         Vector3(0.0, h * 0.36, 0.0)
     ))
     root.add_child(_box(
-        Vector3(w * 0.24, w * 0.08, w * 0.05), _emissive(Color(0.4, 0.9, 1.0), 3.0),
-        Vector3(0.0, h * 0.36, -w * 0.16)
+        Vector3(w * 0.26, w * 0.08, w * 0.05), _emissive(Color(0.4, 0.9, 1.0), 3.0),
+        Vector3(0.0, h * 0.36, -w * 0.14)
     ))
 
     # Shoulder pauldrons.
@@ -175,16 +177,28 @@ static func _build_vinculados(ship: Ship, root: Node3D, thrusters: Array[Node3D]
 static func _build_marea(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
     var s := ship.body_size
     var wood := _textured(load(MAREA_HULL), 0.0, 0.7, Vector3(2.0, 2.0, 1.0))
+    wood.cull_mode = BaseMaterial3D.CULL_DISABLED
     var brass := _colored(Color(0.85, 0.7, 0.25), 0.9, 0.3)
     var sail := _translucent(Color(0.2, 0.85, 0.95, 0.55), Color(0.1, 0.5, 0.6), 1.6)
     var hab := _emissive(Color(1.0, 0.65, 0.25), 3.0)
     var oar := _emissive(Color(0.3, 0.9, 0.95), 2.0)
 
-    # Rounded, tapered sealed hull.
-    root.add_child(_cyl(
-        s.x * 0.3, s.x * 0.55, s.z * 0.85, 10, wood,
-        Vector3(0.0, 0.0, 0.0), Vector3(-90.0, 0.0, 0.0)
-    ))
+    # Lofted sealed hull: rounded keel, curving sides, sheer to bow and stern.
+    var half_len := s.z * 0.5
+    var hull_mesh := build_loft(_marea_profile(s), [
+        {"z": -half_len, "scale": Vector2(0.05, 0.05), "offset_y": 0.15},
+        {"z": -half_len * 0.8, "scale": Vector2(0.4, 0.45), "offset_y": 0.08},
+        {"z": -half_len * 0.5, "scale": Vector2(0.7, 0.75), "offset_y": 0.03},
+        {"z": -half_len * 0.2, "scale": Vector2(0.9, 0.9), "offset_y": 0.0},
+        {"z": half_len * 0.2, "scale": Vector2(1.0, 1.0), "offset_y": 0.0},
+        {"z": half_len * 0.6, "scale": Vector2(0.95, 0.95), "offset_y": 0.02},
+        {"z": half_len * 0.85, "scale": Vector2(0.7, 0.7), "offset_y": 0.08},
+        {"z": half_len, "scale": Vector2(0.55, 0.55), "offset_y": 0.12},
+    ])
+    var hull_inst := MeshInstance3D.new()
+    hull_inst.mesh = hull_mesh
+    hull_inst.material_override = wood
+    root.add_child(hull_inst)
 
     # Bowsprit.
     root.add_child(_cyl(
@@ -259,6 +273,28 @@ static func _acero_profile(s: Vector3) -> PackedVector2Array:
         Vector2(-hw, 0.35 * hh),
         Vector2(-hw, -0.15 * hh),
         Vector2(-0.85 * hw, -0.55 * hh),
+    ])
+
+static func _marea_profile(s: Vector3) -> PackedVector2Array:
+    var hw := s.x * 0.5
+    var hh := s.y * 0.4
+    return PackedVector2Array([
+        Vector2(0.0, -0.6 * hh),
+        Vector2(0.3 * hw, -0.55 * hh),
+        Vector2(0.55 * hw, -0.4 * hh),
+        Vector2(0.75 * hw, -0.18 * hh),
+        Vector2(0.88 * hw, 0.05 * hh),
+        Vector2(0.9 * hw, 0.28 * hh),
+        Vector2(0.78 * hw, 0.45 * hh),
+        Vector2(0.55 * hw, 0.55 * hh),
+        Vector2(0.0, 0.6 * hh),
+        Vector2(-0.55 * hw, 0.55 * hh),
+        Vector2(-0.78 * hw, 0.45 * hh),
+        Vector2(-0.9 * hw, 0.28 * hh),
+        Vector2(-0.88 * hw, 0.05 * hh),
+        Vector2(-0.75 * hw, -0.18 * hh),
+        Vector2(-0.55 * hw, -0.4 * hh),
+        Vector2(-0.3 * hw, -0.55 * hh),
     ])
 
 # Loft a closed 2D profile through a series of stations into a hull mesh.

@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Barlovento"
 config/description="A 3D turn-based space strategy game of naval combat among the stars."
-run/main_scene="res://scenes/sandbox/sandbox.tscn"
+run/main_scene="res://scenes/intro/intro.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
 [autoload]
