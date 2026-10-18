@@ -53,8 +53,24 @@ literal wooden boat floating in a vacuum.
 - **Harpooner** — armored boarder with magnetic grapples, braced in a docking collar.
 - **Windcaller** — hooded shaman mid-song, currents coiling around them.
 
+## Prompts
+
+### Faction Selection Card — The Free Tide (`assets/factions/card_marea.png`)
+
+```text
+STYLE: painterly sci-fi concept art, cinematic lighting, volumetric depth, not flat, not cartoon, not photorealistic.
+PALETTE: cold deep-space base of near-black blue and indigo; warm amber interior cabin lights and riveted brass; luminous cyan energy-sail membranes and Éther currents.
+LIGHT: strong single key light from a distant star, strong rim light, heavy chiaroscuro, clear readable silhouettes.
+QUALITY: high detail, clean composition, no text, no watermark, no logo.
+FACTION: The Free Tide — spaceworthy void-corsair vessels engineered for hard vacuum: completely sealed pressurized timber-and-brass hulls, sealed glass-and-brass observation domes (no open decks), radial telescopic brass spar booms holding huge glowing cyan energy-membrane sails veined with silver light, and mechanical articulated Éther-oar vanes.
+SUBJECT: Faction allegiance artwork for "The Free Tide". In the mid-ground, flying through hard vacuum over a luminous cyan river of Éther and dark basalt asteroids, is a spaceworthy void-galleon spacecraft: its curved hull is completely enclosed and pressurized, built from dark encapsulated timber clamped in heavy riveted brass ribs, topped with sealed glass-and-brass pressurized observation domes glowing with warm amber light inside (no open decks). From a central mechanical brass mount, radial telescopic brass spar booms unfurl huge, translucent glowing cyan energy-membrane sails veined with silver light, while banks of mechanical brass-and-cyan energy oars and rotary brass mass-driver turrets line its flanks. In the foreground corner, viewed from INSIDE a sealed, pressurized brass-framed glass bridge cupola, a corsair captain in a high-collar pressurized void-flight suit and brass goggles operates a holographic brass astrolabe helm, looking out through the thick cockpit viewport at the fleet.
+RATIO: 4:3
+```
+
 ## Asset log
 
 | Asset | File | Ratio | Version | Date | Note |
 | --- | --- | --- | --- | --- | --- |
-| Galleon | assets/ships/marea-libre/galleon.png | 1:1 | v1 | 2026-10-13 | Broad sealed hull, mass-driver batteries, cyan ether sails |
+| Galleon | `assets/ships/marea-libre/galleon.png` | 1:1 | v1 | 2026-10-13 | Broad sealed hull, mass-driver batteries, cyan ether sails |
+| Faction Selection Card | `assets/factions/card_marea.png` | 4:3 | v2 | 2026-10-18 | Spaceworthy sealed timber-and-brass void-galleon with radial spar energy sails and captain inside pressurized bridge cupola |
+

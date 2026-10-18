@@ -1,6 +1,6 @@
 extends Control
 
-const NEXT_SCENE_PATH := "res://scenes/sandbox/sandbox.tscn"
+const NEXT_SCENE_PATH := "res://scenes/menu/main_menu.tscn"
 const VIDEO_PATH := "res://assets/video/intro.ogv"
 
 @onready var video_player: VideoStreamPlayer = $VideoStreamPlayer
@@ -14,7 +14,7 @@ var _prompt_timer: float = 0.0
 func _ready() -> void:
     fade_rect.modulate.a = 1.0
     skip_prompt.modulate.a = 0.0
-    
+
     var stream = load(VIDEO_PATH)
     if stream:
         video_player.stream = stream
@@ -29,8 +29,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
     _prompt_timer += delta
-    if _prompt_timer > 3.0 and not _transitioning:
-        var alpha := (sin(_prompt_timer * 2.0) + 1.0) * 0.25 + 0.35
+    if _prompt_timer > 1.5 and not _transitioning:
+        var alpha := (sin(_prompt_timer * 2.2) + 1.0) * 0.25 + 0.40
         skip_prompt.modulate.a = alpha
 
 func _input(event: InputEvent) -> void:
@@ -52,9 +52,9 @@ func _proceed_to_game() -> void:
     if _transitioning:
         return
     _transitioning = true
-    
+
     var tween := create_tween()
-    tween.tween_property(fade_rect, "modulate:a", 1.0, 0.8)
+    tween.tween_property(fade_rect, "modulate:a", 1.0, 0.7)
     tween.tween_callback(_change_scene)
 
 func _change_scene() -> void:

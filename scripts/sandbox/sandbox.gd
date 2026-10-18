@@ -47,6 +47,7 @@ var _hud_theme: Theme
 var _ether_particles: Node3D
 var _asteroid_root: Node3D
 var _calm_wall_root: Node3D
+var _sluice_station_root: Node3D
 var _is_vector_dragging: bool = false
 
 var _mission_completed: bool = false
@@ -70,6 +71,7 @@ func _ready() -> void:
 	_build_ether_flow()
 	_build_asteroid_field()
 	_build_calm_wavefront()
+	_build_sluice_station()
 	_build_tactical_grid()
 	_spawn_fleets()
 	_build_trajectory_preview()
@@ -86,8 +88,12 @@ func _ready() -> void:
 	TurnManager.ace_fire_moment.connect(_on_ace_fire_moment)
 
 	_on_phase_changed(TurnManager.phase)
-	_add_combat_log("Tactical link established. Outer Veil // Sector Psalm-4.", Color(0.4, 0.9, 1.0))
-	_add_combat_log("Tip: Hold [SHIFT + Left-Click/Drag] on the 3D plane to aim vector & speed.", Color(1.0, 0.85, 0.3))
+	if LoreDB.current_stage_id == "acero_stage_1":
+		_add_combat_log("ACT I // STAGE 01: Sluice Station Well-09 under Corsair raid!", Color(1.0, 0.72, 0.28))
+		_add_combat_log("Adm. Vane: \"Hold the Line of Battle. Present bow armor and cross their T!\"", Color(0.4, 0.92, 1.0))
+	else:
+		_add_combat_log("Tactical link established. Outer Veil // Sector Psalm-4.", Color(0.4, 0.9, 1.0))
+		_add_combat_log("Tip: Hold [SHIFT + Left-Click/Drag] on the 3D plane to aim vector & speed.", Color(1.0, 0.85, 0.3))
 
 func _physics_process(delta: float) -> void:
 	if not TurnManager.is_resolving():
@@ -965,45 +971,10 @@ func _add_combat_log(text: String, color: Color = Color.WHITE) -> void:
 			_combat_log_vbox.add_child(lbl)
 
 func _build_environment() -> void:
-	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-42.0, -35.0, 0.0)
-	sun.light_energy = 1.35
-	sun.light_color = Color(1.0, 0.96, 0.90)
-	add_child(sun)
-
-	var rim_light := DirectionalLight3D.new()
-	rim_light.rotation_degrees = Vector3(50.0, 145.0, 0.0)
-	rim_light.light_energy = 0.52
-	rim_light.light_color = Color(0.3, 0.65, 0.92)
-	add_child(rim_light)
-
-	var world := WorldEnvironment.new()
-	var env := Environment.new()
-
-	var sky_tex: Texture2D = load("res://assets/environments/star_sea_skybox.jpg")
-	if sky_tex != null:
-		env.background_mode = Environment.BG_SKY
-		var sky := Sky.new()
-		var sky_mat := PanoramaSkyMaterial.new()
-		sky_mat.panorama = sky_tex
-		sky.sky_material = sky_mat
-		env.sky = sky
-		env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-		env.ambient_light_sky_contribution = 0.38
-	else:
-		env.background_mode = Environment.BG_COLOR
-		env.background_color = Color(0.012, 0.016, 0.035)
-
-	env.ambient_light_color = Color(0.2, 0.3, 0.45)
-	env.ambient_light_energy = 1.15
-	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.glow_enabled = true
-	env.glow_intensity = 0.72
-	env.glow_bloom = 0.25
-	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
-
-	world.environment = env
-	add_child(world)
+	var backdrop := StarSeaBackdrop.new()
+	backdrop.name = "StarSeaBackdrop"
+	add_child(backdrop)
+	backdrop.setup_environment(false)
 
 func _build_camera() -> void:
 	_camera_rig = CameraRig.new()
@@ -1128,6 +1099,95 @@ func _build_calm_wavefront() -> void:
 		pillar.material_override = calm_mat
 		_calm_wall_root.add_child(pillar)
 
+func _build_sluice_station() -> void:
+	# Colossal 3D Acero Éteron Sluice-Gate Refinery ("Well-09", matching acero_stage1_briefing.png)
+	_sluice_station_root = Node3D.new()
+	_sluice_station_root.name = "SluiceStationWell09"
+	_sluice_station_root.position = Vector3(-26.0, -2.0, 6.0)
+	_sluice_station_root.rotation_degrees = Vector3(0.0, 22.0, 0.0)
+	add_child(_sluice_station_root)
+
+	var steel_mat := StandardMaterial3D.new()
+	steel_mat.albedo_color = Color(0.18, 0.21, 0.26)
+	steel_mat.metallic = 0.78
+	steel_mat.roughness = 0.42
+
+	var dark_plate := StandardMaterial3D.new()
+	dark_plate.albedo_color = Color(0.10, 0.12, 0.16)
+	dark_plate.metallic = 0.85
+	dark_plate.roughness = 0.35
+
+	var sluice_cyan := StandardMaterial3D.new()
+	sluice_cyan.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	sluice_cyan.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	sluice_cyan.albedo_color = Color(0.22, 0.92, 1.0, 0.72)
+	sluice_cyan.emission_enabled = true
+	sluice_cyan.emission = Color(0.2, 0.85, 1.0)
+	sluice_cyan.emission_energy_multiplier = 3.2
+
+	var furnace_amber := StandardMaterial3D.new()
+	furnace_amber.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	furnace_amber.albedo_color = Color(1.0, 0.58, 0.18)
+	furnace_amber.emission_enabled = true
+	furnace_amber.emission = Color(1.0, 0.48, 0.12)
+	furnace_amber.emission_energy_multiplier = 3.5
+
+	# Twin Towering Brutalist Refinery Pylons
+	for side in [-1.0, 1.0]:
+		var tower := MeshInstance3D.new()
+		var t_box := BoxMesh.new()
+		t_box.size = Vector3(3.8, 22.0, 5.2)
+		tower.mesh = t_box
+		tower.position = Vector3(float(side) * 4.8, 3.0, 0.0)
+		tower.material_override = steel_mat
+		_sluice_station_root.add_child(tower)
+
+		# Horizontal Gantry Cross-Arms
+		var arm := MeshInstance3D.new()
+		var a_box := BoxMesh.new()
+		a_box.size = Vector3(12.0, 2.2, 2.8)
+		arm.mesh = a_box
+		arm.position = Vector3(float(side) * 11.5, 1.5, 0.0)
+		arm.material_override = dark_plate
+		_sluice_station_root.add_child(arm)
+
+		# Ember Furnace Core Window
+		var vent := MeshInstance3D.new()
+		var v_box := BoxMesh.new()
+		v_box.size = Vector3(1.6, 4.2, 5.4)
+		vent.mesh = v_box
+		vent.position = Vector3(float(side) * 4.8, 6.5, 0.0)
+		vent.material_override = furnace_amber
+		_sluice_station_root.add_child(vent)
+
+	# Upper & Lower Sluice Gate Bridge Arch
+	var arch_top := MeshInstance3D.new()
+	var at_box := BoxMesh.new()
+	at_box.size = Vector3(13.5, 3.0, 5.6)
+	arch_top.mesh = at_box
+	arch_top.position = Vector3(0.0, 11.5, 0.0)
+	arch_top.material_override = dark_plate
+	_sluice_station_root.add_child(arch_top)
+
+	# Glowing Cyan Éther Sluice Stream Passing Through the Gate
+	var stream := MeshInstance3D.new()
+	var s_box := BoxMesh.new()
+	s_box.size = Vector3(5.4, 5.2, 16.0)
+	stream.mesh = s_box
+	stream.position = Vector3(0.0, 0.5, 0.0)
+	stream.material_override = sluice_cyan
+	_sluice_station_root.add_child(stream)
+
+	var station_lbl := Label3D.new()
+	station_lbl.text = "◆ SLUICE STATION WELL-09\n[ACERO ÉTERON REFINERY]"
+	station_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	station_lbl.font_size = 14
+	station_lbl.modulate = Color(1.0, 0.78, 0.32)
+	station_lbl.outline_modulate = Color(0.01, 0.02, 0.05, 0.95)
+	station_lbl.outline_size = 3
+	station_lbl.position = Vector3(0.0, 16.5, 0.0)
+	_sluice_station_root.add_child(station_lbl)
+
 func _update_scenery(delta: float) -> void:
 	if _asteroid_root != null:
 		for cluster in _asteroid_root.get_children():
@@ -1155,17 +1215,36 @@ func _build_tactical_grid() -> void:
 	add_child(_tactical_grid)
 
 func _spawn_fleets() -> void:
-	_player_ships.append(_spawn("vinculados_suit", Vector3(-14.0, 8.0, 38.0), Vector3.ZERO, 0))
-	_player_ships.append(_spawn("vinculados_anima", Vector3(14.0, -6.0, 42.0), Vector3.ZERO, 0))
-	_player_ships.append(_spawn("marea_galleon", Vector3(0.0, 2.0, 36.0), Vector3.ZERO, 0))
+	match LoreDB.current_stage_id:
+		"acero_stage_1":
+			# ACT I // STAGE 01: The Armada of Acero defending Sluice Station Well-09 against Free Tide Raiders
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-12.0, 5.0, 36.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(4.0, 2.0, 34.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 38.0), Vector3.ZERO, 0))
 
-	_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.0), 1))
-	_enemy_ships.append(_spawn("acero_corvette", Vector3(10.0, 4.0, -45.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(-8.0, 6.0, -40.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(12.0, 3.0, -44.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(2.0, 9.0, -36.0), Vector3(0.0, 0.0, 4.5), 1))
+		"marea_stage_1":
+			_player_ships.append(_spawn("marea_galleon", Vector3(-10.0, 5.0, 36.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(8.0, 2.0, 38.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(18.0, 7.0, 34.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(10.0, 3.0, -44.0), Vector3(0.0, 0.0, 3.0), 1))
+		_:
+			# Vinculados Stage 1 / Classic Sandbox
+			_player_ships.append(_spawn("vinculados_suit", Vector3(-14.0, 8.0, 38.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(14.0, -6.0, 42.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(0.0, 2.0, 36.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(10.0, 4.0, -45.0), Vector3(0.0, 0.0, 3.0), 1))
 
 	_tactical_grid.set_ships(_player_ships + _enemy_ships)
 
 	for p in _player_ships:
-		p.order.target_speed = 10.0
+		p.order.target_speed = minf(10.0, p.state.max_speed * 0.75)
 		p.order.yaw = 0.0
 		p.order.pitch = 0.0
 
@@ -1258,24 +1337,28 @@ func _build_hud() -> void:
 	_ace_top_banner.visible = false
 	layer.add_child(_ace_top_banner)
 
-	# 3. TOP-RIGHT: Hamburger Menu [≡], Roster [★], Reset [↻] & Compact Sensor Feed
+	# 3. TOP-RIGHT: Menu [◀ MENU], Roster [★], Reset [↻], Help [≡], Commander Bridge Card & Sensor Feed
 	var top_right_vbox := VBoxContainer.new()
 	top_right_vbox.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	top_right_vbox.position = Vector2(-282, 12)
-	top_right_vbox.custom_minimum_size = Vector2(268, 0)
+	top_right_vbox.position = Vector2(-310, 12)
+	top_right_vbox.custom_minimum_size = Vector2(296, 0)
 	top_right_vbox.add_theme_constant_override("separation", 6)
 	layer.add_child(top_right_vbox)
 
 	var tr_btn_row := HBoxContainer.new()
 	tr_btn_row.alignment = BoxContainer.ALIGNMENT_END
-	tr_btn_row.add_theme_constant_override("separation", 6)
+	tr_btn_row.add_theme_constant_override("separation", 5)
 	top_right_vbox.add_child(tr_btn_row)
 
-	_objective_label = Label.new()
-	_objective_label.text = "[0/2 NEUTRALIZED]"
-	_objective_label.add_theme_font_size_override("font_size", 10)
-	_objective_label.add_theme_color_override("font_color", HudWidgets.COL_CYAN_BRIGHT)
-	tr_btn_row.add_child(_objective_label)
+	var menu_btn := Button.new()
+	menu_btn.text = "◀ MENU"
+	menu_btn.tooltip_text = "Return to Main Menu / Faction Select"
+	menu_btn.theme = _hud_theme
+	menu_btn.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
+	)
+	tr_btn_row.add_child(menu_btn)
 
 	var roster_btn := Button.new()
 	roster_btn.text = "★ ROSTER [R]"
@@ -1288,7 +1371,7 @@ func _build_hud() -> void:
 
 	var reset_btn := Button.new()
 	reset_btn.text = "↻"
-	reset_btn.tooltip_text = "Restart Scenario"
+	reset_btn.tooltip_text = "Restart Stage"
 	reset_btn.theme = _hud_theme
 	reset_btn.custom_minimum_size = Vector2(30, 28)
 	reset_btn.pressed.connect(func() -> void: get_tree().reload_current_scene())
@@ -1302,10 +1385,55 @@ func _build_hud() -> void:
 	help_btn.pressed.connect(_toggle_help)
 	tr_btn_row.add_child(help_btn)
 
+	# Commander Bridge Comms & Stage Objective Card
+	var cmd_card := PanelContainer.new()
+	cmd_card.theme = _hud_theme
+	top_right_vbox.add_child(cmd_card)
+
+	var cmd_hbox := HBoxContainer.new()
+	cmd_hbox.add_theme_constant_override("separation", 8)
+	cmd_card.add_child(cmd_hbox)
+
+	var cmd_port := TextureRect.new()
+	var port_path := "res://assets/factions/acero_commander.png"
+	if LoreDB.current_stage_id == "marea_stage_1":
+		port_path = "res://assets/ships/marea-libre/galleon_concept.png"
+	elif LoreDB.current_stage_id != "acero_stage_1":
+		port_path = "res://assets/ships/vinculados/suit_concept.png"
+	var port_tex: Texture2D = load(port_path)
+	if port_tex != null:
+		cmd_port.texture = port_tex
+	cmd_port.custom_minimum_size = Vector2(44, 44)
+	cmd_port.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	cmd_port.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	cmd_hbox.add_child(cmd_port)
+
+	var cmd_vbox := VBoxContainer.new()
+	cmd_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cmd_vbox.add_theme_constant_override("separation", 1)
+	cmd_hbox.add_child(cmd_vbox)
+
+	_stage_title_label = Label.new()
+	if LoreDB.current_stage_id == "acero_stage_1":
+		_stage_title_label.text = "ACT I // STAGE 01: SLUICE WELL-09"
+	elif LoreDB.current_stage_id == "marea_stage_1":
+		_stage_title_label.text = "ACT III // STAGE 01: ANVIL BLOCKADE"
+	else:
+		_stage_title_label.text = "SECTOR PSALM-4 // RESONANCE WELL"
+	_stage_title_label.add_theme_font_size_override("font_size", 10)
+	_stage_title_label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.32))
+	cmd_vbox.add_child(_stage_title_label)
+
+	_objective_label = Label.new()
+	_objective_label.text = "[0/3 RAIDERS NEUTRALIZED]"
+	_objective_label.add_theme_font_size_override("font_size", 10)
+	_objective_label.add_theme_color_override("font_color", HudWidgets.COL_CYAN_BRIGHT)
+	cmd_vbox.add_child(_objective_label)
+
 	# Compact Translucent Sensor Feed
 	var log_panel := PanelContainer.new()
 	log_panel.theme = _hud_theme
-	log_panel.custom_minimum_size = Vector2(268, 86)
+	log_panel.custom_minimum_size = Vector2(296, 86)
 	top_right_vbox.add_child(log_panel)
 
 	var log_outer := VBoxContainer.new()
@@ -1313,7 +1441,7 @@ func _build_hud() -> void:
 	log_panel.add_child(log_outer)
 
 	var log_title := Label.new()
-	log_title.text = "SENSOR TELEMETRY // SECTOR PSALM-4"
+	log_title.text = "BRIDGE TELEMETRY // TACTICAL FEED"
 	log_title.add_theme_font_size_override("font_size", 9)
 	log_title.add_theme_color_override("font_color", Color(0.50, 0.78, 0.95))
 	log_outer.add_child(log_title)
@@ -1518,6 +1646,7 @@ func _check_stage_objectives() -> void:
 	if _mission_completed:
 		return
 
+	var total_enemies := _enemy_ships.size()
 	var enemies_alive := 0
 	for enemy in _enemy_ships:
 		if not enemy.is_destroyed():
@@ -1532,8 +1661,8 @@ func _check_stage_objectives() -> void:
 	var flagship_hp_pct := roundi((_player_ships[0].hp / maxf(_player_ships[0].max_hp, 1.0)) * 100.0)
 
 	if _objective_label != null:
-		_objective_label.text = "[FLOTILLA: %d/2 DESTROYED | FLAGSHIP: %d%% HP]" % [
-			2 - enemies_alive, flagship_hp_pct
+		_objective_label.text = "[HOSTILES: %d/%d DESTROYED | FLAGSHIP: %d%% HP]" % [
+			total_enemies - enemies_alive, total_enemies, flagship_hp_pct
 		]
 
 	if enemies_alive == 0:
@@ -1546,14 +1675,17 @@ func _check_stage_objectives() -> void:
 func _show_mission_victory() -> void:
 	AudioManager.play_sfx("shockwave", 0.0)
 	AudioManager.play_sfx("explosion_big", 0.0)
-	_add_combat_log("MISSION ACCOMPLISHED: SECTOR PSALM-4 SECURED!", Color(0.3, 1.0, 0.6))
+	if LoreDB.current_stage_id == "acero_stage_1":
+		_add_combat_log("STAGE 01 COMPLETE: SLUICE STATION WELL-09 SECURED! STEEL ENDURES!", Color(0.3, 1.0, 0.6))
+	else:
+		_add_combat_log("MISSION ACCOMPLISHED: SECTOR SECURED!", Color(0.3, 1.0, 0.6))
 	if _victory_overlay != null:
 		_victory_overlay.visible = true
 
 func _show_mission_defeat() -> void:
 	AudioManager.play_sfx("shockwave", 0.0)
 	AudioManager.play_sfx("explosion_big", 0.0)
-	_add_combat_log("MISSION FAILED: COMMAND FRAME DESTROYED", Color(1.0, 0.3, 0.3))
+	_add_combat_log("MISSION FAILED: FLAGSHIP DESTROYED", Color(1.0, 0.3, 0.3))
 	if _defeat_overlay != null:
 		_defeat_overlay.visible = true
 
@@ -1564,14 +1696,14 @@ func _build_victory_overlay(layer: CanvasLayer) -> void:
 	layer.add_child(_victory_overlay)
 
 	var dim := ColorRect.new()
-	dim.color = Color(0.01, 0.04, 0.08, 0.80)
+	dim.color = Color(0.01, 0.04, 0.08, 0.84)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_victory_overlay.add_child(dim)
 
 	var panel := PanelContainer.new()
 	panel.theme = _hud_theme
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(540, 280)
+	panel.custom_minimum_size = Vector2(580, 310)
 	_victory_overlay.add_child(panel)
 
 	var vbox := VBoxContainer.new()
@@ -1579,13 +1711,16 @@ func _build_victory_overlay(layer: CanvasLayer) -> void:
 	panel.add_child(vbox)
 
 	var title := Label.new()
-	title.text = "MISSION ACCOMPLISHED"
+	title.text = "STAGE 01 ACCOMPLISHED // STEEL ENDURES" if LoreDB.current_stage_id == "acero_stage_1" else "MISSION ACCOMPLISHED"
 	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", Color(0.3, 1.0, 0.65))
 	vbox.add_child(title)
 
 	var sub := Label.new()
-	sub.text = "Sector Psalm-4 // Resonance Well Secured\n\nThe Acero strike group has been repelled.\nThe Vinculados choir maintains neural resonance with the Éther currents."
+	if LoreDB.current_stage_id == "acero_stage_1":
+		sub.text = "Sluice Station Well-09 Secured // The Armada of Acero\n\nFleet Admiral Vane's line of battle shattered Captain Solano's corsair raid.\nRefined éteron continues to flow toward the orbital forges of Anvil."
+	else:
+		sub.text = "Sector Psalm-4 // Resonance Well Secured\n\nThe hostile strike group has been repelled.\nYour squadron holds control of the local Éther currents."
 	sub.add_theme_font_size_override("font_size", 13)
 	sub.add_theme_color_override("font_color", Color(0.85, 0.95, 1.0))
 	vbox.add_child(sub)
@@ -1597,8 +1732,15 @@ func _build_victory_overlay(layer: CanvasLayer) -> void:
 	btn_row.add_theme_constant_override("separation", 12)
 	vbox.add_child(btn_row)
 
+	var menu_btn := Button.new()
+	menu_btn.text = "◀ RETURN TO CAMPAIGN MENU"
+	menu_btn.custom_minimum_size = Vector2(230, 38)
+	menu_btn.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn"))
+	btn_row.add_child(menu_btn)
+
 	var replay_btn := Button.new()
-	replay_btn.text = "REPLAY STAGE"
+	replay_btn.text = "↻ REPLAY STAGE 01"
+	replay_btn.custom_minimum_size = Vector2(180, 38)
 	replay_btn.pressed.connect(func() -> void: get_tree().reload_current_scene())
 	btn_row.add_child(replay_btn)
 
@@ -1609,14 +1751,14 @@ func _build_defeat_overlay(layer: CanvasLayer) -> void:
 	layer.add_child(_defeat_overlay)
 
 	var dim := ColorRect.new()
-	dim.color = Color(0.08, 0.01, 0.02, 0.82)
+	dim.color = Color(0.08, 0.01, 0.02, 0.84)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_defeat_overlay.add_child(dim)
 
 	var panel := PanelContainer.new()
 	panel.theme = _hud_theme
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(540, 280)
+	panel.custom_minimum_size = Vector2(580, 310)
 	_defeat_overlay.add_child(panel)
 
 	var vbox := VBoxContainer.new()
@@ -1624,13 +1766,17 @@ func _build_defeat_overlay(layer: CanvasLayer) -> void:
 	panel.add_child(vbox)
 
 	var title := Label.new()
-	title.text = "MISSION FAILED"
+	title.text = "MISSION FAILED // LINE OF BATTLE BROKEN"
 	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", Color(1.0, 0.35, 0.3))
 	vbox.add_child(title)
 
 	var sub := Label.new()
-	sub.text = "Flagship Link Severed // The Choir Falls Silent\n\nCommand Frame Eidolon Prime was destroyed or fell Cold.\nThe Acero Armada has occupied the resonance well."
+	if LoreDB.current_stage_id == "acero_stage_1":
+		sub.text = "Sluice Station Well-09 Lost // Flagship CNS Iron Bastion Destroyed\n\nWithout the Anvil-class flagship anchoring the line, Free Tide corsairs breached the sluice gates and cut Anvil's éteron supply spine."
+	else:
+		sub.text = "Flagship Link Severed // The Squadron Falls Silent\n\nYour command vessel was destroyed in combat."
+	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	sub.add_theme_font_size_override("font_size", 13)
 	sub.add_theme_color_override("font_color", Color(0.95, 0.8, 0.8))
 	vbox.add_child(sub)
@@ -1642,8 +1788,15 @@ func _build_defeat_overlay(layer: CanvasLayer) -> void:
 	btn_row.add_theme_constant_override("separation", 12)
 	vbox.add_child(btn_row)
 
+	var menu_btn := Button.new()
+	menu_btn.text = "◀ RETURN TO CAMPAIGN MENU"
+	menu_btn.custom_minimum_size = Vector2(230, 38)
+	menu_btn.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn"))
+	btn_row.add_child(menu_btn)
+
 	var retry_btn := Button.new()
-	retry_btn.text = "RETRY MISSION"
+	retry_btn.text = "↻ RETRY STAGE 01"
+	retry_btn.custom_minimum_size = Vector2(180, 38)
 	retry_btn.pressed.connect(func() -> void: get_tree().reload_current_scene())
 	btn_row.add_child(retry_btn)
 
@@ -1669,6 +1822,7 @@ func _build_help_overlay(layer: CanvasLayer) -> void:
 	panel.add_child(main_vbox)
 
 	var header_row := HBoxContainer.new()
+	header_row.add_theme_constant_override("separation", 10)
 	main_vbox.add_child(header_row)
 
 	var title := Label.new()
@@ -1680,6 +1834,11 @@ func _build_help_overlay(layer: CanvasLayer) -> void:
 	var header_spacer := Control.new()
 	header_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header_row.add_child(header_spacer)
+
+	var to_menu_btn := Button.new()
+	to_menu_btn.text = "◀ MAIN MENU"
+	to_menu_btn.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn"))
+	header_row.add_child(to_menu_btn)
 
 	var close_top_btn := Button.new()
 	close_top_btn.text = "✕ CLOSE [ESC / H]"

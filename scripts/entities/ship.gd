@@ -121,12 +121,24 @@ func apply_def(def: ShipDef) -> void:
             armor_port = 92.0
             armor_stbd = 92.0
             armor_stern = 70.0
+        "marea_raider":
+            unit_code = "MAREA_RDR_02"
+            armor_bow = 88.0
+            armor_port = 85.0
+            armor_stbd = 85.0
+            armor_stern = 62.0
         "acero_dreadnought":
             unit_code = "ACER_ANS_01"
             armor_bow = 100.0
-            armor_port = 88.0
-            armor_stbd = 88.0
-            armor_stern = 65.0
+            armor_port = 90.0
+            armor_stbd = 90.0
+            armor_stern = 68.0
+        "acero_battlecruiser":
+            unit_code = "ACER_HAM_02"
+            armor_bow = 96.0
+            armor_port = 82.0
+            armor_stbd = 82.0
+            armor_stern = 60.0
         "acero_corvette":
             unit_code = "DIRK_CRU_04"
             armor_bow = 85.0
@@ -467,8 +479,8 @@ func _rebuild_firing_arc() -> void:
         line_verts.push_back(ip1)
         line_verts.push_back(ip2)
 
-    # For Free Tide Galleon & Acero Dreadnought, also draw the Port & Starboard Broadside Firing Cones (exact ace-phase.png broadside fan!)
-    if faction == "marea_libre" or ship_id == "acero_dreadnought":
+    # For Free Tide Galleons & Acero Capital Ships, also draw Port & Starboard Broadside Firing Cones
+    if faction == "marea_libre" or ship_id == "acero_dreadnought" or ship_id == "acero_battlecruiser":
         var bs_range := weapon_range * 0.88
         var bs_inner := bs_range * 0.56
         for side in [-1.0, 1.0]:

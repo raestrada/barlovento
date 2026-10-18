@@ -685,6 +685,30 @@ class AdmiralUnitCard extends Button:
 class HeroRosterModal extends Control:
     signal closed
 
+    var _hero_textures: Array[Texture2D] = []
+
+    func _ensure_textures() -> void:
+        if not _hero_textures.is_empty():
+            return
+        var paths := [
+            "res://assets/factions/acero_commander.png",
+            "res://assets/ships/vinculados/suit_concept.png",
+            "res://assets/ships/marea-libre/galleon_concept.png",
+            "res://assets/ships/marea-libre/galleon.png"
+        ]
+        for p in paths:
+            _hero_textures.append(load(p))
+
+    func _draw_portrait_in_rect(idx: int, port_r: Rect2, col: Color) -> void:
+        _ensure_textures()
+        draw_rect(port_r, Color(0.03, 0.04, 0.08, 0.98), true)
+        if idx >= 0 and idx < _hero_textures.size() and _hero_textures[idx] != null:
+            draw_texture_rect(_hero_textures[idx], port_r.grow(-2.0), false, Color(0.95, 0.96, 1.0, 0.92))
+        else:
+            var pc := port_r.get_center()
+            draw_circle(pc + Vector2(0, -14), 16.0, Color(0.75, 0.68, 0.62, 0.85))
+        draw_rect(port_r, Color(col.r, col.g, col.b, 0.55), false, 1.2)
+
     func _init() -> void:
         set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
         visible = false
@@ -731,32 +755,32 @@ class HeroRosterModal extends Control:
         # 4 Hero Cards across the center (matching roster.png 1:1)
         var heroes := [
             {
-                "faction": "ARMADA OF ACERO", "sub": "CAPTAIN OF THE LINE", "tag": "STEEL",
-                "color": COL_AMBER, "name": "VALERIA ROSTOV", "role": "FLEET OFFICER",
-                "hull": "HULL: ANVIL DREADNOUGHT", "agi": 28, "arm": 94, "lnk": 18,
-                "tactic": "TACTIC: BOW BULWARK", "desc": "Absorbs 45% frontal kinetic impact. -20% drift penalty.",
+                "faction": "ARMADA OF ACERO", "sub": "ADMIRAL OF THE LINE", "tag": "STEEL",
+                "color": COL_AMBER, "name": "ADMIRAL VANE", "role": "FLEET COMMANDER",
+                "hull": "HULL: CNS IRON BASTION", "agi": 28, "arm": 98, "lnk": 22,
+                "tactic": "TACTIC: BOW BULWARK", "desc": "Absorbs 35% frontal kinetic impact. Interlocking broadsides.",
                 "slot": "SLOT 01 // ACERO COMMAND"
             },
             {
                 "faction": "THE VINCULADOS", "sub": "FIRST HARMONIC ACE", "tag": "SOUL",
-                "color": COL_MAGENTA, "name": "KAIEN-09 // SOLARIS", "role": "LINKED PILOT",
-                "hull": "FRAME: EIDOLON MK-IV", "agi": 92, "arm": 42, "lnk": 98,
+                "color": COL_MAGENTA, "name": "KAELEN-7 // EIDOLON", "role": "LINKED PILOT",
+                "hull": "FRAME: EIDOLON PRIME", "agi": 92, "arm": 42, "lnk": 98,
                 "tactic": "TACTIC: NEURAL RESONANCE", "desc": "Instant vector snap. +35% crit during mecha duels.",
                 "slot": "SLOT 02 // VINCULADOS CORE"
             },
             {
-                "faction": "THE FREE TIDE", "sub": "FREE WINDRIDER", "tag": "WIND",
-                "color": Color(0.95, 0.72, 0.25), "name": "MATEO BRAS", "role": "CORSAIR CAPTAIN",
-                "hull": "HULL: VIENTO ROJO GALLEON", "agi": 78, "arm": 62, "lnk": 45,
-                "tactic": "TACTIC: WINDWARD DASH", "desc": "+3 AP when tacking along Éther currents. Broadside rake.",
+                "faction": "THE FREE TIDE", "sub": "CORSAIR COMMODORE", "tag": "WIND",
+                "color": Color(0.95, 0.72, 0.25), "name": "CAPTAIN SOLANO", "role": "CORSAIR CAPTAIN",
+                "hull": "HULL: VIENTO ROJO GALLEON", "agi": 78, "arm": 68, "lnk": 45,
+                "tactic": "TACTIC: WINDWARD DASH", "desc": "+18% Broadside Lance damage. Quantum sail tailwind boost.",
                 "slot": "SLOT 03 // FREE TIDE HELM"
             },
             {
-                "faction": "THE FREE TIDE", "sub": "KEEPER OF CURRENTS", "tag": "WIND",
-                "color": COL_CYAN_BRIGHT, "name": "YRAELA // ANIMA", "role": "WINDCALLER MYSTIC",
-                "hull": "HULL: ÉTHER INTERCEPTOR", "agi": 66, "arm": 36, "lnk": 96,
-                "tactic": "TACTIC: CURRENT AWAKENING", "desc": "Summons local Éther stream for 3 turns. Rescues becalmed.",
-                "slot": "SLOT 04 // TIDE MYSTIC"
+                "faction": "THE VINCULADOS", "sub": "RESONANCE OUTRIDER", "tag": "SOUL",
+                "color": COL_CYAN_BRIGHT, "name": "MIREI // ANIMA-01", "role": "INTERCEPTOR ACE",
+                "hull": "FRAME: ANIMA-01 ARIA", "agi": 96, "arm": 36, "lnk": 94,
+                "tactic": "TACTIC: STERN RAKE", "desc": "High-speed flanker. +40% critical damage on enemy stern.",
+                "slot": "SLOT 04 // OUTRIDER WING"
             }
         ]
 
@@ -785,19 +809,9 @@ class HeroRosterModal extends Control:
             draw_rect(tag_r, col, false, 1.0)
             draw_string(font, Vector2(tag_r.position.x, tag_r.position.y + 13), hd["tag"], HORIZONTAL_ALIGNMENT_CENTER, 54, 9, col)
 
-            # Portrait Box
+            # Portrait Box with AAA Texture
             var port_r := Rect2(cx + 10, card_y + 42, card_w - 20, card_h * 0.36)
-            draw_rect(port_r, Color(0.03, 0.04, 0.08, 0.98), true)
-            draw_rect(port_r, Color(col.r, col.g, col.b, 0.4), false, 1.0)
-
-            # Geometric stylized portrait silhouette inside box
-            var pc := port_r.get_center()
-            draw_circle(pc + Vector2(0, -14), 16.0, Color(0.75, 0.68, 0.62, 0.85))
-            var shoulders := PackedVector2Array([
-                pc + Vector2(-38, 45), pc + Vector2(-22, 8), pc + Vector2(22, 8), pc + Vector2(38, 45)
-            ])
-            draw_colored_polygon(shoulders, Color(col.r * 0.35, col.g * 0.35, col.b * 0.45, 0.9))
-            draw_circle(pc + Vector2(0, 22), 10.0, col)
+            _draw_portrait_in_rect(i, port_r, col)
 
             var info_y := port_r.end.y + 22.0
             draw_string(font, Vector2(cx + 12, info_y), hd["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, COL_TEXT_MAIN)

@@ -15,8 +15,8 @@ static func in_arc(shooter: Ship, target: Ship) -> bool:
     var angle_deg := absf(rad_to_deg(shooter.state.forward.signed_angle_to(to_target.normalized(), Vector3.UP)))
     var in_front_cone := angle_deg <= (shooter.weapon_arc_degrees * 0.5)
 
-    # Free Tide Galleons & Acero Dreadnoughts also mount Port/Starboard Broadside Batteries!
-    if shooter.faction == "marea_libre" or shooter.ship_id == "acero_dreadnought":
+    # Free Tide Galleons & Acero Capital Warships also mount Port/Starboard Broadside Batteries!
+    if shooter.faction == "marea_libre" or shooter.ship_id == "acero_dreadnought" or shooter.ship_id == "acero_battlecruiser":
         var in_broadside := angle_deg >= 42.0 and angle_deg <= 138.0
         return in_front_cone or in_broadside
 

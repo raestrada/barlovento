@@ -5,6 +5,7 @@ export.cfg
 export_presets.cfg
 *.translation
 *.tmp
+build/
 
 # OS / editor
 .DS_Store

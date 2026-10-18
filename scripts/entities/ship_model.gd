@@ -155,108 +155,106 @@ static func _build_vinculados(ship: Ship, root: Node3D, thrusters: Array[Node3D]
     var d := s.y
 
     var ceramic := _textured(load(VINCULADOS_HULL), 0.18, 0.22, Vector3(2.0, 2.0, 1.0))
-    var frame_dark := _colored(Color(0.11, 0.13, 0.18), 0.85, 0.35)
-    var gold_crest := _emissive(Color(1.0, 0.82, 0.25), 2.2)
+    var frame_dark := _colored(Color(0.10, 0.11, 0.15), 0.78, 0.38)
     var cyan_visor := _emissive(Color(0.25, 0.92, 1.0), 3.8)
     var core_mat := _get_soul_core_material()
     var lance_beam := _emissive(Color(0.35, 0.95, 1.0), 4.5)
-    var shield_mat := _translucent(Color(0.85, 0.25, 0.95, 0.42), Color(0.75, 0.20, 0.85), 2.4)
+    var shield_mat := _translucent(Color(0.85, 0.25, 0.95, 0.38), Color(0.75, 0.20, 0.85), 2.2)
 
-    # Sculpted Chest & Torso Armor
-    var torso := _cyl(
-        w * 0.38, w * 0.24, h * 0.30, 12, ceramic,
-        Vector3(0.0, h * 0.18, 0.0)
-    )
-    torso.scale = Vector3(1.28, 1.0, 0.82)
-    root.add_child(torso)
+    # Dark Biomechanical Sinew Core & Spine
+    var spine := _capsule(w * 0.20, h * 0.34, frame_dark, Vector3(0.0, h * 0.14, 0.0))
+    root.add_child(spine)
 
-    # Chest Pectoral Vents & Waist Skirt Armor
-    root.add_child(_box(
-        Vector3(w * 0.54, h * 0.08, d * 0.64), ceramic,
-        Vector3(0.0, h * 0.05, 0.0)
-    ))
+    # Sculpted Organic White Ceramic Chest & Abdomen Plates
+    var chest := _sphere(w * 0.32, h * 0.24, ceramic, Vector3(0.0, h * 0.23, -d * 0.04))
+    chest.scale = Vector3(1.22, 0.95, 0.82)
+    root.add_child(chest)
+
+    var abdomen := _cyl(w * 0.22, w * 0.17, h * 0.16, 12, ceramic, Vector3(0.0, h * 0.08, 0.0))
+    root.add_child(abdomen)
+
+    # Hip & Pelvis Ceramic Armor Plates over Sinew
     for side in [-1.0, 1.0]:
-        root.add_child(_box(
-            Vector3(w * 0.22, h * 0.12, d * 0.52), ceramic,
-            Vector3(side * w * 0.24, h * 0.01, -d * 0.08),
-            Vector3(10.0, 0.0, side * -12.0)
-        ))
+        var hip_plate := _sphere(w * 0.16, h * 0.14, ceramic, Vector3(side * w * 0.20, -h * 0.01, -d * 0.04))
+        hip_plate.scale = Vector3(0.75, 1.15, 0.90)
+        hip_plate.rotation_degrees = Vector3(8.0, 0.0, side * -14.0)
+        root.add_child(hip_plate)
 
-    # Glowing Resonance Soul Core in Chest
+    # Exposed Circular Pulsing Magenta Soul Core in Chest Center
+    var core_ring := _cyl(w * 0.16, w * 0.18, d * 0.14, 14, frame_dark, Vector3(0.0, h * 0.22, -d * 0.32), Vector3(90.0, 0.0, 0.0))
+    root.add_child(core_ring)
     root.add_child(_sphere(
-        w * 0.17, w * 0.34, core_mat, Vector3(0.0, h * 0.24, -d * 0.38)
+        w * 0.14, w * 0.28, core_mat, Vector3(0.0, h * 0.22, -d * 0.36)
     ))
 
-    # Helmeted Head + Cyan Visor + Iconic Gundam V-Fin Sensor Crest
-    root.add_child(_capsule(
-        w * 0.15, w * 0.32, ceramic,
-        Vector3(0.0, h * 0.38, 0.0)
-    ))
+    # Biomechanical Neck Sinew + Smooth Aerodynamic Dome Helmet + Thin Cyan Slit Visor (matching suit_concept.png)
+    root.add_child(_cyl(w * 0.09, w * 0.11, h * 0.09, 10, frame_dark, Vector3(0.0, h * 0.33, 0.0)))
+    var helmet := _sphere(w * 0.16, h * 0.19, ceramic, Vector3(0.0, h * 0.40, -d * 0.02))
+    helmet.scale = Vector3(0.92, 1.08, 1.12)
+    root.add_child(helmet)
     root.add_child(_box(
-        Vector3(w * 0.26, w * 0.07, w * 0.06), cyan_visor,
-        Vector3(0.0, h * 0.38, -w * 0.14)
+        Vector3(w * 0.22, w * 0.032, w * 0.06), cyan_visor,
+        Vector3(0.0, h * 0.39, -w * 0.16)
     ))
-    for side in [-1.0, 1.0]:
-        root.add_child(_box(
-            Vector3(w * 0.32, w * 0.035, w * 0.03), gold_crest,
-            Vector3(side * w * 0.14, h * 0.45, -w * 0.13),
-            Vector3(0.0, side * -15.0, side * 32.0)
-        ))
 
-    # 4 Articulated Dorsal Wing-Binders (fanned out like Gundam Freedom / Eidolon concept)
+    # Sleek Dorsal Thruster Pods (compact biomechanical vernacular pods, not Gundam wings)
     for side in [-1.0, 1.0]:
-        # Upper Wing-Binder
-        root.add_child(_box(
-            Vector3(w * 0.10, h * 0.52, d * 0.24), ceramic,
-            Vector3(side * w * 0.48, h * 0.36, d * 0.32),
-            Vector3(-22.0, side * 18.0, side * -38.0)
-        ))
-        root.add_child(_box(
-            Vector3(w * 0.04, h * 0.44, d * 0.08), core_mat,
-            Vector3(side * w * 0.52, h * 0.36, d * 0.36),
-            Vector3(-22.0, side * 18.0, side * -38.0)
-        ))
-        # Lower Wing-Binder
-        root.add_child(_box(
-            Vector3(w * 0.08, h * 0.42, d * 0.20), ceramic,
-            Vector3(side * w * 0.44, h * 0.14, d * 0.34),
-            Vector3(18.0, side * 14.0, side * -62.0)
-        ))
+        var pod := _capsule(
+            w * 0.08, h * 0.22, ceramic,
+            Vector3(side * w * 0.18, h * 0.24, d * 0.28),
+            Vector3(-16.0, side * 10.0, side * -12.0)
+        )
+        root.add_child(pod)
+        var pod_rcs := _cyl(
+            w * 0.04, w * 0.08, 0.28, 10, cyan_visor,
+            Vector3(side * w * 0.22, h * 0.14, d * 0.38),
+            Vector3(65.0, 0.0, side * -12.0)
+        )
+        root.add_child(pod_rcs)
+        thrusters.append(pod_rcs)
 
-    # Layered Shoulder Pauldrons & Articulated Arms
+    # Swept-Outward Curved White Ceramic Shoulder Pauldrons + Under-Shoulder Cyan RCS Jets
     for side in [-1.0, 1.0]:
-        root.add_child(_box(
-            Vector3(w * 0.32, h * 0.14, d * 0.52), ceramic,
-            Vector3(side * w * 0.44, h * 0.30, 0.0),
-            Vector3(0.0, 0.0, side * -14.0)
+        var pauldron := _sphere(
+            w * 0.26, h * 0.11, ceramic,
+            Vector3(side * w * 0.44, h * 0.30, 0.0)
+        )
+        pauldron.scale = Vector3(1.35, 0.55, 0.95)
+        pauldron.rotation_degrees = Vector3(0.0, 0.0, side * -12.0)
+        root.add_child(pauldron)
+
+        var sh_rcs := _cyl(
+            w * 0.035, w * 0.07, 0.24, 8, cyan_visor,
+            Vector3(side * w * 0.48, h * 0.25, d * 0.08),
+            Vector3(25.0, 0.0, side * -28.0)
+        )
+        root.add_child(sh_rcs)
+        thrusters.append(sh_rcs)
+
+        # Dark Sinew Upper Arm + Sculpted Ceramic Forearm
+        root.add_child(_capsule(
+            w * 0.085, h * 0.16, frame_dark,
+            Vector3(side * w * 0.40, h * 0.18, -d * 0.06), Vector3(15.0, 0.0, 14.0 * side)
         ))
         root.add_child(_capsule(
-            w * 0.09, h * 0.16, frame_dark,
-            Vector3(side * w * 0.42, h * 0.18, -d * 0.08), Vector3(15.0, 0.0, 16.0 * side)
-        ))
-        root.add_child(_capsule(
-            w * 0.08, h * 0.16, ceramic,
-            Vector3(side * w * 0.44, h * 0.08, -d * 0.28), Vector3(35.0, 0.0, 10.0 * side)
+            w * 0.08, h * 0.17, ceramic,
+            Vector3(side * w * 0.43, h * 0.07, -d * 0.24), Vector3(32.0, 0.0, 8.0 * side)
         ))
 
-    # Right Arm: Resonance Beam Lance (extending forward along -Z)
+    # Right Arm: Slender Resonance Lance (extending forward along -Z)
     root.add_child(_cyl(
-        w * 0.035, w * 0.045, h * 0.55, 8, frame_dark,
-        Vector3(w * 0.46, h * 0.08, -d * 0.55), Vector3(90.0, 0.0, 0.0)
+        w * 0.03, w * 0.04, h * 0.50, 8, frame_dark,
+        Vector3(w * 0.45, h * 0.06, -d * 0.52), Vector3(90.0, 0.0, 0.0)
     ))
     root.add_child(_cyl(
-        0.005, w * 0.09, h * 0.48, 10, lance_beam,
-        Vector3(w * 0.46, h * 0.08, -d * 1.15), Vector3(-90.0, 0.0, 0.0)
+        0.005, w * 0.075, h * 0.44, 10, lance_beam,
+        Vector3(w * 0.45, h * 0.06, -d * 1.08), Vector3(-90.0, 0.0, 0.0)
     ))
 
-    # Left Arm: Angular Resonance Shield
+    # Left Forearm: Translucent Harmonic Barrier Projector
     root.add_child(_box(
-        Vector3(w * 0.06, h * 0.36, d * 0.42), ceramic,
-        Vector3(-w * 0.54, h * 0.12, -d * 0.32), Vector3(12.0, 18.0, 10.0)
-    ))
-    root.add_child(_box(
-        Vector3(w * 0.03, h * 0.42, d * 0.48), shield_mat,
-        Vector3(-w * 0.57, h * 0.12, -d * 0.34), Vector3(12.0, 18.0, 10.0)
+        Vector3(w * 0.025, h * 0.34, d * 0.38), shield_mat,
+        Vector3(-w * 0.54, h * 0.10, -d * 0.30), Vector3(12.0, 18.0, 10.0)
     ))
 
     # Articulated Legs & Vernier Thruster Nozzles
