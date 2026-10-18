@@ -34,6 +34,7 @@ var armor_port: float = 88.0
 var armor_stbd: float = 88.0
 var armor_stern: float = 65.0
 var unit_code: String = "UNIT_01"
+var veteran_rank: int = 0
 var use_2d_callout: bool = true
 
 var is_evading: bool = false
@@ -92,12 +93,17 @@ func apply_def(def: ShipDef) -> void:
     brake_thrust = def.brake_thrust
     turn_power = def.turn_power
     max_speed = def.max_speed
-    hp = def.hp
-    max_hp = def.hp
-    max_shield_hp = def.hp * 0.8
+
+    veteran_rank = SaveManager.get_veteran_rank(ship_id) if team == 0 else 0
+    var vet_hp_mult := 1.0 + float(veteran_rank) * 0.06
+    var vet_dmg_mult := 1.0 + float(veteran_rank) * 0.05
+
+    hp = roundf(def.hp * vet_hp_mult)
+    max_hp = hp
+    max_shield_hp = roundf(hp * 0.8)
     shield_hp = max_shield_hp
     weapon_range = def.weapon_range
-    weapon_damage = def.weapon_damage
+    weapon_damage = roundf(def.weapon_damage * vet_dmg_mult)
     weapon_arc_degrees = def.weapon_arc_degrees
     ship_color = def.color
     body_size = def.body_size
@@ -115,6 +121,12 @@ func apply_def(def: ShipDef) -> void:
             armor_port = 74.0
             armor_stbd = 74.0
             armor_stern = 60.0
+        "vinculados_nous":
+            unit_code = "VINC_NOU_03"
+            armor_bow = 90.0
+            armor_port = 76.0
+            armor_stbd = 76.0
+            armor_stern = 62.0
         "marea_galleon":
             unit_code = "MAREA_GAL_03"
             armor_bow = 95.0
@@ -127,6 +139,12 @@ func apply_def(def: ShipDef) -> void:
             armor_port = 85.0
             armor_stbd = 85.0
             armor_stern = 62.0
+        "marea_brigantine":
+            unit_code = "MAREA_BRG_04"
+            armor_bow = 82.0
+            armor_port = 80.0
+            armor_stbd = 80.0
+            armor_stern = 58.0
         "acero_dreadnought":
             unit_code = "ACER_ANS_01"
             armor_bow = 100.0
@@ -152,10 +170,16 @@ func apply_def(def: ShipDef) -> void:
         _build_detailed_ship_model()
         _rebuild_firing_arc()
         if _overhead_name != null:
+            var vet_tag := (" [★%d]" % veteran_rank) if veteran_rank > 0 else ""
             if pilot_name != "":
-                _overhead_name.text = "%s\n[%s]" % [ship_name, pilot_name]
+                _overhead_name.text = "%s%s\n[%s]" % [ship_name, vet_tag, pilot_name]
             else:
-                _overhead_name.text = ship_name
+                _overhead_name.text = "%s%s" % [ship_name, vet_tag]
+
+func refresh_after_load() -> void:
+    _sync_transform()
+    visible = not is_destroyed()
+    update_indicators()
 
 func speed() -> float:
     return state.speed()

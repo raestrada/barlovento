@@ -138,27 +138,64 @@ static func _build_acero(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> 
         Vector3(0.0, s.y * 0.58, s.z * 0.28), Vector3(0.0, 0.0, 90.0)
     ))
 
-    # Superfiring Triple-Barrel Main Turrets (2 Fore, 1 Aft)
+    # Superfiring Main Turrets & Class-Specific Superstructure
+    var is_dread := (ship.ship_id == "acero_dreadnought")
+    var is_bc := (ship.ship_id == "acero_battlecruiser")
+    var is_corvette := (ship.ship_id == "acero_corvette")
+
+    if is_bc:
+        # Hammer-Class Battlecruiser: Twin Axial Spinal Railgun Barrels along the Dorsal Bow + Outrigger Pods
+        for side in [-1.0, 1.0]:
+            root.add_child(_cyl(
+                s.x * 0.04, s.x * 0.055, s.z * 0.58, 10, steel_trim,
+                Vector3(side * s.x * 0.14, s.y * 0.36, -s.z * 0.24),
+                Vector3(90.0, 0.0, 0.0)
+            ))
+            root.add_child(_box(
+                Vector3(s.x * 0.22, s.y * 0.24, s.z * 0.34), gunmetal,
+                Vector3(side * s.x * 0.66, 0.0, s.z * 0.12)
+            ))
+            root.add_child(_box(
+                Vector3(s.x * 0.14, s.y * 0.12, 0.06), amber_vent,
+                Vector3(side * s.x * 0.66, 0.0, -s.z * 0.06)
+            ))
+    elif is_corvette:
+        # Chisel-Class Escort Corvette: Forward Swept Sensor Spines & Agile Dorsal Rotary Turret
+        for side in [-1.0, 1.0]:
+            root.add_child(_cyl(
+                0.015, 0.035, s.z * 0.28, 8, steel_trim,
+                Vector3(side * s.x * 0.24, s.y * 0.12, -s.z * 0.56),
+                Vector3(86.0, side * -8.0, 0.0)
+            ))
+
     var turret_positions := [
         Vector3(0.0, s.y * 0.34, -s.z * 0.30),
         Vector3(0.0, s.y * 0.48, -s.z * 0.14),
         Vector3(0.0, s.y * 0.36, s.z * 0.34),
     ]
+    if is_corvette:
+        turret_positions = [
+            Vector3(0.0, s.y * 0.38, -s.z * 0.20),
+            Vector3(0.0, s.y * 0.34, s.z * 0.32),
+        ]
+
     for idx in range(turret_positions.size()):
         var tpos: Vector3 = turret_positions[idx]
-        var dir_z := 1.0 if idx == 2 else -1.0
+        var dir_z := 1.0 if (idx == turret_positions.size() - 1) else -1.0
         root.add_child(_box(Vector3(s.x * 0.28, s.y * 0.18, s.z * 0.10), gunmetal, tpos))
         root.add_child(_box(Vector3(s.x * 0.24, s.y * 0.04, s.z * 0.08), steel_trim, tpos + Vector3(0.0, s.y * 0.10, 0.0)))
-        for b_off in [-1.0, 0.0, 1.0]:
+        var barrels := [-1.0, 0.0, 1.0] if is_dread else [-0.6, 0.6]
+        for b_off in barrels:
             root.add_child(_cyl(
                 s.x * 0.025, s.x * 0.032, s.z * 0.14, 8, steel_trim,
-                tpos + Vector3(b_off * s.x * 0.065, s.y * 0.02, dir_z * s.z * 0.08),
+                tpos + Vector3(float(b_off) * s.x * 0.065, s.y * 0.02, dir_z * s.z * 0.08),
                 Vector3(90.0, 0.0, 0.0)
             ))
 
     # Broadside Secondary Casemate Batteries
+    var casemate_count := 3 if is_dread else (2 if is_bc else 1)
     for side in [-1.0, 1.0]:
-        for i in range(3):
+        for i in range(casemate_count):
             var z := -s.z * 0.18 + float(i) * s.z * 0.18
             root.add_child(_cyl(
                 s.x * 0.08, s.x * 0.11, s.y * 0.22, 8, gunmetal,
@@ -170,8 +207,9 @@ static func _build_acero(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> 
             ))
 
     # Quad Stern Engine Nacelles & Plasma Thruster Cones
+    var v_offsets := [-0.14, 0.14] if not is_corvette else [0.0]
     for side in [-1.0, 1.0]:
-        for v_off in [-0.14, 0.14]:
+        for v_off in v_offsets:
             var ex: float = float(side) * s.x * 0.36
             var ey: float = float(v_off) * s.y
             root.add_child(_cyl(
@@ -186,8 +224,7 @@ static func _build_acero(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> 
             thrusters.append(nozzle)
 
 # ---------------------------------------------------------------------------
-# The Vinculados — Biomechanical Gundam-style Mobile Suit with V-Fin crest,
-# pulsing Soul Core shader, 4 dorsal Wing-Binders, Beam Lance & Shield.
+# The Vinculados — Biomechanical Neural-Linked Frames (Eidolon, Anima, Nous)
 # ---------------------------------------------------------------------------
 
 static func _build_vinculados(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
@@ -196,12 +233,19 @@ static func _build_vinculados(ship: Ship, root: Node3D, thrusters: Array[Node3D]
     var w := s.x
     var d := s.y
 
+    var is_anima := (ship.ship_id == "vinculados_anima")
+    var is_nous := (ship.ship_id == "vinculados_nous")
+
     var ceramic := _textured(load(VINCULADOS_HULL), 0.18, 0.22, Vector3(2.0, 2.0, 1.0))
-    var frame_dark := _colored(Color(0.10, 0.11, 0.15), 0.78, 0.38)
-    var cyan_visor := _emissive(Color(0.25, 0.92, 1.0), 3.8)
+    if is_anima:
+        ceramic.albedo_color = Color(0.88, 0.98, 1.0)
+    elif is_nous:
+        ceramic.albedo_color = Color(0.95, 0.90, 1.0)
+    var frame_dark := _colored(Color(0.10, 0.11, 0.15), 0.68, 0.38)
+    var cyan_visor := _emissive(Color(0.25, 0.88, 1.0), 1.8)
     var core_mat := _get_soul_core_material()
-    var lance_beam := _emissive(Color(0.35, 0.95, 1.0), 4.5)
-    var shield_mat := _translucent(Color(0.85, 0.25, 0.95, 0.38), Color(0.75, 0.20, 0.85), 2.2)
+    var lance_beam := _emissive(Color(0.30, 0.88, 1.0), 2.0)
+    var shield_mat := _translucent(Color(0.85, 0.25, 0.95, 0.38), Color(0.75, 0.20, 0.85), 1.1)
 
     # Dark Biomechanical Sinew Core & Spine
     var spine := _capsule(w * 0.20, h * 0.34, frame_dark, Vector3(0.0, h * 0.14, 0.0))
@@ -229,7 +273,7 @@ static func _build_vinculados(ship: Ship, root: Node3D, thrusters: Array[Node3D]
         w * 0.14, w * 0.28, core_mat, Vector3(0.0, h * 0.22, -d * 0.36)
     ))
 
-    # Biomechanical Neck Sinew + Smooth Aerodynamic Dome Helmet + Thin Cyan Slit Visor (matching suit_concept.png)
+    # Biomechanical Neck Sinew + Smooth Aerodynamic Dome Helmet + Thin Cyan Slit Visor
     root.add_child(_cyl(w * 0.09, w * 0.11, h * 0.09, 10, frame_dark, Vector3(0.0, h * 0.33, 0.0)))
     var helmet := _sphere(w * 0.16, h * 0.19, ceramic, Vector3(0.0, h * 0.40, -d * 0.02))
     helmet.scale = Vector3(0.92, 1.08, 1.12)
@@ -239,7 +283,7 @@ static func _build_vinculados(ship: Ship, root: Node3D, thrusters: Array[Node3D]
         Vector3(0.0, h * 0.39, -w * 0.16)
     ))
 
-    # Sleek Dorsal Thruster Pods (compact biomechanical vernacular pods, not Gundam wings)
+    # Sleek Dorsal Thruster Pods + Class-Specific Dorsal Equipment
     for side in [-1.0, 1.0]:
         var pod := _capsule(
             w * 0.08, h * 0.22, ceramic,
@@ -254,6 +298,26 @@ static func _build_vinculados(ship: Ship, root: Node3D, thrusters: Array[Node3D]
         )
         root.add_child(pod_rcs)
         thrusters.append(pod_rcs)
+
+        if is_nous:
+            # Nous-04 Heavy Frame: Over-the-Shoulder Long-Barrel Harmonic Choir Cannons
+            root.add_child(_cyl(
+                w * 0.045, w * 0.06, h * 0.48, 10, ceramic,
+                Vector3(side * w * 0.28, h * 0.38, -d * 0.24),
+                Vector3(82.0, 0.0, 0.0)
+            ))
+            root.add_child(_cyl(
+                w * 0.025, w * 0.035, h * 0.16, 8, lance_beam,
+                Vector3(side * w * 0.28, h * 0.41, -d * 0.62),
+                Vector3(82.0, 0.0, 0.0)
+            ))
+        elif is_anima:
+            # Anima-01 Interceptor: High-Speed Swept Stabilizer Vanes
+            root.add_child(_box(
+                Vector3(w * 0.03, h * 0.28, d * 0.16), lance_beam,
+                Vector3(side * w * 0.36, h * 0.28, d * 0.36),
+                Vector3(-24.0, side * 22.0, side * -32.0)
+            ))
 
     # Swept-Outward Curved White Ceramic Shoulder Pauldrons + Under-Shoulder Cyan RCS Jets
     for side in [-1.0, 1.0]:
@@ -317,13 +381,16 @@ static func _build_vinculados(ship: Ship, root: Node3D, thrusters: Array[Node3D]
         thrusters.append(vernier)
 
 # ---------------------------------------------------------------------------
-# The Free Tide — Steampunk Void Galleon with curved mahogany hull, ornate
-# stern lantern gallery, 3D billowed Quantum Sails shader, and 12 Éther-Oars.
+# The Free Tide — Steampunk Void Galleons & Brigantines with curved mahogany
+# hull, pressurized deck domes, 3D billowed Quantum Sails, and Éther-Oars.
 # ---------------------------------------------------------------------------
 
 static func _build_marea(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
     var s := ship.body_size
-    var wood := _textured(load(MAREA_HULL), 0.10, 0.58, Vector3(2.2, 2.2, 1.0))
+    var is_raider := (ship.ship_id == "marea_raider")
+    var is_brig := (ship.ship_id == "marea_brigantine")
+
+    var wood := _textured(load(MAREA_HULL), 0.10, 0.56, Vector3(2.2, 2.2, 1.0))
     wood.albedo_color = Color(1.18, 1.12, 1.05)
     wood.cull_mode = BaseMaterial3D.CULL_DISABLED
     var dark_timber := _colored(Color(0.20, 0.13, 0.08), 0.18, 0.52)
@@ -390,12 +457,18 @@ static func _build_marea(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> 
         Vector3(0.0, s.y * 0.22, -s.z * 0.62), Vector3(-76.0, 0.0, 0.0)
     ))
 
-    # 3 Tall Brass Masts with Radial Spar Booms & Parabolic 3D Quantum Sails
+    # Class-Specific Mast & Quantum Sail Rigging (3 Masts for Galleon, 2 Masts for Raider/Brigantine)
     var mast_configs := [
         {"z": -s.z * 0.26, "h": s.y * 2.0, "w": s.x * 2.1},
         {"z": s.z * 0.04, "h": s.y * 2.4, "w": s.x * 2.5},
         {"z": s.z * 0.32, "h": s.y * 1.8, "w": s.x * 1.85},
     ]
+    if is_raider or is_brig:
+        mast_configs = [
+            {"z": -s.z * 0.18, "h": s.y * 2.1, "w": s.x * 2.2},
+            {"z": s.z * 0.20, "h": s.y * 1.9, "w": s.x * 1.95},
+        ]
+
     for mc in mast_configs:
         var mz: float = mc["z"]
         var mh: float = mc["h"]
@@ -431,10 +504,11 @@ static func _build_marea(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> 
         sail_inst.position = Vector3(0.0, mh * 0.56, mz - 0.08)
         root.add_child(sail_inst)
 
-    # Banks of 5 Articulated Mechanical Éther-Oars per flank (Crisp Brass Shaft + Framed Cyan Vane)
+    # Banks of Articulated Mechanical Éther-Oars per flank (5 for Galleon, 4 for Raider, 3 for Brigantine)
+    var oar_count := 5 if not (is_raider or is_brig) else (4 if is_raider else 3)
     for side in [-1.0, 1.0]:
-        for i in range(5):
-            var z := -s.z * 0.30 + float(i) * s.z * 0.15
+        for i in range(oar_count):
+            var z := -s.z * 0.28 + float(i) * (s.z * 0.56 / float(maxi(oar_count - 1, 1)))
             # Armored Bronze Oar-Port Gimbal on the Hull Flank
             root.add_child(_box(
                 Vector3(0.09, 0.11, 0.11), dark_bronze,
@@ -764,13 +838,37 @@ static func _instance(mesh: PrimitiveMesh, mat: Material, pos: Vector3, rot: Vec
         mi.rotation_degrees = rot
     return mi
 
+static var _hull_normal_tex: NoiseTexture2D = null
+
+static func _get_hull_normal_map() -> NoiseTexture2D:
+    if _hull_normal_tex == null:
+        var n := FastNoiseLite.new()
+        n.seed = 901
+        n.noise_type = FastNoiseLite.TYPE_CELLULAR
+        n.cellular_distance_function = FastNoiseLite.DISTANCE_MANHATTAN
+        n.cellular_return_type = FastNoiseLite.RETURN_CELL_VALUE
+        n.frequency = 0.085
+        _hull_normal_tex = NoiseTexture2D.new()
+        _hull_normal_tex.width = 256
+        _hull_normal_tex.height = 256
+        _hull_normal_tex.seamless = true
+        _hull_normal_tex.as_normal_map = true
+        _hull_normal_tex.bump_strength = 3.2
+        _hull_normal_tex.noise = n
+    return _hull_normal_tex
+
 static func _textured(tex: Texture2D, metallic: float, roughness: float, uv: Vector3) -> StandardMaterial3D:
     var mat := StandardMaterial3D.new()
     mat.albedo_color = Color.WHITE
     mat.albedo_texture = tex
     mat.uv1_scale = uv
+    mat.uv1_triplanar = true
+    mat.uv1_triplanar_sharpness = 4.0
     mat.metallic = metallic
     mat.roughness = roughness
+    mat.normal_enabled = true
+    mat.normal_texture = _get_hull_normal_map()
+    mat.normal_scale = 0.45
     return mat
 
 static func _colored(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:
@@ -778,6 +876,10 @@ static func _colored(color: Color, metallic: float, roughness: float) -> Standar
     mat.albedo_color = color
     mat.metallic = metallic
     mat.roughness = roughness
+    mat.uv1_triplanar = true
+    mat.normal_enabled = true
+    mat.normal_texture = _get_hull_normal_map()
+    mat.normal_scale = 0.25
     return mat
 
 static func _emissive(color: Color, energy: float) -> StandardMaterial3D:
@@ -797,3 +899,4 @@ static func _translucent(color: Color, emission: Color, energy: float) -> Standa
     mat.emission = emission
     mat.emission_energy_multiplier = energy
     return mat
+

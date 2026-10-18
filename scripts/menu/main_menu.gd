@@ -29,6 +29,8 @@ var _commander_role_lbl: Label
 var _commander_quote_lbl: Label
 var _objectives_lbl: Label
 var _squadron_vbox: VBoxContainer
+var _stage_selector_row: HBoxContainer
+var _launch_stage_btn: Button
 
 func _ready() -> void:
     _theme = _build_menu_theme()
@@ -183,7 +185,7 @@ func _build_title_view() -> void:
     row.add_child(menu_panel)
 
     var menu_vbox := VBoxContainer.new()
-    menu_vbox.add_theme_constant_override("separation", 12)
+    menu_vbox.add_theme_constant_override("separation", 10)
     menu_panel.add_child(menu_vbox)
 
     var cmd_hdr := Label.new()
@@ -195,16 +197,31 @@ func _build_title_view() -> void:
     var lore_blurb := Label.new()
     lore_blurb.text = "The Star Sea is dying. An encroaching front of decay — The Calm — extinguishes the Éther currents across the Concord. Three civilizations answer the crisis with steel, soul, and wind."
     lore_blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    lore_blurb.add_theme_font_size_override("font_size", 12)
+    lore_blurb.add_theme_font_size_override("font_size", 11)
     lore_blurb.add_theme_color_override("font_color", Color(0.76, 0.85, 0.94))
     menu_vbox.add_child(lore_blurb)
 
     menu_vbox.add_child(HSeparator.new())
 
+    if SaveManager.has_tactical_save():
+        var btn_resume := _make_menu_button(
+            "📂  RESUME SAVED BATTLE",
+            SaveManager.get_tactical_save_summary(),
+            true
+        )
+        btn_resume.pressed.connect(func() -> void:
+            AudioManager.play_sfx("ui_click", -8.0)
+            var st := SaveManager.load_tactical_state()
+            LoreDB.current_stage_id = String(st.get("stage_id", "acero_stage_1"))
+            SaveManager.pending_load_battle = true
+            _transition_to_scene("res://scenes/sandbox/sandbox.tscn")
+        )
+        menu_vbox.add_child(btn_resume)
+
     var btn_campaign := _make_menu_button(
         "▶  CAMPAIGN // SELECT FACTION",
         "Choose your civilization and enter the War for the Star Sea",
-        true
+        not SaveManager.has_tactical_save()
     )
     btn_campaign.pressed.connect(func() -> void:
         AudioManager.play_sfx("ui_click", -8.0)
@@ -213,8 +230,8 @@ func _build_title_view() -> void:
     menu_vbox.add_child(btn_campaign)
 
     var btn_acero_direct := _make_menu_button(
-        "⚡  ACT I: THE ARMADA OF ACERO (STAGE 01)",
-        "Operation Anvil Gate — Defend Sluice Station Well-09",
+        "⚡  ACT I: THE ARMADA OF ACERO (3 STAGES)",
+        "Operation Anvil Gate — Defend Sluice Station Well-09 & The Calm",
         false
     )
     btn_acero_direct.pressed.connect(func() -> void:
@@ -609,6 +626,7 @@ func _build_briefing_view() -> void:
     top_row.add_child(back_btn)
 
     var title_vbox := VBoxContainer.new()
+    title_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     title_vbox.add_theme_constant_override("separation", 1)
     top_row.add_child(title_vbox)
 
@@ -623,6 +641,10 @@ func _build_briefing_view() -> void:
     _briefing_sub_lbl.add_theme_font_size_override("font_size", 11)
     _briefing_sub_lbl.add_theme_color_override("font_color", Color(0.45, 0.88, 1.0))
     title_vbox.add_child(_briefing_sub_lbl)
+
+    _stage_selector_row = HBoxContainer.new()
+    _stage_selector_row.add_theme_constant_override("separation", 6)
+    top_row.add_child(_stage_selector_row)
 
     # Content split: Left (Key Art + Tactical Objectives) / Right (Commander Portrait + Briefing + Roster + Launch)
     var content_row := HBoxContainer.new()
@@ -731,10 +753,10 @@ func _build_briefing_view() -> void:
     r_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
     right_vbox.add_child(r_spacer)
 
-    var launch_btn := _make_primary_cta_button("⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 01")
-    launch_btn.custom_minimum_size = Vector2(0, 50)
-    launch_btn.pressed.connect(_launch_campaign_stage)
-    right_vbox.add_child(launch_btn)
+    _launch_stage_btn = _make_primary_cta_button("⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 01")
+    _launch_stage_btn.custom_minimum_size = Vector2(0, 50)
+    _launch_stage_btn.pressed.connect(_launch_campaign_stage)
+    right_vbox.add_child(_launch_stage_btn)
 
 func _select_faction_and_open_briefing(fac_id: String) -> void:
     _selected_faction = fac_id
@@ -743,26 +765,12 @@ func _select_faction_and_open_briefing(fac_id: String) -> void:
 
     for child in _squadron_vbox.get_children():
         child.queue_free()
+    for child in _stage_selector_row.get_children():
+        child.queue_free()
 
     match fac_id:
         "acero":
-            LoreDB.current_stage_id = "acero_stage_1"
-            _briefing_title_lbl.text = "ACT I // STAGE 01: DEFENSE OF SLUICE STATION WELL-09"
-            _briefing_sub_lbl.text = "FACTION: THE ARMADA OF ACERO // HOSTILES: THE FREE TIDE CORSAIRS"
-            var art_tex: Texture2D = load("res://assets/factions/acero_stage1_briefing.png")
-            if art_tex == null:
-                art_tex = load("res://assets/factions/card_acero.png")
-            _briefing_art_rect.texture = art_tex
-            _commander_portrait_rect.texture = load("res://assets/heroes/ace_vane.png")
-            _commander_name_lbl.text = "FLEET ADMIRAL VANE"
-            _commander_role_lbl.text = "Flagship Command // CNS Iron Bastion (Anvil-Class)"
-            _commander_quote_lbl.text = "\"The Calm has already starved three outer wells. Now Captain Solano's Free Tide corsair flotilla emerges from the basalt reefs to raid Sluice Station Well-09. Do not chase their sails — form a wall of steel alongside the Sluice Gate, angle our heavy bow armor, and shatter their hulls with interlocking broadsides. Steel endures.\""
-            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Destroy all 3 hostile Free Tide corsair warships (Viento Rojo, La Descarada, Brisa Negra) threatening Sluice Station Well-09.
-◆ SECONDARY OBJECTIVE: Ensure Flagship CNS Iron Bastion survives the engagement.
-◆ ACERO TACTICAL DOCTRINE: Your warships have the heaviest Bow & Flank armor in the Star Sea and fire both Forward and Port/Starboard Broadsides (42°–138°). Because of high mass and inertia, commit your heading early during Admiral Phase and Cross the Enemy's T!"""
-            _add_squadron_row("CNS Iron Bastion", "Anvil-Class Dreadnought • Adm. Vane", "HP 380 | RNG 58m | Forward & Broadside Batteries")
-            _add_squadron_row("CNS Hammer of Anvil", "Hammer-Class Battlecruiser • Capt. Korr", "HP 260 | RNG 52m | Heavy Prow Mass-Drivers")
-            _add_squadron_row("CNS Vanguard-03", "Chisel-Class Escort Corvette • Lt. Drake", "HP 150 | RNG 44m | High-Speed Flank Screen")
+            _populate_acero_stage_briefing("acero_stage_1")
 
         "vinculados":
             LoreDB.current_stage_id = "vinculados_stage_1"
@@ -775,10 +783,12 @@ func _select_faction_and_open_briefing(fac_id: String) -> void:
             _commander_quote_lbl.text = "\"An Armada of Acero battle group has anchored inside Resonance Well Psalm-4 to dam the current. Our neural link is clear—use our superior turn rate and high-thrust vectors to slip behind their dreadnought's stern armor and strike before the Calm arrives.\""
             _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Neutralize the 3 Acero warships (CNS Iron Bastion, CNS Hammer of Anvil, CNS Vanguard-03) occupying Sector Psalm-4.
 ◆ SECONDARY OBJECTIVE: Keep Command Frame Eidolon Prime operational.
-◆ VINCULADOS DOCTRINE: Low mass and high turn power allow rapid vector changes and Stern Rake critical hits (+40% DMG)."""
-            _add_squadron_row("Eidolon Prime", "Eidolon Command Frame • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Resonance Lance & Barrier")
-            _add_squadron_row("Anima-01 (Aria)", "Anima Strike Frame • Ace Mirei-4", "HP 115 | SPD 36 m/s | Rapid Flank Interceptor")
-            _add_squadron_row("Nous-04 (Cantor)", "Nous Heavy Frame • Conductor Seraph-2", "HP 195 | SPD 27 m/s | Heavy Resonance Beam")
+◆ VINCULADOS DOCTRINE: Low mass and high turn power allow rapid vector changes, Weather-Gauge [BARLOVENTO] bonuses, and Stern Rake critical hits (+40% DMG)."""
+            _add_squadron_row("vinculados_suit", "Eidolon Prime", "Eidolon Command Frame • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Resonance Lance & Barrier")
+            _add_squadron_row("vinculados_anima", "Anima-01 (Aria)", "Anima Strike Frame • Ace Mirei-4", "HP 115 | SPD 36 m/s | Rapid Flank Interceptor")
+            _add_squadron_row("vinculados_nous", "Nous-04 (Cantor)", "Nous Heavy Frame • Conductor Seraph-2", "HP 195 | SPD 27 m/s | Heavy Resonance Beam")
+            if _launch_stage_btn != null:
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 01"
 
         "marea_libre":
             LoreDB.current_stage_id = "marea_stage_1"
@@ -791,14 +801,86 @@ func _select_faction_and_open_briefing(fac_id: String) -> void:
             _commander_quote_lbl.text = "\"Acero thinks they can lock the Star Sea behind iron sluice-gates! Unfurl the quantum membranes, catch the tailwind, and sweep their flanks with our broadside field-lances!\""
             _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Break the 3-ship Acero blockade flotilla guarding the Sluice lane.
 ◆ SECONDARY OBJECTIVE: Keep Corsair Flagship Viento Rojo afloat.
-◆ FREE TIDE DOCTRINE: Ride the cyan Éther current for bonus speed and unleash devastating Port/Starboard broadsides (+18% Broadside Bonus)."""
-            _add_squadron_row("Viento Rojo", "Corsair Void-Galleon • Capt. Solano", "HP 300 | RNG 50m | Quantum Sails & Broadsides")
-            _add_squadron_row("La Descarada", "Corsair Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
-            _add_squadron_row("Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
+◆ FREE TIDE DOCTRINE: Ride the cyan Éther current for bonus speed and Weather-Gauge [BARLOVENTO] accuracy (+12% Hit), unleashing devastating Port/Starboard broadsides (+18% Broadside Bonus)."""
+            _add_squadron_row("marea_galleon", "Viento Rojo", "Corsair Void-Galleon • Capt. Solano", "HP 300 | RNG 50m | Quantum Sails & Broadsides")
+            _add_squadron_row("marea_raider", "La Descarada", "Corsair Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
+            _add_squadron_row("marea_brigantine", "Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
+            if _launch_stage_btn != null:
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 01"
 
     _switch_view(MenuView.BRIEFING)
 
-func _add_squadron_row(unit_name: String, role_str: String, stats_str: String) -> void:
+func _populate_acero_stage_briefing(stage_id: String) -> void:
+    LoreDB.current_stage_id = stage_id
+
+    for child in _stage_selector_row.get_children():
+        child.queue_free()
+    for child in _squadron_vbox.get_children():
+        child.queue_free()
+
+    var stages := [
+        {"id": "acero_stage_1", "label": "STAGE 01: SLUICE WELL-09"},
+        {"id": "acero_stage_2", "label": "STAGE 02: RESONANCE SPIRE"},
+        {"id": "acero_stage_3", "label": "STAGE 03: CALM THRESHOLD"}
+    ]
+    for st_info in stages:
+        var sid: String = st_info["id"]
+        var cleared := SaveManager.is_stage_completed(sid)
+        var btn := Button.new()
+        btn.text = ("%s ✓" % st_info["label"]) if cleared else String(st_info["label"])
+        btn.custom_minimum_size = Vector2(185, 32)
+        if sid == stage_id:
+            btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+        elif cleared:
+            btn.add_theme_color_override("font_color", Color(0.35, 1.0, 0.65))
+        btn.pressed.connect(func() -> void:
+            AudioManager.play_sfx("ui_click", -8.0)
+            _populate_acero_stage_briefing(sid)
+        )
+        _stage_selector_row.add_child(btn)
+
+    var art_tex: Texture2D = load("res://assets/factions/acero_stage1_briefing.png")
+    if art_tex == null:
+        art_tex = load("res://assets/factions/card_acero.png")
+    _briefing_art_rect.texture = art_tex
+    _commander_portrait_rect.texture = load("res://assets/heroes/ace_vane.png")
+    _commander_name_lbl.text = "FLEET ADMIRAL VANE"
+    _commander_role_lbl.text = "Flagship Command // CNS Iron Bastion (Anvil-Class)"
+
+    match stage_id:
+        "acero_stage_2":
+            _briefing_title_lbl.text = "ACT I // STAGE 02: AMBUSH AT THE RESONANCE SPIRE"
+            _briefing_sub_lbl.text = "FACTION: THE ARMADA OF ACERO // HOSTILES: THE VINCULADOS CHOIR WING"
+            _commander_quote_lbl.text = "\"With Well-09 secured, our convoy pushes toward the Resonance Spire. Commander Kaelen's Vinculados Choir Wing is riding a violent crosswind current to ambush our flank. Hold formation, claim the upwind Weather-Gauge [BARLOVENTO], and crush their nimble frames with concentrated railgun salvos!\""
+            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Destroy all 3 hostile Vinculados combat frames (Eidolon Prime, Anima-01, Nous-04) in the Resonance Spire sector.
+◆ SECONDARY OBJECTIVE: Ensure Flagship CNS Iron Bastion survives.
+◆ WEATHER-GAUGE DOCTRINE: Attacking from upwind along the Éther current grants [BARLOVENTO] (+12% Hit & +15% Damage)."""
+            if _launch_stage_btn != null:
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 02"
+        "acero_stage_3":
+            _briefing_title_lbl.text = "ACT I // STAGE 03: BASTION OF THE CALM THRESHOLD"
+            _briefing_sub_lbl.text = "FACTION: THE ARMADA OF ACERO // HOSTILES: GRAND CORSAIR FLAGSHIP ARMADA"
+            _commander_quote_lbl.text = "\"The Calm wavefront has reached the inner sluice wall. A reinforced Free Tide armada led by a heavily armored flagship Galleon is making a final desperate charge to breach the dam. Our Veteran Aces stand ready—anchor the line and prove that Steel Endures!\""
+            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Defeat the reinforced 3-ship Veteran Corsair Armada at the Calm Threshold.
+◆ SECONDARY OBJECTIVE: Ensure Flagship CNS Iron Bastion survives the final stand.
+◆ VETERAN ACES: Your surviving ships carry over their Veteran Rank bonuses (+6% HP & +5% DMG per rank) into this decisive battle!"""
+            if _launch_stage_btn != null:
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 03"
+        _:
+            _briefing_title_lbl.text = "ACT I // STAGE 01: DEFENSE OF SLUICE STATION WELL-09"
+            _briefing_sub_lbl.text = "FACTION: THE ARMADA OF ACERO // HOSTILES: THE FREE TIDE CORSAIRS"
+            _commander_quote_lbl.text = "\"The Calm has already starved three outer wells. Now Captain Solano's Free Tide corsair flotilla emerges from the basalt reefs to raid Sluice Station Well-09. Do not chase their sails — form a wall of steel alongside the Sluice Gate, angle our heavy bow armor, and shatter their hulls with interlocking broadsides. Steel endures.\""
+            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Destroy all 3 hostile Free Tide corsair warships (Viento Rojo, La Descarada, Brisa Negra) threatening Sluice Station Well-09.
+◆ SECONDARY OBJECTIVE: Ensure Flagship CNS Iron Bastion survives the engagement.
+◆ ACERO TACTICAL DOCTRINE: Your warships have the heaviest Bow & Flank armor in the Star Sea and fire both Forward and Port/Starboard Broadsides (42°–138°). Claim the upwind Weather-Gauge [BARLOVENTO] and Cross the Enemy's T!"""
+            if _launch_stage_btn != null:
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 01"
+
+    _add_squadron_row("acero_dreadnought", "CNS Iron Bastion", "Anvil-Class Dreadnought • Adm. Vane", "HP 380 | RNG 58m | Forward & Broadside Batteries")
+    _add_squadron_row("acero_battlecruiser", "CNS Hammer of Anvil", "Hammer-Class Battlecruiser • Capt. Korr", "HP 260 | RNG 52m | Twin Spinal Railguns")
+    _add_squadron_row("acero_corvette", "CNS Vanguard-03", "Chisel-Class Escort Corvette • Lt. Drake", "HP 150 | RNG 44m | High-Speed Flank Screen")
+
+func _add_squadron_row(ship_id: String, unit_name: String, role_str: String, stats_str: String) -> void:
     var panel := PanelContainer.new()
     var st := StyleBoxFlat.new()
     st.bg_color = Color(0.03, 0.07, 0.14, 0.85)
@@ -812,10 +894,13 @@ func _add_squadron_row(unit_name: String, role_str: String, stats_str: String) -
     vb.add_theme_constant_override("separation", 1)
     panel.add_child(vb)
 
+    var rank := SaveManager.get_veteran_rank(ship_id)
+    var vet_str := ("  [★ %s +%d%% HP]" % [SaveManager.get_veteran_title(rank).to_upper(), rank * 6]) if rank > 0 else ""
+
     var l1 := Label.new()
-    l1.text = "◆ %s — %s" % [unit_name, role_str]
+    l1.text = "◆ %s — %s%s" % [unit_name, role_str, vet_str]
     l1.add_theme_font_size_override("font_size", 11)
-    l1.add_theme_color_override("font_color", Color.WHITE)
+    l1.add_theme_color_override("font_color", Color(1.0, 0.92, 0.55) if rank > 0 else Color.WHITE)
     vb.add_child(l1)
 
     var l2 := Label.new()

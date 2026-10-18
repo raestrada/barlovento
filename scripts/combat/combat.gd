@@ -40,6 +40,14 @@ static func get_hit_quadrant(shooter: Ship, target: Ship) -> String:
     else:
         return "STARBOARD"
 
+static func has_weather_gauge(shooter: Ship, target: Ship) -> bool:
+    if shooter == null or target == null or shooter.ether == null:
+        return false
+    var to_target := target.state.position - shooter.state.position
+    if to_target.length_squared() < 0.01:
+        return false
+    return to_target.normalized().dot(shooter.ether.direction.normalized()) > 0.22
+
 static func can_hit(shooter: Ship, target: Ship) -> bool:
     if target == null or target.is_destroyed():
         return false
@@ -55,12 +63,15 @@ static func hit_chance(shooter: Ship, target: Ship) -> float:
     var ratio := dist / maxf(shooter.weapon_range, 1.0)
     if ratio > 0.72:
         chance -= (ratio - 0.72) * 0.45
+    if has_weather_gauge(shooter, target):
+        chance += 0.12
     if shooter.has_meta("precision_boost") and bool(shooter.get_meta("precision_boost")):
         chance += 0.25
-    return clampf(chance, 0.25, 0.98)
+    return clampf(chance, 0.25, 0.99)
 
 static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
     var quadrant := get_hit_quadrant(shooter, target)
+    var barlovento := has_weather_gauge(shooter, target)
     var result := {
         "hit": false,
         "damage": 0.0,
@@ -69,7 +80,8 @@ static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
         "target_name": target.ship_name if target != null else "Unknown",
         "critical": false,
         "evaded": false,
-        "quadrant": quadrant
+        "quadrant": quadrant,
+        "weather_gauge": barlovento
     }
 
     if not can_hit(shooter, target):
@@ -83,6 +95,10 @@ static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
     if roll <= chance:
         result["hit"] = true
         var dmg := shooter.weapon_damage
+
+        # Barlovento (Weather-Gauge) Upwind Tactical Bonus (+15% Damage)
+        if barlovento:
+            dmg *= 1.15
 
         # Directional Armor Quadrant Modifiers (from docs/DESIGN.md)
         match quadrant:

@@ -233,6 +233,13 @@ func _build_ui() -> void:
     )
     pills_row.add_child(_btn_rcs_burn)
 
+    var btn_shield := _make_pill_btn("🛡 Overcharge", false, func() -> void:
+        _spend_ap(2)
+        ability_used.emit("shield_pulse")
+        refresh()
+    )
+    pills_row.add_child(btn_shield)
+
     _btn_resolve = _make_pill_btn("▶ RESOLVE [SPACE]", true, func() -> void:
         _current_ap = 7
         execute_round_pressed.emit()
@@ -410,17 +417,21 @@ func refresh() -> void:
         _ap_bar.salvo_text = "%d/7" % TurnManager.ace_round
         _ap_bar.drift_text = "/ %.0f" % ship.speed()
 
-    # Keep the iconic ability labels from ace-phase.png while making their function clear
     if ship.faction == "marea_libre":
         _btn_oar_burst.text = "Oar Burst [+SPD]"
         _btn_trim_sails.text = "Trim Sails [AIM]"
         _btn_broadside.text = "Broadside [FIRE]"
-        _btn_rcs_burn.text = "RCS Burn [BRAKE]"
+        _btn_rcs_burn.text = "Reef Sails [BRAKE]"
+    elif ship.faction == "vinculados":
+        _btn_oar_burst.text = "Vernier Boost [+SPD]"
+        _btn_trim_sails.text = "Neural Lock [AIM]"
+        _btn_broadside.text = "Choir Lance [FIRE]"
+        _btn_rcs_burn.text = "Phase Drift [EVADE]"
     else:
-        _btn_oar_burst.text = "Oar Burst [+SPD]"
-        _btn_trim_sails.text = "Trim Sails [AIM]"
-        _btn_broadside.text = "Broadside [FIRE]"
-        _btn_rcs_burn.text = "RCS Burn [BRAKE]"
+        _btn_oar_burst.text = "Furnace Burn [+SPD]"
+        _btn_trim_sails.text = "Helm Lock [AIM]"
+        _btn_broadside.text = "Rail Salvo [FIRE]"
+        _btn_rcs_burn.text = "RCS Brake [EVADE]"
 
     var yaw_deg := posmod(roundi(rad_to_deg(ship.order.yaw)), 360)
     var pitch_deg := roundi(rad_to_deg(ship.order.pitch))
@@ -438,20 +449,21 @@ func refresh() -> void:
             var in_rng := dist <= ship.weapon_range
             var in_arc := Combat.in_arc(ship, target)
             var hit_pct := roundi(Combat.hit_chance(ship, target) * 100.0)
+            var wg_tag := " 🌬[BARLOVENTO]" if Combat.has_weather_gauge(ship, target) else ""
             if in_rng and in_arc:
-                _target_status_label.text = "⚔ VS %s (%s) [%.0fm — %d%% HIT]" % [target.pilot_name, target.ship_name, dist, hit_pct]
+                _target_status_label.text = "⚔ VS %s [%.0fm — %d%% HIT]%s" % [target.pilot_name, dist, hit_pct, wg_tag]
                 _target_status_label.add_theme_color_override("font_color", HudWidgets.COL_GREEN)
             elif not in_rng:
                 _target_status_label.text = "▲ %s OUT OF RANGE [%.0fm / %.0fm]" % [target.pilot_name, dist, ship.weapon_range]
                 _target_status_label.add_theme_color_override("font_color", HudWidgets.COL_RED)
             else:
-                _target_status_label.text = "◀ %s OUT OF ARC [CLICK TRIM SAILS]" % target.pilot_name
+                _target_status_label.text = "◀ %s OUT OF ARC [CLICK AIM]%s" % [target.pilot_name, wg_tag]
                 _target_status_label.add_theme_color_override("font_color", HudWidgets.COL_AMBER)
 
 func _make_pill_btn(txt: String, glowing: bool, cb: Callable) -> Button:
     var b := Button.new()
     b.text = txt
-    b.custom_minimum_size = Vector2(126, 36)
+    b.custom_minimum_size = Vector2(108, 36)
     b.add_theme_font_size_override("font_size", 11)
     b.focus_mode = Control.FOCUS_NONE
 

@@ -738,6 +738,13 @@ class HeroRosterModal extends Control:
             closed.emit()
             accept_event()
 
+    func _weapon_label_for_faction(fac: String) -> String:
+        if fac == "marea_libre":
+            return "Broadside Field-Lance & Sails"
+        elif fac == "vinculados":
+            return "Resonance Choir Beam Lance"
+        return "Heavy Railgun & Prow Battery"
+
     func _build_entries_from_ships(ships_arr: Array, is_ally: bool) -> Array[Dictionary]:
         var list: Array[Dictionary] = []
         if not ships_arr.is_empty():
@@ -751,16 +758,17 @@ class HeroRosterModal extends Control:
                     fac_label = "THE FREE TIDE"
                 elif ship_obj.faction == "vinculados":
                     fac_label = "THE VINCULADOS"
+                var w_name := _weapon_label_for_faction(ship_obj.faction)
                 list.append({
                     "pilot": ship_obj.pilot_name.to_upper(),
                     "ship_name": ship_obj.ship_name,
-                    "class_role": def.short_Category if def != null and def.short_Category != "" else "Combat Vessel",
+                    "class_role": def.class_label if def != null and def.class_label != "" else "Combat Vessel",
                     "faction": fac_label,
                     "portrait": LoreDB.get_portrait_for_ship(ship_obj.ship_id),
                     "hp_pct": ship_obj.hull_pct(),
                     "sh_pct": ship_obj.shield_pct(),
                     "destroyed": ship_obj.is_destroyed(),
-                    "weapon": "%s (%.0fm | %.0f DMG)" % [ship_obj.weapon_name, ship_obj.weapon_range, ship_obj.weapon_damage],
+                    "weapon": "%s (%.0fm | %.0f DMG)" % [w_name, ship_obj.weapon_range, ship_obj.weapon_damage],
                     "stats": "SPD %.0f m/s  |  BOW ARMOR %.0f  |  MASS %.1ft" % [ship_obj.state.max_speed, ship_obj.armor_bow, ship_obj.state.mass],
                     "is_ally": is_ally
                 })
@@ -786,17 +794,18 @@ class HeroRosterModal extends Control:
                 fac_label = "THE FREE TIDE"
             elif def.faction == "vinculados":
                 fac_label = "THE VINCULADOS"
+            var w_name := _weapon_label_for_faction(def.faction)
             list.append({
                 "pilot": def.pilot_name.to_upper(),
                 "ship_name": def.display_name,
-                "class_role": def.short_Category,
+                "class_role": def.class_label if def.class_label != "" else "Combat Vessel",
                 "faction": fac_label,
                 "portrait": def.portrait_path,
                 "hp_pct": 100,
                 "sh_pct": 100,
                 "destroyed": false,
-                "weapon": "%s (%.0fm | %.0f DMG)" % [def.weapon_name, def.weapon_range, def.weapon_damage],
-                "stats": "SPD %.0f m/s  |  HULL %.0f  |  MASS %.1ft" % [def.max_speed, def.max_hp, def.mass],
+                "weapon": "%s (%.0fm | %.0f DMG)" % [w_name, def.weapon_range, def.weapon_damage],
+                "stats": "SPD %.0f m/s  |  HULL %.0f  |  MASS %.1ft" % [def.max_speed, def.hp, def.mass],
                 "is_ally": is_ally
             })
         return list

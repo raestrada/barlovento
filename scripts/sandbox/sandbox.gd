@@ -52,6 +52,9 @@ var _sluice_station_root: Node3D
 var _is_vector_dragging: bool = false
 
 var _mission_completed: bool = false
+var _victory_title_label: Label
+var _victory_sub_label: Label
+var _victory_next_btn: Button
 
 func _ready() -> void:
 	TurnManager.reset()
@@ -63,9 +66,18 @@ func _ready() -> void:
 	)
 
 	_ether = EtherField.new()
-	_ether.direction = Vector3(1.0, 0.2, 0.35).normalized()
-	_ether.strength = 1.6
-	_ether.wavelength = 65.0
+	if LoreDB.current_stage_id == "acero_stage_2":
+		_ether.direction = Vector3(0.85, 0.25, -0.45).normalized()
+		_ether.strength = 2.1
+		_ether.wavelength = 55.0
+	elif LoreDB.current_stage_id == "acero_stage_3":
+		_ether.direction = Vector3(-0.75, 0.18, 0.62).normalized()
+		_ether.strength = 2.4
+		_ether.wavelength = 50.0
+	else:
+		_ether.direction = Vector3(1.0, 0.2, 0.35).normalized()
+		_ether.strength = 1.6
+		_ether.wavelength = 65.0
 
 	_build_environment()
 	_build_camera()
@@ -89,12 +101,27 @@ func _ready() -> void:
 	TurnManager.ace_fire_moment.connect(_on_ace_fire_moment)
 
 	_on_phase_changed(TurnManager.phase)
-	if LoreDB.current_stage_id == "acero_stage_1":
-		_add_combat_log("ACT I // STAGE 01: Sluice Station Well-09 under Corsair raid!", Color(1.0, 0.72, 0.28))
-		_add_combat_log("Adm. Vane: \"Hold the Line of Battle. Present bow armor and cross their T!\"", Color(0.4, 0.92, 1.0))
-	else:
-		_add_combat_log("Tactical link established. Outer Veil // Sector Psalm-4.", Color(0.4, 0.9, 1.0))
-		_add_combat_log("Tip: Hold [SHIFT + Left-Click/Drag] on the 3D plane to aim vector & speed.", Color(1.0, 0.85, 0.3))
+	if SaveManager.pending_load_battle and SaveManager.has_tactical_save():
+		SaveManager.pending_load_battle = false
+		_load_battle_state()
+		return
+
+	match LoreDB.current_stage_id:
+		"acero_stage_1":
+			_add_combat_log("ACT I // STAGE 01: Sluice Station Well-09 under Corsair raid!", Color(1.0, 0.72, 0.28))
+			_add_combat_log("Adm. Vane: \"Hold the Line of Battle. Present bow armor and cross their T!\"", Color(0.4, 0.92, 1.0))
+		"acero_stage_2":
+			_add_combat_log("ACT I // STAGE 02: Resonance Spire — Vinculados Choir Wing detected!", Color(0.85, 0.45, 1.0))
+			_add_combat_log("Adm. Vane: \"Their mobile suits ride the crosswind. Use Weather-Gauge [BARLOVENTO] & broadsides!\"", Color(0.4, 0.92, 1.0))
+		"acero_stage_3":
+			_add_combat_log("ACT I // STAGE 03: The Calm Threshold — Grand Coalition Fleet ahead!", Color(1.0, 0.45, 0.30))
+			_add_combat_log("Adm. Vane: \"The Calm is behind us. Anchor the Anvil line — Steel Endures!\"", Color(0.4, 0.92, 1.0))
+		_:
+			_add_combat_log("Tactical link established. Outer Veil // Sector Psalm-4.", Color(0.4, 0.9, 1.0))
+			_add_combat_log("Tip: Hold [SHIFT + Left-Click/Drag] on the 3D plane to aim vector & speed.", Color(1.0, 0.85, 0.3))
+
+	# Auto-save initial tactical state at start of stage
+	_save_battle_state(true)
 
 func _physics_process(delta: float) -> void:
 	if not TurnManager.is_resolving():
@@ -134,6 +161,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_pressed():
 		return
 
+	if event.is_action_pressed("quick_save"):
+		_save_battle_state(false)
+		return
+	if event.is_action_pressed("quick_load"):
+		_load_battle_state()
+		return
 	if event.is_action_pressed("help"):
 		if _roster_modal != null and _roster_modal.visible:
 			_roster_modal.visible = false
@@ -372,6 +405,8 @@ func _on_ace_fire_moment() -> void:
 						quad_tag = " 💥 [STERN RAKE!]"
 					elif result.critical:
 						quad_tag = " 💥 [CRIT %s!]" % result.quadrant
+					if result.get("weather_gauge", false):
+						quad_tag += " 🌬[BARLOVENTO]"
 					_spawn_combat_text(target.global_position, "-%.0f HP%s" % [result.damage, quad_tag], Color(1.0, 0.85, 0.2) if result.critical else Color(0.3, 1.0, 0.55))
 					_add_combat_log("%s hit %s%s for %.0f DMG" % [player.ship_name, target.ship_name, quad_tag, result.damage], Color(0.3, 1.0, 0.55))
 					if result.destroyed:
@@ -399,6 +434,8 @@ func _on_ace_fire_moment() -> void:
 
 				if result.hit:
 					var quad_tag := " [%s]" % result.quadrant
+					if result.get("weather_gauge", false):
+						quad_tag += " 🌬[UPWIND]"
 					_spawn_combat_text(target.global_position, "-%.0f HP%s" % [result.damage, quad_tag], Color(1.0, 0.35, 0.2))
 					_add_combat_log("[ENEMY] %s hit %s%s for %.0f DMG" % [enemy.ship_name, target.ship_name, quad_tag, result.damage], Color(1.0, 0.45, 0.35))
 					if result.destroyed:
@@ -417,6 +454,7 @@ func _on_ace_resolve_finished() -> void:
 	_check_stage_objectives()
 	if not _mission_completed:
 		_update_round_banner()
+		_save_battle_state(true)
 
 func _on_admiral_resolve_finished() -> void:
 	_refresh_fleet_panel()
@@ -424,6 +462,8 @@ func _on_admiral_resolve_finished() -> void:
 	if _fleets_in_range():
 		_add_combat_log("Combat envelope reached! Transitioning to Ace tactical phase.", Color(1.0, 0.8, 0.3))
 		_engage_ace_mode()
+	if not _mission_completed:
+		_save_battle_state(true)
 
 func _engage_ace_mode() -> void:
 	AudioManager.play_sfx("ui_hover", -8.0)
@@ -539,18 +579,95 @@ func _on_ace_ability_used(ability_name: String) -> void:
 			AudioManager.play_sfx("engine", -8.0)
 			_add_combat_log("⚡ %s: Thruster / Oar Burst engaged! (Target SPD %.1f m/s)" % [_selected_ship.ship_name, _selected_ship.order.target_speed], Color(0.35, 0.95, 1.0))
 		"precision":
+			_selected_ship.set_meta("precision_boost", true)
 			AudioManager.play_sfx("ui_hover", -6.0)
-			_add_combat_log("🎯 %s: Broadside fire control calibrated (+25%% Hit Accuracy)" % _selected_ship.ship_name, Color(0.35, 1.0, 0.85))
+			_add_combat_log("🎯 %s: Fire control calibrated (+25%% Hit Accuracy & +15%% Salvo DMG)" % _selected_ship.ship_name, Color(0.35, 1.0, 0.85))
 		"retro_brake":
 			_selected_ship.order.target_speed = maxf(_selected_ship.order.target_speed - 8.0, 0.0)
 			_selected_ship.state.velocity *= 0.4
 			AudioManager.play_sfx("engine", -8.0)
 			_add_combat_log("💨 %s: RCS Retro-Burn fired! (Drift arrested to %.1f m/s, +35%% Evasion)" % [_selected_ship.ship_name, _selected_ship.speed()], Color(0.4, 0.9, 1.0))
 		"shield_pulse":
-			_selected_ship.hp = minf(_selected_ship.hp + 30.0, _selected_ship.max_hp)
+			_selected_ship.shield_hp = minf(_selected_ship.shield_hp + 40.0, _selected_ship.max_shield_hp)
+			_selected_ship.hp = minf(_selected_ship.hp + 20.0, _selected_ship.max_hp)
+			_selected_ship.refresh_after_load()
 			AudioManager.play_sfx("shield", -8.0)
-			_add_combat_log("🛡 %s: Deflector shield overcharged (+30 HP absorbed)" % _selected_ship.ship_name, Color(0.3, 1.0, 0.6))
+			_add_combat_log("🛡 %s: Deflector barriers overcharged (+40 SHLD / +20 HULL)" % _selected_ship.ship_name, Color(0.3, 1.0, 0.6))
 			_refresh_fleet_panel()
+
+func _save_battle_state(silent: bool = false) -> void:
+	SaveManager.save_tactical_state(
+		LoreDB.current_stage_id,
+		TurnManager.turn_number,
+		int(TurnManager.phase),
+		TurnManager.ace_round,
+		_player_ships,
+		_enemy_ships
+	)
+	if not silent:
+		AudioManager.play_sfx("ui_click", -8.0)
+		_add_combat_log("💾 Tactical battle state saved [F5].", Color(0.35, 1.0, 0.70))
+
+func _load_battle_state() -> void:
+	var state := SaveManager.load_tactical_state()
+	if state.is_empty():
+		_add_combat_log("⚠ No saved tactical battle found [F9].", Color(1.0, 0.65, 0.30))
+		return
+	var saved_stage := String(state.get("stage_id", "acero_stage_1"))
+	if saved_stage != LoreDB.current_stage_id:
+		LoreDB.current_stage_id = saved_stage
+		SaveManager.pending_load_battle = true
+		get_tree().reload_current_scene()
+		return
+
+	TurnManager.turn_number = int(state.get("turn_number", 1))
+	TurnManager.ace_round = int(state.get("ace_round", 1))
+	var saved_phase := int(state.get("phase", 0))
+	if saved_phase == int(TurnManager.Phase.ADMIRAL_RESOLVE):
+		saved_phase = int(TurnManager.Phase.ADMIRAL_PLAN)
+	elif saved_phase == int(TurnManager.Phase.ACE_RESOLVE):
+		saved_phase = int(TurnManager.Phase.ACE_PLAN)
+	TurnManager.phase = saved_phase as TurnManager.Phase
+
+	var p_arr: Array = state.get("player_ships", [])
+	for i in range(mini(_player_ships.size(), p_arr.size())):
+		_apply_ship_save_dict(_player_ships[i], p_arr[i])
+
+	var e_arr: Array = state.get("enemy_ships", [])
+	for i in range(mini(_enemy_ships.size(), e_arr.size())):
+		_apply_ship_save_dict(_enemy_ships[i], e_arr[i])
+
+	_mission_completed = false
+	if _victory_overlay != null:
+		_victory_overlay.visible = false
+	if _defeat_overlay != null:
+		_defeat_overlay.visible = false
+
+	_on_phase_changed(TurnManager.phase)
+	_refresh_fleet_panel()
+	AudioManager.play_sfx("ui_hover", -6.0)
+	_add_combat_log("📂 Tactical battle restored (Turn %d, Round %d) [F9]." % [TurnManager.turn_number, TurnManager.ace_round], Color(0.40, 0.95, 1.0))
+
+func _apply_ship_save_dict(s: Ship, sd: Dictionary) -> void:
+	s.hp = float(sd.get("hp", s.hp))
+	s.max_hp = float(sd.get("max_hp", s.max_hp))
+	s.shield_hp = float(sd.get("shield_hp", s.shield_hp))
+	s.max_shield_hp = float(sd.get("max_shield_hp", s.max_shield_hp))
+	s.armor_bow = float(sd.get("armor_bow", s.armor_bow))
+	s.armor_port = float(sd.get("armor_port", s.armor_port))
+	s.armor_stbd = float(sd.get("armor_stbd", s.armor_stbd))
+	s.armor_stern = float(sd.get("armor_stern", s.armor_stern))
+	s.stance = int(sd.get("stance", 0)) as Ship.Stance
+	s.is_evading = bool(sd.get("is_evading", false))
+	s.state.position = SaveManager.arr_to_vec3(sd.get("pos", []))
+	s.state.velocity = SaveManager.arr_to_vec3(sd.get("vel", []))
+	var fwd := SaveManager.arr_to_vec3(sd.get("fwd", [0.0, 0.0, -1.0]))
+	if fwd.length_squared() > 0.001:
+		s.state.forward = fwd.normalized()
+	s.order.yaw = float(sd.get("order_yaw", 0.0))
+	s.order.pitch = float(sd.get("order_pitch", 0.0))
+	s.order.target_speed = float(sd.get("order_speed", 0.0))
+	s.refresh_after_load()
 
 func _align_fleet_formation() -> void:
 	if _selected_ship == null or _selected_ship.is_destroyed():
@@ -1334,7 +1451,7 @@ func _build_tactical_grid() -> void:
 func _spawn_fleets() -> void:
 	match LoreDB.current_stage_id:
 		"acero_stage_1":
-			# ACT I // STAGE 01: 100% Pure Armada of Acero vs 100% Pure Free Tide Corsairs
+			# ACT I // STAGE 01: Defense of Sluice Station Well-09 (Acero vs Free Tide Corsairs)
 			_player_ships.append(_spawn("acero_dreadnought", Vector3(-12.0, 5.0, 36.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("acero_battlecruiser", Vector3(4.0, 2.0, 34.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 38.0), Vector3.ZERO, 0))
@@ -1342,6 +1459,27 @@ func _spawn_fleets() -> void:
 			_enemy_ships.append(_spawn("marea_galleon", Vector3(-10.0, 6.0, -40.0), Vector3(0.0, 0.0, 3.5), 1))
 			_enemy_ships.append(_spawn("marea_raider", Vector3(8.0, 3.0, -44.0), Vector3(0.0, 0.0, 4.0), 1))
 			_enemy_ships.append(_spawn("marea_brigantine", Vector3(20.0, 8.0, -38.0), Vector3(0.0, 0.0, 4.5), 1))
+		"acero_stage_2":
+			# ACT I // STAGE 02: Ambush at the Resonance Spire (Acero vs Vinculados Choir Wing)
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 4.0, 36.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 7.0, 34.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(20.0, 2.0, 38.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(-12.0, 8.0, -42.0), Vector3(1.5, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(6.0, 2.0, -44.0), Vector3(-1.2, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(20.0, 6.0, -38.0), Vector3(0.0, 0.0, 3.8), 1))
+		"acero_stage_3":
+			# ACT I // STAGE 03: The Calm Threshold (Acero vs Veteran Free Tide Flagship Squadron)
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-12.0, 5.0, 36.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(4.0, 3.0, 34.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 38.0), Vector3.ZERO, 0))
+
+			var boss_gal := _spawn("marea_galleon", Vector3(-14.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.8), 1)
+			boss_gal.hp = roundf(boss_gal.hp * 1.20)
+			boss_gal.max_hp = boss_gal.hp
+			_enemy_ships.append(boss_gal)
+			_enemy_ships.append(_spawn("marea_raider", Vector3(4.0, 3.0, -45.0), Vector3(0.0, 0.0, 4.4), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(20.0, 8.0, -40.0), Vector3(0.0, 0.0, 4.8), 1))
 		"marea_stage_1":
 			# ACT III // STAGE 01: 100% Pure Free Tide Corsairs vs 100% Pure Armada of Acero
 			_player_ships.append(_spawn("marea_galleon", Vector3(-10.0, 5.0, 36.0), Vector3.ZERO, 0))
@@ -1374,10 +1512,10 @@ func _spawn_fleets() -> void:
 func _spawn(id: String, pos: Vector3, vel: Vector3, team: int) -> Ship:
 	var def := LoreDB.get_ship(id)
 	var ship := Ship.new()
+	ship.team = team
 	ship.apply_def(def)
 	ship.initial_velocity = vel
 	ship.position = pos
-	ship.team = team
 	ship.ether = _ether
 	ship.clicked.connect(_on_ship_clicked)
 	ship.right_clicked.connect(_on_ship_right_clicked)
@@ -1457,17 +1595,17 @@ func _build_hud() -> void:
 	_ace_top_banner.visible = false
 	layer.add_child(_ace_top_banner)
 
-	# 3. TOP-RIGHT: Menu [◀ MENU], Roster [★], Reset [↻], Help [≡], Commander Bridge Card & Sensor Feed
+	# 3. TOP-RIGHT: Menu [◀ MENU], Roster [★], Save [💾], Load [📂], Reset [↻], Help [≡], Commander Bridge Card & Sensor Feed
 	var top_right_vbox := VBoxContainer.new()
 	top_right_vbox.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	top_right_vbox.position = Vector2(-310, 12)
-	top_right_vbox.custom_minimum_size = Vector2(296, 0)
+	top_right_vbox.position = Vector2(-330, 12)
+	top_right_vbox.custom_minimum_size = Vector2(316, 0)
 	top_right_vbox.add_theme_constant_override("separation", 6)
 	layer.add_child(top_right_vbox)
 
 	var tr_btn_row := HBoxContainer.new()
 	tr_btn_row.alignment = BoxContainer.ALIGNMENT_END
-	tr_btn_row.add_theme_constant_override("separation", 5)
+	tr_btn_row.add_theme_constant_override("separation", 4)
 	top_right_vbox.add_child(tr_btn_row)
 
 	var menu_btn := Button.new()
@@ -1481,7 +1619,8 @@ func _build_hud() -> void:
 	tr_btn_row.add_child(menu_btn)
 
 	var roster_btn := Button.new()
-	roster_btn.text = "★ ROSTER [R]"
+	roster_btn.text = "★ ROSTER"
+	roster_btn.tooltip_text = "Hero & Ace Roster [R]"
 	roster_btn.theme = _hud_theme
 	roster_btn.pressed.connect(func() -> void:
 		if _roster_modal != null:
@@ -1489,11 +1628,27 @@ func _build_hud() -> void:
 	)
 	tr_btn_row.add_child(roster_btn)
 
+	var save_btn := Button.new()
+	save_btn.text = "💾"
+	save_btn.tooltip_text = "Quick Save Tactical Battle [F5]"
+	save_btn.theme = _hud_theme
+	save_btn.custom_minimum_size = Vector2(28, 28)
+	save_btn.pressed.connect(func() -> void: _save_battle_state(false))
+	tr_btn_row.add_child(save_btn)
+
+	var load_btn := Button.new()
+	load_btn.text = "📂"
+	load_btn.tooltip_text = "Quick Load Tactical Battle [F9]"
+	load_btn.theme = _hud_theme
+	load_btn.custom_minimum_size = Vector2(28, 28)
+	load_btn.pressed.connect(func() -> void: _load_battle_state())
+	tr_btn_row.add_child(load_btn)
+
 	var reset_btn := Button.new()
 	reset_btn.text = "↻"
 	reset_btn.tooltip_text = "Restart Stage"
 	reset_btn.theme = _hud_theme
-	reset_btn.custom_minimum_size = Vector2(30, 28)
+	reset_btn.custom_minimum_size = Vector2(28, 28)
 	reset_btn.pressed.connect(func() -> void: get_tree().reload_current_scene())
 	tr_btn_row.add_child(reset_btn)
 
@@ -1501,7 +1656,7 @@ func _build_hud() -> void:
 	help_btn.text = "≡"
 	help_btn.tooltip_text = "Tactical Manual [H / ESC]"
 	help_btn.theme = _hud_theme
-	help_btn.custom_minimum_size = Vector2(32, 28)
+	help_btn.custom_minimum_size = Vector2(30, 28)
 	help_btn.pressed.connect(_toggle_help)
 	tr_btn_row.add_child(help_btn)
 
@@ -1532,12 +1687,17 @@ func _build_hud() -> void:
 	cmd_hbox.add_child(cmd_vbox)
 
 	_stage_title_label = Label.new()
-	if LoreDB.current_stage_id == "acero_stage_1":
-		_stage_title_label.text = "ACT I // STAGE 01: SLUICE WELL-09"
-	elif LoreDB.current_stage_id == "marea_stage_1":
-		_stage_title_label.text = "ACT III // STAGE 01: ANVIL BLOCKADE"
-	else:
-		_stage_title_label.text = "SECTOR PSALM-4 // RESONANCE WELL"
+	match LoreDB.current_stage_id:
+		"acero_stage_1":
+			_stage_title_label.text = "ACT I // STAGE 01: SLUICE WELL-09"
+		"acero_stage_2":
+			_stage_title_label.text = "ACT I // STAGE 02: RESONANCE SPIRE"
+		"acero_stage_3":
+			_stage_title_label.text = "ACT I // STAGE 03: THE CALM THRESHOLD"
+		"marea_stage_1":
+			_stage_title_label.text = "ACT III // STAGE 01: ANVIL BLOCKADE"
+		_:
+			_stage_title_label.text = "SECTOR PSALM-4 // RESONANCE WELL"
 	_stage_title_label.add_theme_font_size_override("font_size", 10)
 	_stage_title_label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.32))
 	cmd_vbox.add_child(_stage_title_label)
@@ -1551,7 +1711,7 @@ func _build_hud() -> void:
 	# Compact Translucent Sensor Feed
 	var log_panel := PanelContainer.new()
 	log_panel.theme = _hud_theme
-	log_panel.custom_minimum_size = Vector2(296, 86)
+	log_panel.custom_minimum_size = Vector2(316, 86)
 	top_right_vbox.add_child(log_panel)
 
 	var log_outer := VBoxContainer.new()
@@ -1805,13 +1965,51 @@ func _check_stage_objectives() -> void:
 		_mission_completed = true
 		_show_mission_defeat()
 
+func _get_next_stage_id() -> String:
+	match LoreDB.current_stage_id:
+		"acero_stage_1":
+			return "acero_stage_2"
+		"acero_stage_2":
+			return "acero_stage_3"
+		_:
+			return ""
+
 func _show_mission_victory() -> void:
 	AudioManager.play_sfx("shockwave", 0.0)
 	AudioManager.play_sfx("explosion_big", 0.0)
+
+	var surviving_ids: Array[String] = []
+	var promo_lines: Array[String] = []
+	for p in _player_ships:
+		if not p.is_destroyed():
+			surviving_ids.append(p.ship_id)
+			var new_rank := mini(SaveManager.get_veteran_rank(p.ship_id) + 1, 5)
+			promo_lines.append("★ %s (%s) promoted to %s [Rank %d: +%d%% HP / +%d%% DMG]" % [
+				p.pilot_name, p.ship_name, SaveManager.get_veteran_title(new_rank), new_rank, new_rank * 6, new_rank * 5
+			])
+
+	SaveManager.record_stage_victory(LoreDB.current_stage_id, surviving_ids)
+
 	if LoreDB.current_stage_id == "acero_stage_1":
 		_add_combat_log("STAGE 01 COMPLETE: SLUICE STATION WELL-09 SECURED! STEEL ENDURES!", Color(0.3, 1.0, 0.6))
+	elif LoreDB.current_stage_id == "acero_stage_2":
+		_add_combat_log("STAGE 02 COMPLETE: RESONANCE SPIRE SECURED!", Color(0.3, 1.0, 0.6))
+	elif LoreDB.current_stage_id == "acero_stage_3":
+		_add_combat_log("ACT I CAMPAIGN COMPLETE: THE CALM THRESHOLD HELD!", Color(0.3, 1.0, 0.6))
 	else:
 		_add_combat_log("MISSION ACCOMPLISHED: SECTOR SECURED!", Color(0.3, 1.0, 0.6))
+
+	if _victory_sub_label != null and not promo_lines.is_empty():
+		_victory_sub_label.text += "\n\nVETERAN ACE PROMOTIONS (SAVED TO CAMPAIGN):\n" + "\n".join(promo_lines)
+
+	var next_id := _get_next_stage_id()
+	if _victory_next_btn != null:
+		_victory_next_btn.visible = (next_id != "")
+		if next_id == "acero_stage_2":
+			_victory_next_btn.text = "▶ DEPLOY STAGE 02: RESONANCE SPIRE"
+		elif next_id == "acero_stage_3":
+			_victory_next_btn.text = "▶ DEPLOY STAGE 03: CALM THRESHOLD"
+
 	if _victory_overlay != null:
 		_victory_overlay.visible = true
 
@@ -1836,44 +2034,70 @@ func _build_victory_overlay(layer: CanvasLayer) -> void:
 	var panel := PanelContainer.new()
 	panel.theme = _hud_theme
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(580, 310)
+	panel.custom_minimum_size = Vector2(650, 350)
 	_victory_overlay.add_child(panel)
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
 	panel.add_child(vbox)
 
-	var title := Label.new()
-	title.text = "STAGE 01 ACCOMPLISHED // STEEL ENDURES" if LoreDB.current_stage_id == "acero_stage_1" else "MISSION ACCOMPLISHED"
-	title.add_theme_font_size_override("font_size", 20)
-	title.add_theme_color_override("font_color", Color(0.3, 1.0, 0.65))
-	vbox.add_child(title)
+	_victory_title_label = Label.new()
+	match LoreDB.current_stage_id:
+		"acero_stage_1":
+			_victory_title_label.text = "STAGE 01 ACCOMPLISHED // STEEL ENDURES"
+		"acero_stage_2":
+			_victory_title_label.text = "STAGE 02 ACCOMPLISHED // THE CHOIR SILENCED"
+		"acero_stage_3":
+			_victory_title_label.text = "ACT I VICTORY // BASTION OF THE CALM"
+		_:
+			_victory_title_label.text = "MISSION ACCOMPLISHED"
+	_victory_title_label.add_theme_font_size_override("font_size", 20)
+	_victory_title_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.65))
+	vbox.add_child(_victory_title_label)
 
-	var sub := Label.new()
-	if LoreDB.current_stage_id == "acero_stage_1":
-		sub.text = "Sluice Station Well-09 Secured // The Armada of Acero\n\nFleet Admiral Vane's line of battle shattered Captain Solano's corsair raid.\nRefined éteron continues to flow toward the orbital forges of Anvil."
-	else:
-		sub.text = "Sector Psalm-4 // Resonance Well Secured\n\nThe hostile strike group has been repelled.\nYour squadron holds control of the local Éther currents."
-	sub.add_theme_font_size_override("font_size", 13)
-	sub.add_theme_color_override("font_color", Color(0.85, 0.95, 1.0))
-	vbox.add_child(sub)
+	_victory_sub_label = Label.new()
+	match LoreDB.current_stage_id:
+		"acero_stage_1":
+			_victory_sub_label.text = "Sluice Station Well-09 Secured // The Armada of Acero\nFleet Admiral Vane's line of battle shattered Captain Solano's corsair raid. Refined éteron continues to flow toward the orbital forges of Anvil."
+		"acero_stage_2":
+			_victory_sub_label.text = "Resonance Spire Secured // The Armada of Acero\nCommander Kaelen's Vinculados Choir Wing was forced to retreat before they could destabilize the sector's Éther currents."
+		"acero_stage_3":
+			_victory_sub_label.text = "The Calm Threshold Held // Act I Campaign Complete\nAgainst the encroaching Calm, Admiral Vane's veteran squadron broke the coalition vanguard and anchored the Sluice Wall."
+		_:
+			_victory_sub_label.text = "Sector Psalm-4 // Resonance Well Secured\nThe hostile strike group has been repelled. Your squadron holds control of the local Éther currents."
+	_victory_sub_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_victory_sub_label.add_theme_font_size_override("font_size", 12)
+	_victory_sub_label.add_theme_color_override("font_color", Color(0.85, 0.95, 1.0))
+	vbox.add_child(_victory_sub_label)
 
 	var sep := HSeparator.new()
 	vbox.add_child(sep)
 
 	var btn_row := HBoxContainer.new()
-	btn_row.add_theme_constant_override("separation", 12)
+	btn_row.add_theme_constant_override("separation", 10)
 	vbox.add_child(btn_row)
 
+	_victory_next_btn = Button.new()
+	_victory_next_btn.text = "▶ DEPLOY NEXT STAGE"
+	_victory_next_btn.custom_minimum_size = Vector2(240, 38)
+	_victory_next_btn.visible = (_get_next_stage_id() != "")
+	_victory_next_btn.pressed.connect(func() -> void:
+		var nxt := _get_next_stage_id()
+		if nxt != "":
+			LoreDB.current_stage_id = nxt
+			get_tree().reload_current_scene()
+	)
+	btn_row.add_child(_victory_next_btn)
+
 	var menu_btn := Button.new()
-	menu_btn.text = "◀ RETURN TO CAMPAIGN MENU"
-	menu_btn.custom_minimum_size = Vector2(230, 38)
+	menu_btn.text = "◀ CAMPAIGN MENU"
+	menu_btn.custom_minimum_size = Vector2(180, 38)
 	menu_btn.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn"))
 	btn_row.add_child(menu_btn)
 
 	var replay_btn := Button.new()
-	replay_btn.text = "↻ REPLAY STAGE 01"
-	replay_btn.custom_minimum_size = Vector2(180, 38)
+	replay_btn.text = "↻ REPLAY STAGE"
+	replay_btn.custom_minimum_size = Vector2(150, 38)
 	replay_btn.pressed.connect(func() -> void: get_tree().reload_current_scene())
 	btn_row.add_child(replay_btn)
 
@@ -2146,6 +2370,8 @@ func _setup_input_actions() -> void:
 	_add_action("toggle_roster", [KEY_R])
 	_add_action("ace_cycle", [KEY_C])
 	_add_action("intercept_target", [KEY_T])
+	_add_action("quick_save", [KEY_F5])
+	_add_action("quick_load", [KEY_F9])
 
 func _add_action(action: String, keys: Array) -> void:
 	if not InputMap.has_action(action):
