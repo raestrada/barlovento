@@ -105,9 +105,9 @@ func _ensure_arrival_marker(ship: Ship) -> Node3D:
 
     var ring := MeshInstance3D.new()
     var torus := TorusMesh.new()
-    torus.inner_radius = 0.9
-    torus.outer_radius = 1.2
-    torus.rings = 20
+    torus.inner_radius = 1.05
+    torus.outer_radius = 1.35
+    torus.rings = 24
     ring.mesh = torus
     ring.rotation_degrees = Vector3(90.0, 0.0, 0.0)
 
@@ -119,14 +119,38 @@ func _ensure_arrival_marker(ship: Ship) -> Node3D:
     ring.material_override = ring_mat
     root.add_child(ring)
 
+    # Holographic Ghost Ship Silhouette at predicted end-of-turn pose
+    var ghost_mat := StandardMaterial3D.new()
+    ghost_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    ghost_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    ghost_mat.albedo_color = Color(col.r, col.g, col.b, 0.35)
+    ghost_mat.emission_enabled = true
+    ghost_mat.emission = Color(col.r, col.g, col.b)
+    ghost_mat.emission_energy_multiplier = 1.4
+
+    var ghost_hull := MeshInstance3D.new()
+    var hull_box := BoxMesh.new()
+    hull_box.size = Vector3(0.95, 0.45, 2.2)
+    ghost_hull.mesh = hull_box
+    ghost_hull.material_override = ghost_mat
+    root.add_child(ghost_hull)
+
+    var ghost_wing := MeshInstance3D.new()
+    var wing_box := BoxMesh.new()
+    wing_box.size = Vector3(2.3, 0.14, 0.85)
+    ghost_wing.mesh = wing_box
+    ghost_wing.position = Vector3(0.0, 0.08, 0.15)
+    ghost_wing.material_override = ghost_mat
+    root.add_child(ghost_wing)
+
     var pointer := MeshInstance3D.new()
     var prism := CylinderMesh.new()
     prism.top_radius = 0.0
-    prism.bottom_radius = 0.4
-    prism.height = 1.2
+    prism.bottom_radius = 0.52
+    prism.height = 1.45
     pointer.mesh = prism
     pointer.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
-    pointer.position = Vector3(0.0, 0.0, -1.0)
+    pointer.position = Vector3(0.0, 0.0, -1.65)
     pointer.material_override = ring_mat
     root.add_child(pointer)
 

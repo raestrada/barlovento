@@ -45,6 +45,9 @@ var _victory_overlay: Control
 var _defeat_overlay: Control
 var _hud_theme: Theme
 var _ether_particles: Node3D
+var _asteroid_root: Node3D
+var _calm_wall_root: Node3D
+var _is_vector_dragging: bool = false
 
 var _mission_completed: bool = false
 
@@ -65,6 +68,8 @@ func _ready() -> void:
 	_build_environment()
 	_build_camera()
 	_build_ether_flow()
+	_build_asteroid_field()
+	_build_calm_wavefront()
 	_build_tactical_grid()
 	_spawn_fleets()
 	_build_trajectory_preview()
@@ -82,7 +87,7 @@ func _ready() -> void:
 
 	_on_phase_changed(TurnManager.phase)
 	_add_combat_log("Tactical link established. Outer Veil // Sector Psalm-4.", Color(0.4, 0.9, 1.0))
-	_add_combat_log("Objective: Intercept and neutralize Acero flotilla.", Color(1.0, 0.85, 0.3))
+	_add_combat_log("Tip: Hold [SHIFT + Left-Click/Drag] on the 3D plane to aim vector & speed.", Color(1.0, 0.85, 0.3))
 
 func _physics_process(delta: float) -> void:
 	if not TurnManager.is_resolving():
@@ -95,10 +100,28 @@ func _physics_process(delta: float) -> void:
 
 func _process(delta: float) -> void:
 	_update_ether_flow(delta)
+	_update_scenery(delta)
 	_update_hud_telemetry()
 	_update_3d_targeting_hud()
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Direct 3D Plane Vector Steering via Shift + Left-Click / Drag
+	if not TurnManager.is_resolving():
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed and Input.is_key_pressed(KEY_SHIFT):
+				_is_vector_dragging = true
+				_apply_mouse_vector_steering(event.position, true)
+				return
+			elif not event.pressed and _is_vector_dragging:
+				_is_vector_dragging = false
+				return
+		elif event is InputEventMouseMotion and _is_vector_dragging:
+			if Input.is_key_pressed(KEY_SHIFT):
+				_apply_mouse_vector_steering(event.position, false)
+				return
+			else:
+				_is_vector_dragging = false
+
 	if event is InputEventKey and event.echo:
 		return
 	if not event.is_pressed():
@@ -136,6 +159,35 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.is_action_pressed("intercept_target"):
 			_intercept_target()
 
+func _apply_mouse_vector_steering(screen_pos: Vector2, play_feedback: bool) -> void:
+	if _selected_ship == null or _selected_ship.is_destroyed():
+		return
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var ray_origin := cam.project_ray_origin(screen_pos)
+	var ray_dir := cam.project_ray_normal(screen_pos)
+	if absf(ray_dir.y) < 0.001:
+		return
+	var plane_y := _selected_ship.global_position.y
+	var t := (plane_y - ray_origin.y) / ray_dir.y
+	if t <= 0.0:
+		return
+	var hit_pos := ray_origin + ray_dir * t
+	var delta_vec := hit_pos - _selected_ship.global_position
+	delta_vec.y = 0.0
+	var dist := delta_vec.length()
+	if dist < 1.0:
+		return
+
+	_set_order_heading(_selected_ship, delta_vec.normalized())
+	var max_drag_dist := 55.0 if not TurnManager.is_in_ace() else 28.0
+	var speed_ratio := clampf(dist / max_drag_dist, 0.15, 1.0)
+	_selected_ship.order.target_speed = roundf(speed_ratio * _selected_ship.state.max_speed * 2.0) * 0.5
+
+	if play_feedback:
+		AudioManager.play_sfx("ui_hover", -10.0)
+		_spawn_impact_flash(hit_pos, Color(0.3, 0.95, 1.0, 0.6))
 
 func _handle_flight_controls(delta: float) -> void:
 	if _selected_ship == null:
@@ -176,8 +228,30 @@ func _execute_ace_round() -> void:
 	_add_combat_log(">>> EXECUTING TACTICAL ROUND %d (ALL UNITS ENGAGING) <<<" % TurnManager.ace_round, Color(0.35, 1.0, 0.75))
 	TurnManager.start_ace_resolve()
 
+func _predict_target_pos(target: Ship, lead_time: float) -> Vector3:
+	return target.state.position + target.state.velocity * lead_time
+
+func _compute_tactical_heading(ship: Ship, target: Ship, lead_time: float) -> Vector3:
+	var predicted := _predict_target_pos(target, lead_time)
+	var to_target := predicted - ship.state.position
+	var dist := to_target.length()
+	if dist < 0.1:
+		return ship.state.forward
+	var dir := to_target / dist
+
+	# Capital warships with broadside batteries angle 52 degrees ("Crossing the T" / angled broadside)
+	# when inside optimal firing envelope (22m..46m) to bring both forward & broadside batteries to bear
+	if (ship.ship_id == "acero_dreadnought" or ship.ship_id == "marea_galleon") and dist >= 22.0 and dist <= 46.0:
+		var port_hp := ship.armor_port
+		var stbd_hp := ship.armor_stbd
+		# Present the healthier armor flank toward the enemy!
+		var angle_sign := 1.0 if port_hp >= stbd_hp else -1.0
+		var angled := dir.rotated(Vector3.UP, deg_to_rad(52.0 * angle_sign))
+		return angled.normalized()
+
+	return dir
+
 func _plan_ai_orders() -> void:
-	# 1. Identify Flagship (Iron Bastion) and Escort (Vanguard-03)
 	var flagship: Ship = null
 	var escort: Ship = null
 	for s in _enemy_ships:
@@ -192,7 +266,6 @@ func _plan_ai_orders() -> void:
 		else:
 			escort = s
 
-	# 2. Pick primary flotilla target (closest active allied ship)
 	var primary_target: Ship = null
 	if flagship != null:
 		primary_target = _nearest_player_ship(flagship)
@@ -202,92 +275,87 @@ func _plan_ai_orders() -> void:
 	if primary_target == null:
 		return
 
-	# 3. Flagship tactical doctrine (Command Dreadnought holding battle line)
+	# Flagship tactical doctrine: Predictive lead intercept + angled broadside battle line
 	if flagship != null:
-		var to_target := primary_target.state.position - flagship.state.position
-		var dist := to_target.length()
-		if dist > 0.1:
-			_set_order_heading(flagship, to_target.normalized())
+		var dist := flagship.state.position.distance_to(primary_target.state.position)
+		var heading := _compute_tactical_heading(flagship, primary_target, 3.5)
+		_set_order_heading(flagship, heading)
 
-		# Engagement envelope (Range 55m):
-		# > 48m: Advance toward intercept
-		# 22m - 48m: BRAKE and maintain battle line!
-		# < 22m: Stop/reverse to avoid ramming and keep stand-off firing arc
 		if dist > 48.0:
-			flagship.order.target_speed = flagship.state.max_speed * 0.60
-		elif dist > 20.0:
-			flagship.order.target_speed = 3.0
+			flagship.order.target_speed = flagship.state.max_speed * 0.65
+		elif dist > 22.0:
+			flagship.order.target_speed = 3.5
 		else:
 			flagship.order.target_speed = 0.0
 
-	# 4. Escort tactical doctrine (Corvette screening the Flagship flank)
+	# Escort tactical doctrine: Fast flanking & screening the Flagship's vulnerable stern
 	if escort != null:
 		if flagship != null and not flagship.is_destroyed():
 			var escort_station := flagship.state.position + Vector3(16.0, 2.0, -4.0)
 			var to_station := escort_station - escort.state.position
 			var dist_station := to_station.length()
 
-			if dist_station > 18.0:
-				# Reposition to rejoin flagship formation screen
+			if dist_station > 20.0:
 				_set_order_heading(escort, to_station.normalized())
-				escort.order.target_speed = escort.state.max_speed * 0.70
+				escort.order.target_speed = escort.state.max_speed * 0.75
 			else:
-				# In formation: Interlock broadside fire on primary target
-				var to_target := primary_target.state.position - escort.state.position
-				var dist_target := to_target.length()
-				if dist_target > 0.1:
-					_set_order_heading(escort, to_target.normalized())
+				var heading := _compute_tactical_heading(escort, primary_target, 2.5)
+				_set_order_heading(escort, heading)
+				var dist_target := escort.state.position.distance_to(primary_target.state.position)
 				if dist_target > 40.0:
-					escort.order.target_speed = escort.state.max_speed * 0.55
+					escort.order.target_speed = escort.state.max_speed * 0.60
 				elif dist_target > 18.0:
-					escort.order.target_speed = 3.5
+					escort.order.target_speed = 4.0
 				else:
 					escort.order.target_speed = 0.0
 		else:
-			# Solo engagement doctrine
-			var to_target := primary_target.state.position - escort.state.position
-			var dist := to_target.length()
-			if dist > 0.1:
-				_set_order_heading(escort, to_target.normalized())
+			var heading := _compute_tactical_heading(escort, primary_target, 2.5)
+			_set_order_heading(escort, heading)
+			var dist := escort.state.position.distance_to(primary_target.state.position)
 			if dist > 40.0:
-				escort.order.target_speed = escort.state.max_speed * 0.65
+				escort.order.target_speed = escort.state.max_speed * 0.68
 			elif dist > 18.0:
-				escort.order.target_speed = 3.5
+				escort.order.target_speed = 4.0
 			else:
 				escort.order.target_speed = 0.0
 
 func _plan_ai_tactical_orders() -> void:
-	# Coordinated target designation for tactical round
-	var primary_target: Ship = null
-	for s in _enemy_ships:
-		if not s.is_destroyed():
-			primary_target = _nearest_player_ship(s)
-			break
+	# Focus-fire utility scoring: prioritize highest threat / lowest HP player unit in range
+	var best_focus_target: Ship = null
+	var best_score := -INF
+	for p in _player_ships:
+		if p.is_destroyed():
+			continue
+		var hp_ratio := p.hp / maxf(p.max_hp, 1.0)
+		var score := (1.0 - hp_ratio) * 45.0
+		if not _enemy_ships.is_empty() and not _enemy_ships[0].is_destroyed():
+			var d := _enemy_ships[0].state.position.distance_to(p.state.position)
+			score -= d * 0.5
+		if score > best_score:
+			best_score = score
+			best_focus_target = p
 
 	for ship in _enemy_ships:
 		if ship.is_destroyed():
 			continue
-		var target := primary_target if primary_target != null and not primary_target.is_destroyed() else _nearest_player_ship(ship)
+		var target := best_focus_target if best_focus_target != null and not best_focus_target.is_destroyed() else _nearest_player_ship(ship)
 		ship.target_ship = target
 		if target != null:
-			var to_target := target.state.position - ship.state.position
-			var dist := to_target.length()
-			if dist > 0.1:
-				_set_order_heading(ship, to_target.normalized())
+			var dist := ship.state.position.distance_to(target.state.position)
+			var heading := _compute_tactical_heading(ship, target, 1.8)
+			_set_order_heading(ship, heading)
 
-			# Stance selection: Low HP triggers defensive evasion
-			if ship.hp < ship.max_hp * 0.40:
+			if ship.hp < ship.max_hp * 0.35:
 				ship.stance = Ship.Stance.EVASIVE
 			else:
 				ship.stance = Ship.Stance.FIRE
 
-			# Keep speed controlled in tactical dogfight range so units don't overshoot
 			if dist > ship.weapon_range:
-				ship.order.target_speed = ship.state.max_speed * 0.60
-			elif dist > 16.0:
-				ship.order.target_speed = 4.0
+				ship.order.target_speed = ship.state.max_speed * 0.65
+			elif dist > 18.0:
+				ship.order.target_speed = 4.2
 			else:
-				ship.order.target_speed = 1.0
+				ship.order.target_speed = 1.2
 
 func _set_order_heading(ship: Ship, direction: Vector3) -> void:
 	var flat := Vector3(direction.x, 0.0, direction.z)
@@ -320,9 +388,13 @@ func _on_ace_fire_moment() -> void:
 					_camera_rig.shake(0.85, 0.22)
 
 				if result.hit:
-					var crit_str := " 💥 [CRIT!]" if result.critical else ""
-					_spawn_combat_text(target.global_position, "-%.0f HP%s" % [result.damage, crit_str], Color(1.0, 0.85, 0.2) if result.critical else Color(0.3, 1.0, 0.55))
-					_add_combat_log("%s hit %s for %.0f DMG%s" % [player.ship_name, target.ship_name, result.damage, crit_str], Color(0.3, 1.0, 0.55))
+					var quad_tag := " [%s]" % result.quadrant
+					if result.quadrant == "STERN":
+						quad_tag = " 💥 [STERN RAKE!]"
+					elif result.critical:
+						quad_tag = " 💥 [CRIT %s!]" % result.quadrant
+					_spawn_combat_text(target.global_position, "-%.0f HP%s" % [result.damage, quad_tag], Color(1.0, 0.85, 0.2) if result.critical else Color(0.3, 1.0, 0.55))
+					_add_combat_log("%s hit %s%s for %.0f DMG" % [player.ship_name, target.ship_name, quad_tag, result.damage], Color(0.3, 1.0, 0.55))
 					if result.destroyed:
 						_add_combat_log(">>> %s DESTROYED!" % target.ship_name, Color(1.0, 0.4, 0.2))
 				else:
@@ -347,8 +419,9 @@ func _on_ace_fire_moment() -> void:
 					_camera_rig.shake(0.9, 0.24)
 
 				if result.hit:
-					_spawn_combat_text(target.global_position, "-%.0f HP" % result.damage, Color(1.0, 0.35, 0.2))
-					_add_combat_log("[ENEMY] %s dealt %.0f damage to %s" % [enemy.ship_name, result.damage, target.ship_name], Color(1.0, 0.45, 0.35))
+					var quad_tag := " [%s]" % result.quadrant
+					_spawn_combat_text(target.global_position, "-%.0f HP%s" % [result.damage, quad_tag], Color(1.0, 0.35, 0.2))
+					_add_combat_log("[ENEMY] %s hit %s%s for %.0f DMG" % [enemy.ship_name, target.ship_name, quad_tag, result.damage], Color(1.0, 0.45, 0.35))
 					if result.destroyed:
 						_add_combat_log(">>> ALLIED SHIP %s DESTROYED!" % target.ship_name, Color(1.0, 0.2, 0.2))
 				else:
@@ -510,7 +583,6 @@ func _align_fleet_formation() -> void:
 	AudioManager.play_sfx("ui_click", -8.0)
 	_add_combat_log("⊞ Fleet aligned to %s Line-of-Battle bearing (SPD %.1f m/s)" % [_selected_ship.ship_name, ref_spd], Color(0.35, 0.95, 1.0))
 
-
 func _update_ai_tactical_behavior(_delta: float) -> void:
 	var flagship: Ship = null
 	var escort: Ship = null
@@ -535,12 +607,10 @@ func _update_ai_tactical_behavior(_delta: float) -> void:
 	if primary_target == null:
 		return
 
-	# Dynamic Flagship steering: keeps target in arc & controls throttle to hold firing bracket
 	if flagship != null:
-		var to_target := primary_target.state.position - flagship.state.position
-		var dist := to_target.length()
-		if dist > 0.1:
-			_set_order_heading(flagship, to_target.normalized())
+		var dist := flagship.state.position.distance_to(primary_target.state.position)
+		var heading := _compute_tactical_heading(flagship, primary_target, 1.8)
+		_set_order_heading(flagship, heading)
 		if dist > 48.0:
 			flagship.order.target_speed = 6.5
 		elif dist > 20.0:
@@ -548,19 +618,17 @@ func _update_ai_tactical_behavior(_delta: float) -> void:
 		else:
 			flagship.order.target_speed = 0.0
 
-	# Dynamic Escort steering: screens flagship flank and maintains interlocking line
 	if escort != null:
 		if flagship != null and not flagship.is_destroyed():
 			var escort_station := flagship.state.position + Vector3(16.0, 2.0, -4.0)
 			var to_station := escort_station - escort.state.position
-			if to_station.length() > 18.0:
+			if to_station.length() > 20.0:
 				_set_order_heading(escort, to_station.normalized())
 				escort.order.target_speed = 8.0
 			else:
-				var to_target := primary_target.state.position - escort.state.position
-				if to_target.length() > 0.1:
-					_set_order_heading(escort, to_target.normalized())
-				var dist_t := to_target.length()
+				var heading := _compute_tactical_heading(escort, primary_target, 1.5)
+				_set_order_heading(escort, heading)
+				var dist_t := escort.state.position.distance_to(primary_target.state.position)
 				if dist_t > 40.0:
 					escort.order.target_speed = 6.0
 				elif dist_t > 18.0:
@@ -568,10 +636,10 @@ func _update_ai_tactical_behavior(_delta: float) -> void:
 				else:
 					escort.order.target_speed = 0.0
 		else:
-			var to_target := primary_target.state.position - escort.state.position
-			if to_target.length() > 0.1:
-				_set_order_heading(escort, to_target.normalized())
-			if to_target.length() > 35.0:
+			var heading := _compute_tactical_heading(escort, primary_target, 1.5)
+			_set_order_heading(escort, heading)
+			var dist_e := escort.state.position.distance_to(primary_target.state.position)
+			if dist_e > 35.0:
 				escort.order.target_speed = 6.0
 			else:
 				escort.order.target_speed = 3.0
@@ -732,6 +800,7 @@ func _update_3d_targeting_hud() -> void:
 		var dist := active.state.position.distance_to(_ace_target.state.position)
 		var in_range := dist <= active.weapon_range
 		var in_arc := Combat.in_arc(active, _ace_target)
+		var exposed_quad := Combat.get_hit_quadrant(active, _ace_target)
 
 		var line_color := Color(0.25, 1.0, 0.6, 0.85)
 		if not in_range:
@@ -740,11 +809,11 @@ func _update_3d_targeting_hud() -> void:
 			_target_3d_label.modulate = Color(1.0, 0.45, 0.35)
 		elif not in_arc:
 			line_color = Color(1.0, 0.75, 0.25, 0.65)
-			_target_3d_label.text = "◀ OUT OF FIRING CONE (YAW SHIP)"
+			_target_3d_label.text = "◀ ALIGN FIRING ARC / BROADSIDE (YAW SHIP)"
 			_target_3d_label.modulate = Color(1.0, 0.8, 0.3)
 		else:
 			line_color = Color(0.25, 1.0, 0.6, 0.85)
-			_target_3d_label.text = "⌖ TARGET LOCKED // READY TO FIRE"
+			_target_3d_label.text = "⌖ LOCKED [%s ARMOR] // READY TO FIRE" % exposed_quad
 			_target_3d_label.modulate = Color(0.3, 1.0, 0.65)
 
 		if _target_line_mesh != null and _target_line_immediate != null:
@@ -767,48 +836,100 @@ func _update_3d_targeting_hud() -> void:
 			_target_line_mesh.visible = false
 
 func _spawn_laser_beam(from_pos: Vector3, to_pos: Vector3, color: Color) -> void:
-	var beam := MeshInstance3D.new()
-	var imm := ImmediateMesh.new()
-	beam.mesh = imm
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_color = color
-	mat.emission_enabled = true
-	mat.emission = color
-	mat.emission_energy_multiplier = 4.5
-	beam.material_override = mat
-	add_child(beam)
+	var dir := to_pos - from_pos
+	var dist := dir.length()
+	if dist < 0.1:
+		return
+	var norm := dir / dist
+	var right := norm.cross(Vector3.UP).normalized()
+	if right.length_squared() < 0.01:
+		right = Vector3.RIGHT
 
-	imm.clear_surfaces()
-	imm.surface_begin(Mesh.PRIMITIVE_LINES)
-	imm.surface_set_color(color)
-	imm.surface_add_vertex(from_pos)
-	imm.surface_add_vertex(to_pos)
-	imm.surface_end()
+	# Multi-salvo volumetric 3D beam cylinders + muzzle flash
+	var offsets := [Vector3.ZERO, right * 0.45 + Vector3.UP * 0.15, -right * 0.45 - Vector3.UP * 0.15]
+	for i in range(offsets.size()):
+		var off: Vector3 = offsets[i]
+		var start_p := from_pos + off
+		var end_p := to_pos + off * 0.35
+		var beam_vec := end_p - start_p
+		var beam_len := beam_vec.length()
 
-	var tween := create_tween()
-	tween.tween_property(mat, "albedo_color:a", 0.0, 0.28)
-	tween.tween_callback(beam.queue_free)
+		var beam_node := Node3D.new()
+		add_child(beam_node)
+		beam_node.global_position = (start_p + end_p) * 0.5
+		var up := Vector3.UP if absf(norm.dot(Vector3.UP)) < 0.95 else Vector3.RIGHT
+		beam_node.look_at(end_p, up)
+
+		var cyl_inst := MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		var radius := 0.16 if i == 0 else 0.09
+		cyl.top_radius = radius
+		cyl.bottom_radius = radius
+		cyl.height = beam_len
+		cyl_inst.mesh = cyl
+		cyl_inst.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+
+		var mat := StandardMaterial3D.new()
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.albedo_color = Color(1.0, 1.0, 1.0, 0.95) if i == 0 else color
+		mat.emission_enabled = true
+		mat.emission = color
+		mat.emission_energy_multiplier = 5.5 if i == 0 else 3.8
+		cyl_inst.material_override = mat
+		beam_node.add_child(cyl_inst)
+
+		var tween := create_tween()
+		tween.tween_property(mat, "albedo_color:a", 0.0, 0.32 + float(i) * 0.05)
+		tween.parallel().tween_property(cyl_inst, "scale:x", 0.1, 0.32 + float(i) * 0.05)
+		tween.parallel().tween_property(cyl_inst, "scale:z", 0.1, 0.32 + float(i) * 0.05)
+		tween.chain().tween_callback(beam_node.queue_free)
 
 func _spawn_impact_flash(pos: Vector3, color: Color) -> void:
 	var flash := MeshInstance3D.new()
 	var sphere := SphereMesh.new()
-	sphere.radius = 1.2
-	sphere.height = 2.4
+	sphere.radius = 1.1
+	sphere.height = 2.2
 	flash.mesh = sphere
 	var mat := StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.albedo_color = Color(color.r, color.g, color.b, 0.95)
+	mat.emission_enabled = true
+	mat.emission = color
+	mat.emission_energy_multiplier = 4.0
 	flash.material_override = mat
 	flash.position = pos
 	add_child(flash)
 
+	# Expanding 3D Shockwave Torus Ring
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.85
+	torus.outer_radius = 1.15
+	torus.rings = 24
+	ring.mesh = torus
+	var ring_mat := StandardMaterial3D.new()
+	ring_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ring_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ring_mat.albedo_color = Color(1.0, 0.92, 0.7, 0.9)
+	ring_mat.emission_enabled = true
+	ring_mat.emission = color
+	ring_mat.emission_energy_multiplier = 3.5
+	ring.material_override = ring_mat
+	ring.position = pos
+	add_child(ring)
+
 	var tween := create_tween()
-	tween.tween_property(flash, "scale", Vector3(3.2, 3.2, 3.2), 0.22)
-	tween.parallel().tween_property(mat, "albedo_color:a", 0.0, 0.22)
-	tween.chain().tween_callback(flash.queue_free)
+	tween.set_parallel(true)
+	tween.tween_property(flash, "scale", Vector3(3.4, 3.4, 3.4), 0.25)
+	tween.tween_property(mat, "albedo_color:a", 0.0, 0.25)
+	tween.tween_property(ring, "scale", Vector3(4.8, 4.8, 4.8), 0.34)
+	tween.tween_property(ring_mat, "albedo_color:a", 0.0, 0.34)
+	tween.chain().tween_callback(func() -> void:
+		flash.queue_free()
+		ring.queue_free()
+	)
 
 func _spawn_combat_text(pos: Vector3, text: String, color: Color) -> void:
 	var lbl := Label3D.new()
@@ -846,14 +967,14 @@ func _add_combat_log(text: String, color: Color = Color.WHITE) -> void:
 func _build_environment() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-42.0, -35.0, 0.0)
-	sun.light_energy = 1.3
+	sun.light_energy = 1.35
 	sun.light_color = Color(1.0, 0.96, 0.90)
 	add_child(sun)
 
 	var rim_light := DirectionalLight3D.new()
 	rim_light.rotation_degrees = Vector3(50.0, 145.0, 0.0)
-	rim_light.light_energy = 0.45
-	rim_light.light_color = Color(0.3, 0.6, 0.85)
+	rim_light.light_energy = 0.52
+	rim_light.light_color = Color(0.3, 0.65, 0.92)
 	add_child(rim_light)
 
 	var world := WorldEnvironment.new()
@@ -868,17 +989,17 @@ func _build_environment() -> void:
 		sky.sky_material = sky_mat
 		env.sky = sky
 		env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-		env.ambient_light_sky_contribution = 0.35
+		env.ambient_light_sky_contribution = 0.38
 	else:
 		env.background_mode = Environment.BG_COLOR
 		env.background_color = Color(0.012, 0.016, 0.035)
 
 	env.ambient_light_color = Color(0.2, 0.3, 0.45)
-	env.ambient_light_energy = 1.1
+	env.ambient_light_energy = 1.15
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
 	env.glow_enabled = true
-	env.glow_intensity = 0.65
-	env.glow_bloom = 0.22
+	env.glow_intensity = 0.72
+	env.glow_bloom = 0.25
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
 
 	world.environment = env
@@ -897,20 +1018,20 @@ func _build_ether_flow() -> void:
 
 	var stream_mesh := CylinderMesh.new()
 	stream_mesh.top_radius = 0.03
-	stream_mesh.bottom_radius = 0.12
-	stream_mesh.height = 3.5
+	stream_mesh.bottom_radius = 0.14
+	stream_mesh.height = 4.2
 
 	var stream_mat := StandardMaterial3D.new()
 	stream_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	stream_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	stream_mat.albedo_color = Color(0.3, 0.9, 0.95, 0.45)
+	stream_mat.albedo_color = Color(0.3, 0.92, 0.98, 0.48)
 	stream_mat.emission_enabled = true
-	stream_mat.emission = Color(0.15, 0.6, 0.7)
+	stream_mat.emission = Color(0.15, 0.65, 0.78)
 	stream_mesh.material = stream_mat
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
-	for i in range(48):
+	for i in range(60):
 		var p := MeshInstance3D.new()
 		p.mesh = stream_mesh
 		var pos := Vector3(rng.randf_range(-140.0, 140.0), rng.randf_range(-25.0, 25.0), rng.randf_range(-140.0, 140.0))
@@ -920,6 +1041,98 @@ func _build_ether_flow() -> void:
 		_ether_particles.add_child(p)
 		p.position = pos
 		p.look_at(pos + norm, up)
+
+func _build_asteroid_field() -> void:
+	_asteroid_root = Node3D.new()
+	_asteroid_root.name = "StarSeaReefs"
+	add_child(_asteroid_root)
+
+	var rock_mat := StandardMaterial3D.new()
+	rock_mat.albedo_color = Color(0.14, 0.16, 0.22)
+	rock_mat.metallic = 0.25
+	rock_mat.roughness = 0.82
+
+	var crystal_mat := StandardMaterial3D.new()
+	crystal_mat.albedo_color = Color(0.2, 0.85, 0.95)
+	crystal_mat.emission_enabled = true
+	crystal_mat.emission = Color(0.15, 0.75, 0.92)
+	crystal_mat.emission_energy_multiplier = 2.2
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 108
+	var reef_positions := [
+		Vector3(-68.0, -8.0, 12.0),
+		Vector3(-56.0, 14.0, -28.0),
+		Vector3(64.0, -6.0, 18.0),
+		Vector3(58.0, 10.0, -24.0),
+		Vector3(-75.0, 4.0, 55.0),
+		Vector3(76.0, -12.0, 48.0),
+		Vector3(-48.0, -16.0, -68.0),
+		Vector3(52.0, 12.0, -72.0),
+		Vector3(0.0, -22.0, 5.0),
+		Vector3(-32.0, 18.0, 4.0),
+	]
+
+	for base_pos in reef_positions:
+		var cluster := Node3D.new()
+		cluster.position = base_pos
+		cluster.rotation_degrees = Vector3(rng.randf_range(0, 360), rng.randf_range(0, 360), rng.randf_range(0, 360))
+		_asteroid_root.add_child(cluster)
+
+		var main_rock := MeshInstance3D.new()
+		var sphere := SphereMesh.new()
+		var rad := rng.randf_range(2.6, 5.2)
+		sphere.radius = rad
+		sphere.height = rad * 1.65
+		sphere.radial_segments = 7
+		sphere.rings = 5
+		main_rock.mesh = sphere
+		main_rock.scale = Vector3(1.2, 0.75, 0.95)
+		main_rock.material_override = rock_mat
+		cluster.add_child(main_rock)
+
+		# Glowing Éther crystal spire embedded in the basalt reef
+		var crystal := MeshInstance3D.new()
+		var prism := PrismMesh.new()
+		prism.size = Vector3(rad * 0.45, rad * 1.35, rad * 0.45)
+		crystal.mesh = prism
+		crystal.position = Vector3(0.0, rad * 0.65, 0.0)
+		crystal.rotation_degrees = Vector3(18.0, 35.0, -12.0)
+		crystal.material_override = crystal_mat
+		cluster.add_child(crystal)
+
+func _build_calm_wavefront() -> void:
+	# Lore Pillar: The encroaching wall of "The Calm" (La Calma) along the northern abyssal boundary
+	_calm_wall_root = Node3D.new()
+	_calm_wall_root.name = "TheCalmWavefront"
+	_calm_wall_root.position = Vector3(0.0, 0.0, -155.0)
+	add_child(_calm_wall_root)
+
+	var calm_mat := StandardMaterial3D.new()
+	calm_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	calm_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	calm_mat.albedo_color = Color(0.05, 0.02, 0.09, 0.68)
+	calm_mat.emission_enabled = true
+	calm_mat.emission = Color(0.22, 0.06, 0.28)
+	calm_mat.emission_energy_multiplier = 1.2
+
+	for i in range(-5, 6):
+		var pillar := MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = 12.0
+		cyl.bottom_radius = 18.0
+		cyl.height = 95.0
+		cyl.radial_segments = 10
+		pillar.mesh = cyl
+		pillar.position = Vector3(float(i) * 26.0, 0.0, absf(float(i)) * 2.5)
+		pillar.material_override = calm_mat
+		_calm_wall_root.add_child(pillar)
+
+func _update_scenery(delta: float) -> void:
+	if _asteroid_root != null:
+		for cluster in _asteroid_root.get_children():
+			if cluster is Node3D:
+				cluster.rotate_y(delta * 0.06)
 
 func _update_ether_flow(delta: float) -> void:
 	if _ether_particles == null:
@@ -1272,7 +1485,7 @@ func _update_hud_telemetry() -> void:
 				_weather_panel.active_faction_idx = 2
 		_weather_panel.queue_redraw()
 
-func _on_phase_changed(phase: int) -> void:
+func _on_phase_changed(_phase: int) -> void:
 	var in_ace := TurnManager.is_in_ace()
 	var resolving := TurnManager.is_resolving()
 
@@ -1300,7 +1513,6 @@ func _update_round_banner() -> void:
 	if _ace_top_banner != null:
 		_ace_top_banner.round_number = TurnManager.ace_round
 		_ace_top_banner.queue_redraw()
-
 
 func _check_stage_objectives() -> void:
 	if _mission_completed:
@@ -1504,6 +1716,7 @@ func _build_help_overlay(layer: CanvasLayer) -> void:
 	var col1_text := Label.new()
 	col1_text.text = """Simultaneous 12-second movement window to position fleets and fight for the weather gauge:
 
+Shift + Left-Drag  Point heading & set speed directly on 3D plane
 A / D / Arrows     Turn Port / Starboard (Yaw)
 Q / E / UP / DN    Climb / Dive (Pitch Up / Down)
 W / S              Increase / Decrease throttle
@@ -1511,8 +1724,8 @@ X                  Emergency full retrograde brake
 Tab / Click        Select fleet unit
 Space              Execute simultaneous WEGO turn
 
-• INERTIA & MOMENTUM: Ships drift until counter-thrust is applied.
-• ÉTHER WINDS: Sailing along currents provides speed and tactical advantage."""
+• DIRECTIONAL ARMOR: Bow armor mitigates damage; Stern Rakes deal +40% critical damage!
+• BROADSIDE ARCS: Galleons and Dreadnoughts can fire both forward and Port/Starboard broadsides."""
 	col1_text.add_theme_font_size_override("font_size", 11)
 	col1_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col1.add_child(col1_text)
@@ -1641,7 +1854,6 @@ func _setup_input_actions() -> void:
 	_add_action("toggle_roster", [KEY_R])
 	_add_action("ace_cycle", [KEY_C])
 	_add_action("intercept_target", [KEY_T])
-
 
 func _add_action(action: String, keys: Array) -> void:
 	if not InputMap.has_action(action):

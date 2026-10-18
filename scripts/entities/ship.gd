@@ -159,20 +159,29 @@ func hull_pct() -> int:
     return clampi(roundi((hp / max_hp) * 100.0), 0, 100)
 
 func take_damage(amount: float) -> void:
-    var shield_absorb := minf(shield_hp, amount * 0.55)
+    take_directional_damage(amount, "BOW")
+
+func take_directional_damage(amount: float, quadrant: String) -> void:
+    var shield_absorb := minf(shield_hp, amount * 0.50)
     shield_hp = maxf(shield_hp - shield_absorb, 0.0)
-    var hull_dmg := amount - shield_absorb * 0.5
+    var hull_dmg := amount - shield_absorb * 0.45
     hp = maxf(hp - hull_dmg, 0.0)
 
-    var ratio := clampf(hp / maxf(max_hp, 1.0), 0.0, 1.0)
-    armor_bow = clampf(armor_bow * (0.85 + 0.15 * ratio), 15.0, 100.0)
-    armor_port = clampf(armor_port * (0.80 + 0.20 * ratio), 10.0, 100.0)
-    armor_stbd = clampf(armor_stbd * (0.80 + 0.20 * ratio), 10.0, 100.0)
-    armor_stern = clampf(armor_stern * (0.78 + 0.22 * ratio), 10.0, 100.0)
+    var sector_drop := clampf((amount / maxf(max_hp, 1.0)) * 95.0, 6.0, 42.0)
+    match quadrant:
+        "BOW":
+            armor_bow = maxf(armor_bow - sector_drop * 0.75, 5.0)
+        "PORT":
+            armor_port = maxf(armor_port - sector_drop, 5.0)
+        "STARBOARD":
+            armor_stbd = maxf(armor_stbd - sector_drop, 5.0)
+        "STERN":
+            armor_stern = maxf(armor_stern - sector_drop * 1.25, 0.0)
 
     _update_overhead_hp()
     if is_destroyed():
         visible = false
+
 
 func is_destroyed() -> bool:
     return hp <= 0.0
@@ -457,6 +466,40 @@ func _rebuild_firing_arc() -> void:
         var ip2 := Vector3(sin(a2) * inner_r, 0.02, -cos(a2) * inner_r)
         line_verts.push_back(ip1)
         line_verts.push_back(ip2)
+
+    # For Free Tide Galleon & Acero Dreadnought, also draw the Port & Starboard Broadside Firing Cones (exact ace-phase.png broadside fan!)
+    if faction == "marea_libre" or ship_id == "acero_dreadnought":
+        var bs_range := weapon_range * 0.88
+        var bs_inner := bs_range * 0.56
+        for side in [-1.0, 1.0]:
+            var mid_ang := deg_to_rad(side * 90.0)
+            var bs_half := deg_to_rad(36.0)
+            var b_left := Vector3(sin(mid_ang - bs_half) * bs_range, 0.02, -cos(mid_ang - bs_half) * bs_range)
+            var b_right := Vector3(sin(mid_ang + bs_half) * bs_range, 0.02, -cos(mid_ang + bs_half) * bs_range)
+            var b_center := Vector3(sin(mid_ang) * bs_range * 0.96, 0.03, -cos(mid_ang) * bs_range * 0.96)
+            line_verts.push_back(Vector3(0.0, 0.02, 0.0))
+            line_verts.push_back(b_left)
+            line_verts.push_back(Vector3(0.0, 0.02, 0.0))
+            line_verts.push_back(b_right)
+            line_verts.push_back(Vector3(0.0, 0.03, 0.0))
+            line_verts.push_back(b_center)
+
+            for j in range(16):
+                var ba1 := (mid_ang - bs_half) + (float(j) / 16.0) * (bs_half * 2.0)
+                var ba2 := (mid_ang - bs_half) + (float(j + 1) / 16.0) * (bs_half * 2.0)
+                var bp1 := Vector3(sin(ba1) * bs_range, 0.0, -cos(ba1) * bs_range)
+                var bp2 := Vector3(sin(ba2) * bs_range, 0.0, -cos(ba2) * bs_range)
+                vertices.push_back(Vector3.ZERO)
+                vertices.push_back(bp1)
+                vertices.push_back(bp2)
+
+                line_verts.push_back(bp1 + Vector3(0.0, 0.02, 0.0))
+                line_verts.push_back(bp2 + Vector3(0.0, 0.02, 0.0))
+                var bip1 := Vector3(sin(ba1) * bs_inner, 0.02, -cos(ba1) * bs_inner)
+                var bip2 := Vector3(sin(ba2) * bs_inner, 0.02, -cos(ba2) * bs_inner)
+                line_verts.push_back(bip1)
+                line_verts.push_back(bip2)
+
 
     var arrays := []
     arrays.resize(Mesh.ARRAY_MAX)
