@@ -127,23 +127,45 @@ func _update_coherence_lines() -> void:
 
     _coherence_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
 
-    # 1. Allied line-of-battle coherence (cyan dashed aesthetic)
+    # 1. Allied line-of-battle coherence (cyan dashed aesthetic + curved front arc like admiral-phase.png)
     if allies.size() >= 2:
-        var c_color := Color(0.2, 0.85, 1.0, 0.40)
+        var c_color := Color(0.22, 0.88, 1.0, 0.55)
+        var center := Vector3.ZERO
+        for s1 in allies:
+            center += s1.global_position
+        center /= float(allies.size())
+
         for i in range(allies.size()):
             var s1 := allies[i]
             for j in range(i + 1, allies.size()):
                 var s2 := allies[j]
-                _draw_dashed_line(_coherence_mesh, s1.global_position, s2.global_position, c_color, 2.5, 1.5)
+                _draw_dashed_line(_coherence_mesh, s1.global_position, s2.global_position, c_color, 2.2, 1.4)
+
+        # Curved dashed formation front arc ahead of allied fleet (admiral-phase.png signature element)
+        var arc_radius := 28.0
+        var arc_center := center + Vector3(0.0, 0.0, 10.0)
+        var arc_segs := 28
+        var arc_color := Color(0.25, 0.92, 1.0, 0.62)
+        for i in range(arc_segs):
+            if i % 2 == 1:
+                continue
+            var a1 := deg_to_rad(-68.0 + (float(i) / float(arc_segs)) * 136.0)
+            var a2 := deg_to_rad(-68.0 + (float(i + 1) / float(arc_segs)) * 136.0)
+            var p1 := arc_center + Vector3(sin(a1) * arc_radius, 0.0, -cos(a1) * arc_radius)
+            var p2 := arc_center + Vector3(sin(a2) * arc_radius, 0.0, -cos(a2) * arc_radius)
+            _coherence_mesh.surface_set_color(arc_color)
+            _coherence_mesh.surface_add_vertex(p1)
+            _coherence_mesh.surface_set_color(arc_color)
+            _coherence_mesh.surface_add_vertex(p2)
 
     # 2. Hostile line-of-battle coherence (amber dashed)
     if enemies.size() >= 2:
-        var e_color := Color(1.0, 0.55, 0.25, 0.40)
+        var e_color := Color(1.0, 0.55, 0.25, 0.50)
         for i in range(enemies.size()):
             var s1 := enemies[i]
             for j in range(i + 1, enemies.size()):
                 var s2 := enemies[j]
-                _draw_dashed_line(_coherence_mesh, s1.global_position, s2.global_position, e_color, 2.5, 1.5)
+                _draw_dashed_line(_coherence_mesh, s1.global_position, s2.global_position, e_color, 2.2, 1.4)
 
     _coherence_mesh.surface_end()
 
@@ -162,6 +184,7 @@ func _draw_dashed_line(mesh: ImmediateMesh, from: Vector3, to: Vector3, color: C
         mesh.surface_set_color(color)
         mesh.surface_add_vertex(p2)
         cur += dash_len + gap_len
+
 
 func _build_grid_mesh() -> void:
     var minor_vertices := PackedVector3Array()
