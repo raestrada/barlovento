@@ -680,34 +680,40 @@ class AdmiralUnitCard extends Button:
 
 
 # ==============================================================================
-# 8. HERO ROSTER SCREEN MODAL OVERLAY (from assets/mockups/roster.png)
+# 8. HERO ROSTER SCREEN MODAL OVERLAY — ALLIED ACES vs. HOSTILE COMMANDERS
 # ==============================================================================
 class HeroRosterModal extends Control:
     signal closed
 
-    var _hero_textures: Array[Texture2D] = []
+    var player_ships: Array = []
+    var enemy_ships: Array = []
+    var _portrait_cache: Dictionary = {}
 
-    func _ensure_textures() -> void:
-        if not _hero_textures.is_empty():
-            return
-        var paths := [
-            "res://assets/factions/acero_commander.png",
-            "res://assets/ships/vinculados/suit_concept.png",
-            "res://assets/ships/marea-libre/galleon_concept.png",
-            "res://assets/ships/marea-libre/galleon.png"
-        ]
-        for p in paths:
-            _hero_textures.append(load(p))
+    func set_battle_rosters(allies: Array, enemies: Array) -> void:
+        player_ships = allies
+        enemy_ships = enemies
+        queue_redraw()
 
-    func _draw_portrait_in_rect(idx: int, port_r: Rect2, col: Color) -> void:
-        _ensure_textures()
-        draw_rect(port_r, Color(0.03, 0.04, 0.08, 0.98), true)
-        if idx >= 0 and idx < _hero_textures.size() and _hero_textures[idx] != null:
-            draw_texture_rect(_hero_textures[idx], port_r.grow(-2.0), false, Color(0.95, 0.96, 1.0, 0.92))
+    func _get_portrait(path: String) -> Texture2D:
+        if path == "":
+            return null
+        if not _portrait_cache.has(path):
+            if ResourceLoader.exists(path):
+                _portrait_cache[path] = load(path)
+            else:
+                _portrait_cache[path] = null
+        return _portrait_cache[path]
+
+    func _draw_portrait_box(tex_path: String, port_r: Rect2, border_col: Color, is_destroyed: bool = false) -> void:
+        draw_rect(port_r, Color(0.02, 0.04, 0.08, 0.98), true)
+        var tex := _get_portrait(tex_path)
+        if tex != null:
+            var mod := Color(0.35, 0.35, 0.40, 0.65) if is_destroyed else Color(0.98, 0.99, 1.0, 0.96)
+            draw_texture_rect(tex, port_r.grow(-2.0), false, mod)
         else:
             var pc := port_r.get_center()
-            draw_circle(pc + Vector2(0, -14), 16.0, Color(0.75, 0.68, 0.62, 0.85))
-        draw_rect(port_r, Color(col.r, col.g, col.b, 0.55), false, 1.2)
+            draw_circle(pc, 18.0, Color(border_col.r, border_col.g, border_col.b, 0.35))
+        draw_rect(port_r, border_col, false, 1.8)
 
     func _init() -> void:
         set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -715,10 +721,10 @@ class HeroRosterModal extends Control:
 
     func _ready() -> void:
         var close_btn := Button.new()
-        close_btn.text = "PROCEED TO ADMIRAL PHASE >"
-        close_btn.custom_minimum_size = Vector2(240, 42)
+        close_btn.text = "RETURN TO TACTICAL BRIDGE [R / ESC] >"
+        close_btn.custom_minimum_size = Vector2(265, 40)
         close_btn.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_MINSIZE, 24)
-        close_btn.position -= Vector2(24, 18)
+        close_btn.position -= Vector2(24, 16)
         close_btn.focus_mode = Control.FOCUS_NONE
         close_btn.pressed.connect(func() -> void:
             visible = false
@@ -732,126 +738,185 @@ class HeroRosterModal extends Control:
             closed.emit()
             accept_event()
 
+    func _build_entries_from_ships(ships_arr: Array, is_ally: bool) -> Array[Dictionary]:
+        var list: Array[Dictionary] = []
+        if not ships_arr.is_empty():
+            for s in ships_arr:
+                if s == null or not is_instance_valid(s):
+                    continue
+                var ship_obj: Ship = s
+                var def := LoreDB.get_ship(ship_obj.ship_id)
+                var fac_label := "ARMADA OF ACERO"
+                if ship_obj.faction == "marea_libre":
+                    fac_label = "THE FREE TIDE"
+                elif ship_obj.faction == "vinculados":
+                    fac_label = "THE VINCULADOS"
+                list.append({
+                    "pilot": ship_obj.pilot_name.to_upper(),
+                    "ship_name": ship_obj.ship_name,
+                    "class_role": def.short_Category if def != null and def.short_Category != "" else "Combat Vessel",
+                    "faction": fac_label,
+                    "portrait": LoreDB.get_portrait_for_ship(ship_obj.ship_id),
+                    "hp_pct": ship_obj.hull_pct(),
+                    "sh_pct": ship_obj.shield_pct(),
+                    "destroyed": ship_obj.is_destroyed(),
+                    "weapon": "%s (%.0fm | %.0f DMG)" % [ship_obj.weapon_name, ship_obj.weapon_range, ship_obj.weapon_damage],
+                    "stats": "SPD %.0f m/s  |  BOW ARMOR %.0f  |  MASS %.1ft" % [ship_obj.state.max_speed, ship_obj.armor_bow, ship_obj.state.mass],
+                    "is_ally": is_ally
+                })
+            return list
+
+        # Fallback if opened from Main Menu before ships are spawned
+        var ally_ids := ["acero_dreadnought", "acero_battlecruiser", "acero_corvette"]
+        var enemy_ids := ["marea_galleon", "marea_raider", "marea_brigantine"]
+        if LoreDB.selected_faction == "marea_libre":
+            ally_ids = ["marea_galleon", "marea_raider", "marea_brigantine"]
+            enemy_ids = ["acero_dreadnought", "acero_battlecruiser", "acero_corvette"]
+        elif LoreDB.selected_faction == "vinculados":
+            ally_ids = ["vinculados_suit", "vinculados_anima", "vinculados_nous"]
+            enemy_ids = ["acero_dreadnought", "acero_battlecruiser", "acero_corvette"]
+
+        var ids := ally_ids if is_ally else enemy_ids
+        for id in ids:
+            var def := LoreDB.get_ship(id)
+            if def == null:
+                continue
+            var fac_label := "ARMADA OF ACERO"
+            if def.faction == "marea_libre":
+                fac_label = "THE FREE TIDE"
+            elif def.faction == "vinculados":
+                fac_label = "THE VINCULADOS"
+            list.append({
+                "pilot": def.pilot_name.to_upper(),
+                "ship_name": def.display_name,
+                "class_role": def.short_Category,
+                "faction": fac_label,
+                "portrait": def.portrait_path,
+                "hp_pct": 100,
+                "sh_pct": 100,
+                "destroyed": false,
+                "weapon": "%s (%.0fm | %.0f DMG)" % [def.weapon_name, def.weapon_range, def.weapon_damage],
+                "stats": "SPD %.0f m/s  |  HULL %.0f  |  MASS %.1ft" % [def.max_speed, def.max_hp, def.mass],
+                "is_ally": is_ally
+            })
+        return list
+
     func _draw() -> void:
         var font := ThemeDB.fallback_font
         var w := size.x
         var h := size.y
 
-        # Full dark space backdrop matching roster.png
-        draw_rect(Rect2(0, 0, w, h), Color(0.015, 0.035, 0.065, 0.96), true)
+        # Deep tactical command deck backdrop
+        draw_rect(Rect2(0, 0, w, h), Color(0.012, 0.028, 0.055, 0.96), true)
 
-        # Header Left
-        draw_string(font, Vector2(32, 32), "COMMAND DECK // SQUAD MANAGEMENT", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, COL_CYAN_BRIGHT)
-        draw_string(font, Vector2(32, 54), "HERO ROSTER — 4 ACES EMBARKED", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, COL_TEXT_MAIN)
-        draw_circle(Vector2(37, 68), 4.0, COL_GREEN)
-        draw_string(font, Vector2(48, 72), "STATUS: SQUAD COMBAT-READY FOR ADMIRAL PHASE", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, COL_TEXT_MUTED)
+        # Top Header Left
+        draw_string(font, Vector2(32, 28), "COMMAND DECK // TACTICAL ORDER OF BATTLE", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, COL_CYAN_BRIGHT)
+        draw_string(font, Vector2(32, 50), "ACES & COMMANDERS — YOUR SQUADRON VS. HOSTILE FLEET", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, COL_TEXT_MAIN)
+        draw_circle(Vector2(37, 64), 4.0, COL_GREEN)
+        draw_string(font, Vector2(48, 68), "DEDICATED ACE TELEMETRY // 100% PURE FACTION TASK FORCES", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, COL_TEXT_MUTED)
 
-        # Header Right
-        draw_string(font, Vector2(w - 290, 32), "SECTOR 07: STAR-SEA THRESHOLD", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, COL_TEXT_MUTED)
-        draw_string(font, Vector2(w - 290, 52), "ÉTHER WIND: 18.2 kt [WINDWARD]", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, COL_CYAN_BRIGHT)
-        draw_circle(Vector2(w - 285, 66), 4.0, COL_RED)
-        draw_string(font, Vector2(w - 275, 70), "CALM FRONT ADVANCE: -12.4 AU (CRITICAL)", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.95, 0.45, 0.45))
+        # Top Header Right
+        draw_string(font, Vector2(w - 310, 28), "SECTOR 09: ÉTERON SLUICE-WELL", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, COL_TEXT_MUTED)
+        draw_string(font, Vector2(w - 310, 48), "ÉTHER WIND: 18.2 kt [WINDWARD]", HORIZONTAL_ALIGNMENT_LEFT, -1, 13, COL_CYAN_BRIGHT)
+        draw_circle(Vector2(w - 305, 62), 4.0, COL_AMBER)
+        draw_string(font, Vector2(w - 295, 66), "CLICK ANYWHERE OR PRESS [R / ESC] TO CLOSE", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, COL_AMBER)
 
-        # 4 Hero Cards across the center (matching roster.png 1:1)
-        var heroes := [
-            {
-                "faction": "ARMADA OF ACERO", "sub": "ADMIRAL OF THE LINE", "tag": "STEEL",
-                "color": COL_AMBER, "name": "ADMIRAL VANE", "role": "FLEET COMMANDER",
-                "hull": "HULL: CNS IRON BASTION", "agi": 28, "arm": 98, "lnk": 22,
-                "tactic": "TACTIC: BOW BULWARK", "desc": "Absorbs 35% frontal kinetic impact. Interlocking broadsides.",
-                "slot": "SLOT 01 // ACERO COMMAND"
-            },
-            {
-                "faction": "THE VINCULADOS", "sub": "FIRST HARMONIC ACE", "tag": "SOUL",
-                "color": COL_MAGENTA, "name": "KAELEN-7 // EIDOLON", "role": "LINKED PILOT",
-                "hull": "FRAME: EIDOLON PRIME", "agi": 92, "arm": 42, "lnk": 98,
-                "tactic": "TACTIC: NEURAL RESONANCE", "desc": "Instant vector snap. +35% crit during mecha duels.",
-                "slot": "SLOT 02 // VINCULADOS CORE"
-            },
-            {
-                "faction": "THE FREE TIDE", "sub": "CORSAIR COMMODORE", "tag": "WIND",
-                "color": Color(0.95, 0.72, 0.25), "name": "CAPTAIN SOLANO", "role": "CORSAIR CAPTAIN",
-                "hull": "HULL: VIENTO ROJO GALLEON", "agi": 78, "arm": 68, "lnk": 45,
-                "tactic": "TACTIC: WINDWARD DASH", "desc": "+18% Broadside Lance damage. Quantum sail tailwind boost.",
-                "slot": "SLOT 03 // FREE TIDE HELM"
-            },
-            {
-                "faction": "THE VINCULADOS", "sub": "RESONANCE OUTRIDER", "tag": "SOUL",
-                "color": COL_CYAN_BRIGHT, "name": "MIREI // ANIMA-01", "role": "INTERCEPTOR ACE",
-                "hull": "FRAME: ANIMA-01 ARIA", "agi": 96, "arm": 36, "lnk": 94,
-                "tactic": "TACTIC: STERN RAKE", "desc": "High-speed flanker. +40% critical damage on enemy stern.",
-                "slot": "SLOT 04 // OUTRIDER WING"
-            }
-        ]
+        var allies := _build_entries_from_ships(player_ships, true)
+        var enemies := _build_entries_from_ships(enemy_ships, false)
 
         var margin_x := 32.0
-        var gap := 16.0
-        var card_w := (w - margin_x * 2.0 - gap * 3.0) / 4.0
-        var card_y := 105.0
-        var card_h := h - 185.0
+        var center_gap := 28.0
+        var col_w := (w - margin_x * 2.0 - center_gap) * 0.5
+        var left_x := margin_x
+        var right_x := margin_x + col_w + center_gap
+        var banner_y := 82.0
 
-        for i in range(4):
-            var hd: Dictionary = heroes[i]
-            var cx := margin_x + float(i) * (card_w + gap)
-            var col: Color = hd["color"]
-            var r := Rect2(cx, card_y, card_w, card_h)
+        # LEFT COLUMN BANNER: YOUR SQUADRON (ALLIED ACES)
+        var ally_banner := Rect2(left_x, banner_y, col_w, 34)
+        draw_rect(ally_banner, Color(0.03, 0.18, 0.16, 0.92), true)
+        draw_rect(ally_banner, COL_GREEN, false, 1.6)
+        draw_rect(Rect2(left_x, banner_y, 6, 34), COL_GREEN, true)
+        draw_string(font, Vector2(left_x + 16, banner_y + 22), "★ YOUR TASK FORCE // ALLIED ACES (%d UNITS)" % allies.size(), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, COL_GREEN)
 
-            draw_rect(r, Color(0.02, 0.05, 0.09, 0.94), true)
-            draw_rect(r, col, false, 1.4)
+        # RIGHT COLUMN BANNER: HOSTILE FLEET (ENEMY COMMANDERS)
+        var enemy_banner := Rect2(right_x, banner_y, col_w, 34)
+        draw_rect(enemy_banner, Color(0.20, 0.05, 0.05, 0.92), true)
+        draw_rect(enemy_banner, COL_RED, false, 1.6)
+        draw_rect(Rect2(right_x, banner_y, 6, 34), COL_RED, true)
+        draw_string(font, Vector2(right_x + 16, banner_y + 22), "⚔ HOSTILE FLEET // ENEMY COMMANDERS (%d UNITS)" % enemies.size(), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(1.0, 0.48, 0.36))
 
-            # Top faction bar
-            draw_rect(Rect2(cx + 10, card_y + 12, 6, 16), col, true)
-            draw_string(font, Vector2(cx + 22, card_y + 20), hd["faction"], HORIZONTAL_ALIGNMENT_LEFT, -1, 10, col)
-            draw_string(font, Vector2(cx + 22, card_y + 32), hd["sub"], HORIZONTAL_ALIGNMENT_LEFT, -1, 9, COL_TEXT_MUTED)
+        # Center vertical divider line
+        var div_x := margin_x + col_w + center_gap * 0.5
+        draw_line(Vector2(div_x, banner_y), Vector2(div_x, h - 58.0), Color(0.22, 0.55, 0.78, 0.35), 1.0)
 
-            # Tag pill
-            var tag_r := Rect2(cx + card_w - 64, card_y + 12, 54, 18)
-            draw_rect(tag_r, col, false, 1.0)
-            draw_string(font, Vector2(tag_r.position.x, tag_r.position.y + 13), hd["tag"], HORIZONTAL_ALIGNMENT_CENTER, 54, 9, col)
+        var start_y := banner_y + 44.0
+        var avail_h := h - start_y - 64.0
+        var card_gap := 12.0
+        var card_h := (avail_h - card_gap * 2.0) / 3.0
 
-            # Portrait Box with AAA Texture
-            var port_r := Rect2(cx + 10, card_y + 42, card_w - 20, card_h * 0.36)
-            _draw_portrait_in_rect(i, port_r, col)
+        for i in range(allies.size()):
+            var cy := start_y + float(i) * (card_h + card_gap)
+            _draw_ace_dossier_card(font, Rect2(left_x, cy, col_w, card_h), allies[i], true, i + 1)
 
-            var info_y := port_r.end.y + 22.0
-            draw_string(font, Vector2(cx + 12, info_y), hd["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 14, COL_TEXT_MAIN)
-            draw_string(font, Vector2(cx + 12, info_y + 16), hd["role"], HORIZONTAL_ALIGNMENT_LEFT, -1, 10, col)
-            draw_string(font, Vector2(cx + 12, info_y + 30), hd["hull"], HORIZONTAL_ALIGNMENT_LEFT, -1, 9, COL_TEXT_MUTED)
+        for i in range(enemies.size()):
+            var cy := start_y + float(i) * (card_h + card_gap)
+            _draw_ace_dossier_card(font, Rect2(right_x, cy, col_w, card_h), enemies[i], false, i + 1)
 
-            # Stat bars: AGILITY, ARMOR, LINK
-            _draw_stat_row(font, cx + 12, info_y + 52, card_w - 24, "AGILITY", hd["agi"], col)
-            _draw_stat_row(font, cx + 12, info_y + 72, card_w - 24, "ARMOR", hd["arm"], col)
-            _draw_stat_row(font, cx + 12, info_y + 92, card_w - 24, "LINK", hd["lnk"], col)
+        # Bottom footer bar
+        draw_string(font, Vector2(32, h - 22), "[ESC / R] RETURN TO BRIDGE   |   LEFT: YOUR ALLIED SQUADRON   |   RIGHT: HOSTILE ENEMY COMMANDERS", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, COL_TEXT_MUTED)
 
-            # Tactic Box
-            var tac_r := Rect2(cx + 12, info_y + 108, card_w - 24, 48)
-            draw_rect(tac_r, Color(0.04, 0.08, 0.14, 0.8), true)
-            draw_rect(tac_r, Color(col.r, col.g, col.b, 0.3), false, 1.0)
-            draw_rect(Rect2(tac_r.position.x + 4, tac_r.position.y + 6, 4, 12), col, true)
-            draw_string(font, Vector2(tac_r.position.x + 14, tac_r.position.y + 16), hd["tactic"], HORIZONTAL_ALIGNMENT_LEFT, -1, 9, COL_TEXT_MAIN)
-            draw_string(font, Vector2(tac_r.position.x + 8, tac_r.position.y + 34), hd["desc"], HORIZONTAL_ALIGNMENT_LEFT, int(tac_r.size.x - 14), 9, COL_TEXT_MUTED)
+    func _draw_ace_dossier_card(font: Font, r: Rect2, d: Dictionary, is_ally: bool, slot_idx: int) -> void:
+        var destroyed: bool = d["destroyed"]
+        var accent := COL_CYAN_BRIGHT if is_ally else Color(1.0, 0.45, 0.28)
+        var status_col := COL_GREEN if is_ally else COL_RED
+        if destroyed:
+            accent = Color(0.45, 0.45, 0.5, 0.5)
 
-            # Footer
-            draw_string(font, Vector2(cx + 12, card_y + card_h - 12), "◆ " + hd["slot"], HORIZONTAL_ALIGNMENT_LEFT, -1, 9, COL_TEXT_MUTED)
-            draw_string(font, Vector2(cx + card_w - 62, card_y + card_h - 12), "[ READY ]", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, COL_GREEN)
+        var bg := Color(0.02, 0.06, 0.11, 0.94) if is_ally else Color(0.09, 0.03, 0.04, 0.94)
+        draw_rect(r, bg, true)
+        draw_rect(r, accent, false, 1.5)
+        draw_rect(Rect2(r.position.x, r.position.y, 5, r.size.y), status_col if not destroyed else accent, true)
 
-        # Bottom bar text
-        draw_string(font, Vector2(32, h - 28), "[ESC / R] RETURN TO BRIDGE   |   [TAB] CYCLE HERO   |   [SPACE] INSPECT ACE LOADOUT", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, COL_TEXT_MUTED)
-        draw_string(font, Vector2(w * 0.5 - 140, h - 28), "HERO SQUAD FULLY ASSEMBLED (4 / 4 ACES)", HORIZONTAL_ALIGNMENT_CENTER, 280, 12, COL_CYAN_BRIGHT)
+        # 1:1 Square Portrait Box on Left of Card
+        var port_sz := clampf(r.size.y - 20.0, 84.0, 142.0)
+        var port_r := Rect2(r.position.x + 14.0, r.position.y + (r.size.y - port_sz) * 0.5, port_sz, port_sz)
+        _draw_portrait_box(d["portrait"], port_r, accent, destroyed)
 
-    func _draw_stat_row(font: Font, x: float, y: float, w: float, label_txt: String, val: int, col: Color) -> void:
-        draw_string(font, Vector2(x, y), label_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, COL_TEXT_MAIN)
-        var bar_x := x + 58.0
-        var bar_w := w - 84.0
-        var segs := 14
-        var gap := 2.0
-        var sw := (bar_w - gap * float(segs - 1)) / float(segs)
-        var filled := roundi((float(val) / 100.0) * float(segs))
-        for s in range(segs):
-            var sx := bar_x + float(s) * (sw + gap)
-            var sr := Rect2(sx, y - 8, sw, 8)
-            if s < filled:
-                draw_rect(sr, col, true)
-            else:
-                draw_rect(sr, Color(0.08, 0.14, 0.22, 0.7), true)
-        draw_string(font, Vector2(x + w - 20, y), "%d" % val, HORIZONTAL_ALIGNMENT_RIGHT, 20, 9, COL_TEXT_MAIN)
+        # Text & Telemetry to the right of Portrait
+        var tx := port_r.end.x + 16.0
+        var tw := r.end.x - tx - 14.0
+        var ty := r.position.y + 20.0
+
+        var badge_txt := ("ALLIED ACE #%d // %s" if is_ally else "HOSTILE ACE #%d // %s") % [slot_idx, d["faction"]]
+        draw_string(font, Vector2(tx, ty), badge_txt, HORIZONTAL_ALIGNMENT_LEFT, int(tw - 90), 10, status_col if not destroyed else COL_TEXT_MUTED)
+
+        # Right status tag
+        var tag_txt := "[ DESTROYED ]" if destroyed else ("[ ALLY READY ]" if is_ally else "[ HOSTILE ]")
+        var tag_col := COL_RED if (destroyed or not is_ally) else COL_GREEN
+        draw_string(font, Vector2(r.end.x - 105, ty), tag_txt, HORIZONTAL_ALIGNMENT_RIGHT, 92, 10, tag_col)
+
+        # Pilot Name & Ship Name
+        draw_string(font, Vector2(tx, ty + 20), d["pilot"], HORIZONTAL_ALIGNMENT_LEFT, int(tw), 15, COL_TEXT_MAIN if not destroyed else COL_TEXT_MUTED)
+        draw_string(font, Vector2(tx, ty + 37), "%s  —  %s" % [d["ship_name"], d["class_role"]], HORIZONTAL_ALIGNMENT_LEFT, int(tw), 11, accent)
+
+        # Live Shield & Hull Bars
+        var bar_y := ty + 48.0
+        var bar_w := clampf(tw * 0.42, 100.0, 190.0)
+        var sh_pct: int = d["sh_pct"]
+        var hp_pct: int = d["hp_pct"]
+
+        draw_string(font, Vector2(tx, bar_y + 9), "SHLD %d%%" % sh_pct, HORIZONTAL_ALIGNMENT_LEFT, 68, 9, COL_GREEN)
+        draw_rect(Rect2(tx + 68, bar_y + 1, bar_w, 8), Color(0.01, 0.03, 0.06, 0.95), true)
+        draw_rect(Rect2(tx + 68, bar_y + 1, bar_w * (float(sh_pct) / 100.0), 8), COL_GREEN, true)
+
+        var hull_x := tx + 78 + bar_w
+        var hl_col := COL_CYAN_BRIGHT if hp_pct > 50 else (COL_AMBER if hp_pct > 25 else COL_RED)
+        draw_string(font, Vector2(hull_x, bar_y + 9), "HULL %d%%" % hp_pct, HORIZONTAL_ALIGNMENT_LEFT, 68, 9, hl_col)
+        var bar2_w := clampf(r.end.x - (hull_x + 68) - 16.0, 60.0, 170.0)
+        draw_rect(Rect2(hull_x + 68, bar_y + 1, bar2_w, 8), Color(0.01, 0.03, 0.06, 0.95), true)
+        draw_rect(Rect2(hull_x + 68, bar_y + 1, bar2_w * (float(hp_pct) / 100.0), 8), hl_col, true)
+
+        # Armament & Telemetry Footer
+        draw_string(font, Vector2(tx, bar_y + 26), "⚔ " + d["weapon"], HORIZONTAL_ALIGNMENT_LEFT, int(tw), 10, COL_TEXT_MAIN)
+        draw_string(font, Vector2(tx, bar_y + 42), "◈ " + d["stats"], HORIZONTAL_ALIGNMENT_LEFT, int(tw), 9, COL_TEXT_MUTED)
+

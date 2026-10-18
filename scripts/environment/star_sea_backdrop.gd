@@ -18,16 +18,23 @@ func setup_environment(include_diorama_fleets: bool = false) -> WorldEnvironment
     var sun := DirectionalLight3D.new()
     sun.name = "KeyStarLight"
     sun.rotation_degrees = Vector3(-38.0, -35.0, 0.0)
-    sun.light_energy = 1.45
+    sun.light_energy = 1.65
     sun.light_color = Color(1.0, 0.96, 0.90)
     add_child(sun)
 
     var rim_light := DirectionalLight3D.new()
     rim_light.name = "EtherRimLight"
-    rim_light.rotation_degrees = Vector3(48.0, 145.0, 0.0)
-    rim_light.light_energy = 0.65
-    rim_light.light_color = Color(0.25, 0.78, 0.98)
+    rim_light.rotation_degrees = Vector3(42.0, 145.0, 0.0)
+    rim_light.light_energy = 0.88
+    rim_light.light_color = Color(0.45, 0.78, 0.96)
     add_child(rim_light)
+
+    var zenith_fill := DirectionalLight3D.new()
+    zenith_fill.name = "ZenithHullFillLight"
+    zenith_fill.rotation_degrees = Vector3(-72.0, 110.0, 0.0)
+    zenith_fill.light_energy = 0.75
+    zenith_fill.light_color = Color(0.80, 0.86, 0.95)
+    add_child(zenith_fill)
 
     var world := WorldEnvironment.new()
     var env := Environment.new()
@@ -37,14 +44,19 @@ func setup_environment(include_diorama_fleets: bool = false) -> WorldEnvironment
     sky.radiance_size = Sky.RADIANCE_SIZE_256
     env.sky = sky
     env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-    env.ambient_light_color = Color(0.18, 0.30, 0.48)
-    env.ambient_light_sky_contribution = 0.42
-    env.ambient_light_energy = 1.18
+    env.ambient_light_color = Color(0.32, 0.42, 0.56)
+    env.ambient_light_sky_contribution = 0.52
+    env.ambient_light_energy = 1.40
     env.tonemap_mode = Environment.TONE_MAPPER_ACES
+    env.tonemap_exposure = 1.04
+    env.adjustment_enabled = true
+    env.adjustment_saturation = 0.86
+    env.adjustment_contrast = 1.05
     env.glow_enabled = true
-    env.glow_intensity = 0.82
-    env.glow_bloom = 0.28
-    env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
+    env.glow_intensity = 0.35
+    env.glow_bloom = 0.05
+    env.glow_hdr_threshold = 1.35
+    env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
     world.environment = env
     add_child(world)
 
@@ -78,20 +90,22 @@ func get_faction_focus_transform(faction_id: String, t: float) -> Dictionary:
         "acero":
             var center := Vector3(-22.0, 2.0, 0.0)
             var cam_pos := center + Vector3(cos(t * 0.18) * 14.0 + 6.0, 4.5 + sin(t * 0.25) * 1.2, 16.0)
-            return {"cam_pos": cam_pos, "look_at": center + Vector3(0.0, 0.5, -2.0)}
+            var look_t := center + Vector3(0.0, 0.5, -2.0)
+            return {"cam_pos": cam_pos, "look_at": look_t, "look_target": look_t}
         "vinculados":
             var center := Vector3(0.0, 3.0, -14.0)
             var cam_pos := center + Vector3(sin(t * 0.22) * 11.0, 2.8 + cos(t * 0.3) * 1.0, 12.0)
-            return {"cam_pos": cam_pos, "look_at": center + Vector3(0.0, 0.6, 0.0)}
+            var look_t := center + Vector3(0.0, 0.6, 0.0)
+            return {"cam_pos": cam_pos, "look_at": look_t, "look_target": look_t}
         "marea_libre":
             var center := Vector3(22.0, 1.5, 2.0)
             var cam_pos := center + Vector3(-12.0 + cos(t * 0.16) * 8.0, 4.2 + sin(t * 0.2) * 1.1, 15.0)
-            return {"cam_pos": cam_pos, "look_at": center + Vector3(0.0, 1.5, -1.0)}
+            var look_t := center + Vector3(0.0, 1.5, -1.0)
+            return {"cam_pos": cam_pos, "look_at": look_t, "look_target": look_t}
         _:
-            # Grand overview orbit across all 3 fleets and the Forge Planetoid
             var cam_pos := Vector3(sin(t * 0.10) * 26.0, 11.0 + sin(t * 0.15) * 2.5, 32.0 + cos(t * 0.10) * 8.0)
             var look_target := Vector3(sin(t * 0.08) * 8.0, 2.0, -8.0)
-            return {"cam_pos": cam_pos, "look_at": look_target}
+            return {"cam_pos": cam_pos, "look_at": look_target, "look_target": look_target}
 
 func _build_celestial_planetoid() -> void:
     # Distant Forge-World "Anvil" with molten tectonic forge-rings & cyan atmospheric rim
@@ -343,23 +357,23 @@ void sky() {
     // 2. Volumetric Multi-Octave Nebula Clouds
     float n1 = fbm(dir * 3.2 + vec3(t * 0.4, -t * 0.2, t * 0.3));
     float n2 = fbm(dir * 6.5 - vec3(t * 0.3, t * 0.5, -t * 0.2));
-    float neb_mask = smoothstep(0.42, 0.82, n1 * 0.65 + n2 * 0.35);
-    vec3 neb_cyan = vec3(0.08, 0.52, 0.76) * neb_mask * 0.55;
-    vec3 neb_ember = vec3(0.75, 0.32, 0.10) * smoothstep(0.55, 0.88, n2) * smoothstep(-0.2, 0.6, dir.x) * 0.42;
+    float neb_mask = smoothstep(0.44, 0.84, n1 * 0.65 + n2 * 0.35);
+    vec3 neb_cyan = vec3(0.07, 0.38, 0.58) * neb_mask * 0.38;
+    vec3 neb_ember = vec3(0.55, 0.24, 0.08) * smoothstep(0.58, 0.88, n2) * smoothstep(-0.2, 0.6, dir.x) * 0.28;
     col += neb_cyan + neb_ember;
 
     // 3. Dynamic Undulating Éther Aurora Currents across the ecliptic plane
     float wave = sin(dir.x * 5.0 + dir.z * 3.0 + TIME * 0.25) * 0.14;
-    float band = exp(-pow((dir.y - wave) * 4.8, 2.0));
+    float band = exp(-pow((dir.y - wave) * 5.2, 2.0));
     float aurora_noise = fbm(vec3(dir.xz * 8.0, TIME * 0.18));
-    vec3 ether_aurora = mix(vec3(0.10, 0.72, 0.92), vec3(0.45, 0.98, 1.0), aurora_noise) * band * smoothstep(0.35, 0.78, aurora_noise) * 0.68;
+    vec3 ether_aurora = mix(vec3(0.08, 0.52, 0.72), vec3(0.32, 0.78, 0.88), aurora_noise) * band * smoothstep(0.38, 0.80, aurora_noise) * 0.42;
     col += ether_aurora;
 
     // 4. The Calm (La Calma) — Encroaching dark decay front on the northern horizon (-Z)
     float calm_front = smoothstep(-0.25, -0.85, dir.z) * exp(-abs(dir.y) * 2.2);
     float calm_vein = smoothstep(0.68, 0.76, fbm(dir * 10.0 + vec3(0.0, 0.0, TIME * 0.35)));
-    col = mix(col, vec3(0.015, 0.005, 0.025), calm_front * 0.75);
-    col += vec3(0.65, 0.12, 0.52) * calm_front * calm_vein * (0.6 + 0.4 * sin(TIME * 2.5));
+    col = mix(col, vec3(0.012, 0.004, 0.020), calm_front * 0.75);
+    col += vec3(0.48, 0.10, 0.38) * calm_front * calm_vein * (0.6 + 0.4 * sin(TIME * 2.5));
 
     // 5. Multi-Layered Twinkling Starfield
     vec3 star_grid = floor(dir * 260.0);
@@ -369,15 +383,15 @@ void sky() {
         float d = length(dir - star_pos) * 260.0;
         float twinkle = 0.65 + 0.35 * sin(TIME * (3.0 + fract(star_val * 91.3) * 6.0) + star_val * 100.0);
         float spark = exp(-d * d * 14.0) * twinkle;
-        vec3 s_col = mix(vec3(0.65, 0.88, 1.0), vec3(1.0, 0.82, 0.55), fract(star_val * 37.0));
-        col += s_col * spark * 2.2;
+        vec3 s_col = mix(vec3(0.68, 0.86, 0.98), vec3(0.98, 0.82, 0.58), fract(star_val * 37.0));
+        col += s_col * spark * 1.65;
     }
 
     // 6. Distant Key Star Corona & Bloom
     vec3 sun_dir = normalize(vec3(0.45, 0.52, -0.72));
     float sun_dot = max(dot(dir, sun_dir), 0.0);
-    col += vec3(1.0, 0.88, 0.65) * pow(sun_dot, 180.0) * 3.5;
-    col += vec3(0.35, 0.78, 1.0) * pow(sun_dot, 16.0) * 0.32;
+    col += vec3(1.0, 0.88, 0.65) * pow(sun_dot, 180.0) * 2.4;
+    col += vec3(0.28, 0.65, 0.88) * pow(sun_dot, 16.0) * 0.22;
 
     COLOR = col;
 }
@@ -414,16 +428,16 @@ float noise(vec3 p) {
 void fragment() {
     vec3 p = vec3(UV * 12.0, 1.0);
     float n = noise(p) * 0.6 + noise(p * 2.5) * 0.3 + noise(p * 6.0) * 0.1;
-    vec3 basalt = mix(vec3(0.05, 0.07, 0.12), vec3(0.14, 0.18, 0.25), n);
+    vec3 basalt = mix(vec3(0.06, 0.08, 0.13), vec3(0.16, 0.21, 0.28), n);
 
     // Molten ember-orange industrial forge-veins & cities on Anvil
-    float forge_veins = smoothstep(0.66, 0.74, noise(p * 3.5 + vec3(TIME * 0.05, 0.0, 0.0)));
-    float pulse = 0.75 + 0.25 * sin(TIME * 2.2 + UV.x * 18.0);
-    vec3 ember_glow = vec3(1.0, 0.45, 0.10) * forge_veins * pulse * 2.4;
+    float forge_veins = smoothstep(0.67, 0.75, noise(p * 3.5 + vec3(TIME * 0.05, 0.0, 0.0)));
+    float pulse = 0.78 + 0.22 * sin(TIME * 2.2 + UV.x * 18.0);
+    vec3 ember_glow = vec3(0.95, 0.42, 0.10) * forge_veins * pulse * 1.45;
 
     // Atmospheric cyan Fresnel rim
-    float fresnel = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 3.2);
-    vec3 atmo = vec3(0.20, 0.82, 1.0) * fresnel * 1.65;
+    float fresnel = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 3.4);
+    vec3 atmo = vec3(0.18, 0.68, 0.88) * fresnel * 1.15;
 
     ALBEDO = basalt;
     ROUGHNESS = 0.72;
@@ -445,9 +459,9 @@ render_mode blend_mix, cull_disabled, unshaded;
 void fragment() {
     float bands = 0.5 + 0.5 * sin(UV.y * 62.83 + TIME * 0.4);
     float fine = 0.5 + 0.5 * cos(UV.y * 180.0 - UV.x * 12.0);
-    vec3 col = mix(vec3(0.18, 0.75, 0.95), vec3(0.95, 0.58, 0.22), smoothstep(0.6, 0.9, fine));
-    ALBEDO = col * 1.3;
-    ALPHA = clamp(bands * 0.38 + fine * 0.18, 0.05, 0.55);
+    vec3 col = mix(vec3(0.16, 0.62, 0.82), vec3(0.85, 0.52, 0.20), smoothstep(0.6, 0.9, fine));
+    ALBEDO = col * 0.95;
+    ALPHA = clamp(bands * 0.28 + fine * 0.14, 0.04, 0.42);
 }
 """
     var sm := ShaderMaterial.new()
@@ -459,21 +473,21 @@ static func _create_ribbon_material() -> ShaderMaterial:
         _ribbon_shader = Shader.new()
         _ribbon_shader.code = """
 shader_type spatial;
-render_mode blend_add, depth_draw_never, cull_disabled, unshaded;
+render_mode blend_mix, depth_draw_never, cull_disabled, unshaded;
 
 void vertex() {
-    VERTEX.y += sin(VERTEX.z * 0.08 + TIME * 1.4 + VERTEX.x * 0.2) * 1.35;
+    VERTEX.y += sin(VERTEX.z * 0.08 + TIME * 1.4 + VERTEX.x * 0.2) * 1.15;
 }
 
 void fragment() {
     float edge_fade = sin(UV.x * 3.14159);
     float end_fade = sin(UV.y * 3.14159);
-    float stream1 = 0.5 + 0.5 * sin(UV.x * 24.0 + UV.y * 18.0 - TIME * 2.8);
-    float stream2 = 0.5 + 0.5 * cos(UV.x * 14.0 - UV.y * 32.0 + TIME * 1.9);
-    float filament = smoothstep(0.55, 0.95, stream1 * 0.6 + stream2 * 0.4);
-    vec3 col = mix(vec3(0.08, 0.65, 0.92), vec3(0.55, 0.98, 1.0), filament);
-    ALBEDO = col * (0.8 + filament * 1.4);
-    ALPHA = edge_fade * end_fade * (0.14 + filament * 0.34);
+    float stream1 = 0.5 + 0.5 * sin(UV.x * 24.0 + UV.y * 18.0 - TIME * 2.2);
+    float stream2 = 0.5 + 0.5 * cos(UV.x * 14.0 - UV.y * 32.0 + TIME * 1.5);
+    float filament = smoothstep(0.58, 0.95, stream1 * 0.6 + stream2 * 0.4);
+    vec3 col = mix(vec3(0.08, 0.48, 0.68), vec3(0.38, 0.82, 0.92), filament);
+    ALBEDO = col * (0.65 + filament * 0.85);
+    ALPHA = edge_fade * end_fade * (0.06 + filament * 0.18);
 }
 """
     var sm := ShaderMaterial.new()

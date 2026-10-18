@@ -170,6 +170,9 @@ func hull_pct() -> int:
         return 0
     return clampi(roundi((hp / max_hp) * 100.0), 0, 100)
 
+var _smoke_emit_timer: float = 0.0
+var _hit_flash_timer: float = 0.0
+
 func take_damage(amount: float) -> void:
     take_directional_damage(amount, "BOW")
 
@@ -192,8 +195,169 @@ func take_directional_damage(amount: float, quadrant: String) -> void:
 
     _update_overhead_hp()
     if is_destroyed():
+        _spawn_destruction_smoke_cloud()
         visible = false
+    else:
+        _spawn_hull_hit_smoke(quadrant, amount)
 
+func _quadrant_local_offset(quadrant: String) -> Vector3:
+    var s := body_size
+    match quadrant:
+        "BOW":
+            return Vector3(0.0, s.y * 0.25, -s.z * 0.32)
+        "PORT":
+            return Vector3(-s.x * 0.38, s.y * 0.20, 0.0)
+        "STARBOARD":
+            return Vector3(s.x * 0.38, s.y * 0.20, 0.0)
+        "STERN":
+            return Vector3(0.0, s.y * 0.22, s.z * 0.34)
+        _:
+            return Vector3(0.0, s.y * 0.30, 0.0)
+
+func _spawn_hull_hit_smoke(quadrant: String, amount: float) -> void:
+    if not is_inside_tree() or get_parent() == null:
+        return
+    var world_parent := get_parent()
+    var hit_world_pos := to_global(_quadrant_local_offset(quadrant))
+    var intensity := clampf(amount / 25.0, 0.7, 1.8)
+
+    # 1. Temporary Scorch Fire & Molten Breach Glow on Hull (fades over 2.2s)
+    var fire_sphere := MeshInstance3D.new()
+    var sm := SphereMesh.new()
+    sm.radius = 0.42 * intensity
+    sm.height = 0.84 * intensity
+    sm.radial_segments = 10
+    sm.rings = 6
+    fire_sphere.mesh = sm
+    var fire_mat := StandardMaterial3D.new()
+    fire_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    fire_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    fire_mat.albedo_color = Color(1.0, 0.48, 0.12, 0.90)
+    fire_mat.emission_enabled = true
+    fire_mat.emission = Color(1.0, 0.38, 0.08)
+    fire_mat.emission_energy_multiplier = 1.6
+    fire_sphere.material_override = fire_mat
+    fire_sphere.position = _quadrant_local_offset(quadrant)
+    add_child(fire_sphere)
+
+    var ftween := create_tween()
+    ftween.set_parallel(true)
+    ftween.tween_property(fire_sphere, "scale", Vector3(1.8, 1.8, 1.8), 2.1)
+    ftween.tween_property(fire_mat, "albedo_color:a", 0.0, 2.1)
+    ftween.chain().tween_callback(fire_sphere.queue_free)
+
+    # 2. Billowing Dark Smoke Puffs rising in 3D space (lasts 2.8s)
+    for i in range(6):
+        var puff := MeshInstance3D.new()
+        var p_mesh := SphereMesh.new()
+        var rad := (0.45 + float(i) * 0.12) * intensity
+        p_mesh.radius = rad
+        p_mesh.height = rad * 1.85
+        p_mesh.radial_segments = 8
+        p_mesh.rings = 5
+        puff.mesh = p_mesh
+
+        var p_mat := StandardMaterial3D.new()
+        p_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+        # Warm ember-tinted core on first puffs, dark charcoal smoke on outer puffs
+        if i < 2:
+            p_mat.albedo_color = Color(0.28, 0.16, 0.10, 0.78)
+            p_mat.emission_enabled = true
+            p_mat.emission = Color(0.85, 0.32, 0.06)
+            p_mat.emission_energy_multiplier = 0.65
+        else:
+            p_mat.albedo_color = Color(0.12, 0.13, 0.16, 0.72)
+        p_mat.roughness = 0.95
+        puff.material_override = p_mat
+
+        var jitter := Vector3(
+            sin(float(i) * 2.1) * 0.65,
+            float(i) * 0.25,
+            cos(float(i) * 1.7) * 0.65
+        )
+        puff.position = hit_world_pos + jitter
+        world_parent.add_child(puff)
+
+        var drift := Vector3(
+            sin(float(i) * 1.9) * 1.8,
+            2.2 + float(i) * 0.55,
+            cos(float(i) * 2.3) * 1.8
+        )
+        var dur := 2.0 + float(i) * 0.22
+        var ptween := world_parent.create_tween()
+        ptween.set_parallel(true)
+        ptween.tween_property(puff, "position", puff.position + drift, dur)
+        ptween.tween_property(puff, "scale", Vector3(2.6, 2.6, 2.6), dur)
+        ptween.tween_property(p_mat, "albedo_color:a", 0.0, dur)
+        ptween.chain().tween_callback(puff.queue_free)
+
+func _spawn_destruction_smoke_cloud() -> void:
+    if not is_inside_tree() or get_parent() == null:
+        return
+    var world_parent := get_parent()
+    for i in range(10):
+        var puff := MeshInstance3D.new()
+        var p_mesh := SphereMesh.new()
+        var rad := 0.8 + float(i % 4) * 0.35
+        p_mesh.radius = rad
+        p_mesh.height = rad * 1.8
+        p_mesh.radial_segments = 8
+        p_mesh.rings = 5
+        puff.mesh = p_mesh
+
+        var p_mat := StandardMaterial3D.new()
+        p_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+        p_mat.albedo_color = Color(0.14, 0.14, 0.17, 0.80) if i > 3 else Color(0.95, 0.42, 0.10, 0.88)
+        if i <= 3:
+            p_mat.emission_enabled = true
+            p_mat.emission = Color(0.95, 0.35, 0.06)
+            p_mat.emission_energy_multiplier = 1.25
+        puff.material_override = p_mat
+        puff.position = global_position + Vector3(sin(float(i) * 1.3) * 1.5, cos(float(i) * 0.9) * 0.8, cos(float(i) * 1.7) * 1.5)
+        world_parent.add_child(puff)
+
+        var dur := 3.0 + float(i) * 0.25
+        var tw := world_parent.create_tween()
+        tw.set_parallel(true)
+        tw.tween_property(puff, "position", puff.position + Vector3(sin(float(i)) * 3.2, 3.5 + float(i) * 0.3, cos(float(i)) * 3.2), dur)
+        tw.tween_property(puff, "scale", Vector3(3.4, 3.4, 3.4), dur)
+        tw.tween_property(p_mat, "albedo_color:a", 0.0, dur)
+        tw.chain().tween_callback(puff.queue_free)
+
+func _emit_persistent_damage_smoke_puff(severe: bool) -> void:
+    if not is_inside_tree() or get_parent() == null:
+        return
+    var world_parent := get_parent()
+    var puff := MeshInstance3D.new()
+    var p_mesh := SphereMesh.new()
+    var rad := 0.42 if severe else 0.28
+    p_mesh.radius = rad
+    p_mesh.height = rad * 1.85
+    p_mesh.radial_segments = 7
+    p_mesh.rings = 5
+    puff.mesh = p_mesh
+
+    var p_mat := StandardMaterial3D.new()
+    p_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    p_mat.albedo_color = Color(0.13, 0.14, 0.17, 0.62 if severe else 0.42)
+    if severe:
+        p_mat.emission_enabled = true
+        p_mat.emission = Color(0.75, 0.25, 0.05)
+        p_mat.emission_energy_multiplier = 0.35
+    p_mat.roughness = 0.95
+    puff.material_override = p_mat
+
+    var local_off := Vector3(0.0, body_size.y * 0.38, body_size.z * 0.12)
+    puff.position = to_global(local_off)
+    world_parent.add_child(puff)
+
+    var dur := 1.85 if severe else 1.45
+    var tw := world_parent.create_tween()
+    tw.set_parallel(true)
+    tw.tween_property(puff, "position", puff.position + Vector3(0.0, 2.2, 0.0), dur)
+    tw.tween_property(puff, "scale", Vector3(2.4, 2.4, 2.4), dur)
+    tw.tween_property(p_mat, "albedo_color:a", 0.0, dur)
+    tw.chain().tween_callback(puff.queue_free)
 
 func is_destroyed() -> bool:
     return hp <= 0.0
@@ -225,6 +389,15 @@ func _process(delta: float) -> void:
             _burn_callback = Callable()
             if cb.is_valid():
                 cb.call()
+
+    if not is_destroyed() and max_hp > 0.0:
+        var ratio := hp / max_hp
+        if ratio < 0.78:
+            _smoke_emit_timer -= delta
+            if _smoke_emit_timer <= 0.0:
+                var severe := (ratio < 0.42)
+                _smoke_emit_timer = 0.26 if severe else 0.48
+                _emit_persistent_damage_smoke_puff(severe)
 
 enum Stance { FIRE, EVASIVE, FLANK }
 var stance: Stance = Stance.FIRE

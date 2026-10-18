@@ -53,7 +53,7 @@ func _ready() -> void:
     var tween := create_tween()
     tween.tween_property(_fade_rect, "color:a", 0.0, 0.65)
 
-    AudioManager.play_music(-16.0)
+    AudioManager.play_menu_music(-11.0)
     AudioManager.start_ambient(-24.0)
 
     _switch_view(MenuView.TITLE)
@@ -410,11 +410,11 @@ func _build_faction_select_view() -> void:
         "\"We sing across the dying dark before the Calm takes all.\"",
         "res://assets/factions/card_vinculados.png",
         Color(0.35, 0.92, 1.0),
-        "Biomechanical Gundam-style Mobile Suit pilots whose consciousness is coupled directly to the Éther wind. Unmatched agility, surgical beam lances, and high-speed vector duels.",
+        "Biomechanical humanoid combat frame pilots whose consciousness is coupled directly to the Éther wind. Unmatched agility, surgical resonance lances, and high-speed vector duels.",
         [
-            "★ Ace Frame: Eidolon Prime (Command Suit — Ace Kaelen-7)",
-            "★ Resonance Wing: Anima-01 Aria (Interceptor — Pilot Mirei)",
-            "★ Allied Aux: Viento Rojo (Corsair Support — Capt. Solano)"
+            "★ Command Frame: Eidolon Prime (Eidolon Suit — Ace Kaelen-7)",
+            "★ Strike Wing: Anima-01 Aria (Anima Frame — Ace Mirei-4)",
+            "★ Heavy Frame: Nous-04 Cantor (Nous Frame — Conductor Seraph-2)"
         ],
         "STAGE 01: RESONANCE WELL PSALM-4",
         false
@@ -428,11 +428,11 @@ func _build_faction_select_view() -> void:
         "\"Break the Acero dams. Let the Star Sea breathe again!\"",
         "res://assets/factions/card_marea.png",
         Color(0.98, 0.78, 0.28),
-        "Steampunk void-corsairs who sail the Éther gradient directly with towering quantum membrane sails and articulated Éther-oars. Masters of the Weather Gauge and broadside rakes.",
+        "Steampunk void-corsairs who sail the Éther gradient directly in pressurized timber-and-brass hulls with quantum membrane sails and mechanical Éther-oars.",
         [
             "★ Flagship: Viento Rojo (Void Galleon — Capt. Solano)",
-            "★ Vanguard: La Descarada (Corsair Raider — Quartermaster Vael)",
-            "★ Allied Outrider: Anima-01 (Resonance Scout — Pilot Mirei)"
+            "★ Raider: La Descarada (Raider Galleon — Quartermaster Vael)",
+            "★ Outrider: Brisa Negra (Void Brigantine — Capt. Moreau)"
         ],
         "STAGE 01: RAID ON ANVIL SLUICE LANE",
         false
@@ -748,19 +748,16 @@ func _select_faction_and_open_briefing(fac_id: String) -> void:
         "acero":
             LoreDB.current_stage_id = "acero_stage_1"
             _briefing_title_lbl.text = "ACT I // STAGE 01: DEFENSE OF SLUICE STATION WELL-09"
-            _briefing_sub_lbl.text = "FACTION: THE ARMADA OF ACERO // SECTOR: ANVIL SLUICE GATE WELL-09"
+            _briefing_sub_lbl.text = "FACTION: THE ARMADA OF ACERO // HOSTILES: THE FREE TIDE CORSAIRS"
             var art_tex: Texture2D = load("res://assets/factions/acero_stage1_briefing.png")
             if art_tex == null:
                 art_tex = load("res://assets/factions/card_acero.png")
             _briefing_art_rect.texture = art_tex
-            var cmd_tex: Texture2D = load("res://assets/factions/acero_commander.png")
-            if cmd_tex == null:
-                cmd_tex = load("res://assets/factions/card_acero.png")
-            _commander_portrait_rect.texture = cmd_tex
+            _commander_portrait_rect.texture = load("res://assets/heroes/ace_vane.png")
             _commander_name_lbl.text = "FLEET ADMIRAL VANE"
             _commander_role_lbl.text = "Flagship Command // CNS Iron Bastion (Anvil-Class)"
-            _commander_quote_lbl.text = "\"The Calm has already starved three outer wells. Now Captain Solano's Free Tide corsairs emerge from the basalt reefs to raid Sluice Station Well-09. Do not chase their sails — form a wall of steel alongside the Sluice Gate, angle our heavy bow armor, and shatter their hulls with interlocking broadsides. Steel endures.\""
-            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Destroy all 3 hostile raiders (Viento Rojo, La Descarada, Anima-01) threatening Sluice Station Well-09.
+            _commander_quote_lbl.text = "\"The Calm has already starved three outer wells. Now Captain Solano's Free Tide corsair flotilla emerges from the basalt reefs to raid Sluice Station Well-09. Do not chase their sails — form a wall of steel alongside the Sluice Gate, angle our heavy bow armor, and shatter their hulls with interlocking broadsides. Steel endures.\""
+            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Destroy all 3 hostile Free Tide corsair warships (Viento Rojo, La Descarada, Brisa Negra) threatening Sluice Station Well-09.
 ◆ SECONDARY OBJECTIVE: Ensure Flagship CNS Iron Bastion survives the engagement.
 ◆ ACERO TACTICAL DOCTRINE: Your warships have the heaviest Bow & Flank armor in the Star Sea and fire both Forward and Port/Starboard Broadsides (42°–138°). Because of high mass and inertia, commit your heading early during Admiral Phase and Cross the Enemy's T!"""
             _add_squadron_row("CNS Iron Bastion", "Anvil-Class Dreadnought • Adm. Vane", "HP 380 | RNG 58m | Forward & Broadside Batteries")
@@ -770,34 +767,34 @@ func _select_faction_and_open_briefing(fac_id: String) -> void:
         "vinculados":
             LoreDB.current_stage_id = "vinculados_stage_1"
             _briefing_title_lbl.text = "ACT II // STAGE 01: RESONANCE WELL PSALM-4"
-            _briefing_sub_lbl.text = "FACTION: THE VINCULADOS // SECTOR: OUTER VEIL PSALM-4"
+            _briefing_sub_lbl.text = "FACTION: THE VINCULADOS // HOSTILES: THE ARMADA OF ACERO"
             _briefing_art_rect.texture = load("res://assets/factions/card_vinculados.png")
-            _commander_portrait_rect.texture = load("res://assets/ships/vinculados/suit_concept.png")
+            _commander_portrait_rect.texture = load("res://assets/heroes/ace_kaelen.png")
             _commander_name_lbl.text = "ACE PILOT KAELEN-7"
             _commander_role_lbl.text = "Lead Resonance Choir // Eidolon Prime"
-            _commander_quote_lbl.text = "\"An Acero strike group has anchored inside Resonance Well Psalm-4 to dam the current. Our neural link is clear—use our superior turn rate and high-thrust vectors to slip behind their dreadnought's stern armor and strike before the Calm arrives.\""
-            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Neutralize the Acero flotilla (CNS Iron Bastion & CNS Vanguard-03) occupying Sector Psalm-4.
+            _commander_quote_lbl.text = "\"An Armada of Acero battle group has anchored inside Resonance Well Psalm-4 to dam the current. Our neural link is clear—use our superior turn rate and high-thrust vectors to slip behind their dreadnought's stern armor and strike before the Calm arrives.\""
+            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Neutralize the 3 Acero warships (CNS Iron Bastion, CNS Hammer of Anvil, CNS Vanguard-03) occupying Sector Psalm-4.
 ◆ SECONDARY OBJECTIVE: Keep Command Frame Eidolon Prime operational.
 ◆ VINCULADOS DOCTRINE: Low mass and high turn power allow rapid vector changes and Stern Rake critical hits (+40% DMG)."""
-            _add_squadron_row("Eidolon Prime", "Resonance Command Suit • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Beam Lance & Shield")
-            _add_squadron_row("Anima-01 (Aria)", "High-Agility Frame • Pilot Mirei", "HP 115 | SPD 36 m/s | Rapid Flank Interceptor")
-            _add_squadron_row("Viento Rojo", "Allied Void-Galleon • Capt. Solano", "HP 300 | SPD 22 m/s | Broadside Fire Support")
+            _add_squadron_row("Eidolon Prime", "Eidolon Command Frame • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Resonance Lance & Barrier")
+            _add_squadron_row("Anima-01 (Aria)", "Anima Strike Frame • Ace Mirei-4", "HP 115 | SPD 36 m/s | Rapid Flank Interceptor")
+            _add_squadron_row("Nous-04 (Cantor)", "Nous Heavy Frame • Conductor Seraph-2", "HP 195 | SPD 27 m/s | Heavy Resonance Beam")
 
         "marea_libre":
             LoreDB.current_stage_id = "marea_stage_1"
             _briefing_title_lbl.text = "ACT III // STAGE 01: BREAKING THE ANVIL BLOCKADE"
-            _briefing_sub_lbl.text = "FACTION: THE FREE TIDE // SECTOR: SLUICE LANE DELTA"
+            _briefing_sub_lbl.text = "FACTION: THE FREE TIDE // HOSTILES: THE ARMADA OF ACERO"
             _briefing_art_rect.texture = load("res://assets/factions/card_marea.png")
-            _commander_portrait_rect.texture = load("res://assets/ships/marea-libre/galleon_concept.png")
+            _commander_portrait_rect.texture = load("res://assets/heroes/ace_solano.png")
             _commander_name_lbl.text = "CAPTAIN SOLANO"
             _commander_role_lbl.text = "Corsair Flagship // Viento Rojo"
             _commander_quote_lbl.text = "\"Acero thinks they can lock the Star Sea behind iron sluice-gates! Unfurl the quantum membranes, catch the tailwind, and sweep their flanks with our broadside field-lances!\""
-            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Break the Acero blockade flotilla guarding the Sluice lane.
+            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Break the 3-ship Acero blockade flotilla guarding the Sluice lane.
 ◆ SECONDARY OBJECTIVE: Keep Corsair Flagship Viento Rojo afloat.
 ◆ FREE TIDE DOCTRINE: Ride the cyan Éther current for bonus speed and unleash devastating Port/Starboard broadsides (+18% Broadside Bonus)."""
             _add_squadron_row("Viento Rojo", "Corsair Void-Galleon • Capt. Solano", "HP 300 | RNG 50m | Quantum Sails & Broadsides")
-            _add_squadron_row("La Descarada", "Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
-            _add_squadron_row("Anima-01 (Aria)", "Allied Outrider Frame • Pilot Mirei", "HP 115 | SPD 36 m/s | Vanguard Scout")
+            _add_squadron_row("La Descarada", "Corsair Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
+            _add_squadron_row("Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
 
     _switch_view(MenuView.BRIEFING)
 

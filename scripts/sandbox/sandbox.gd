@@ -18,6 +18,7 @@ var _trajectory: TrajectoryPreview
 
 var _stage_title_label: Label
 var _objective_label: Label
+var _cmd_port: TextureRect
 var _phase_badge: Label
 var _turn_label_prefix: Label
 var _turn_label_phase: Label
@@ -79,7 +80,7 @@ func _ready() -> void:
 	_build_hud()
 	_set_selected(_player_ships[0])
 
-	AudioManager.play_music(-20.0)
+	AudioManager.play_battle_music(-10.0)
 	AudioManager.start_ambient(-26.0)
 
 	TurnManager.phase_changed.connect(_on_phase_changed)
@@ -259,71 +260,43 @@ func _compute_tactical_heading(ship: Ship, target: Ship, lead_time: float) -> Ve
 
 func _plan_ai_orders() -> void:
 	var flagship: Ship = null
-	var escort: Ship = null
 	for s in _enemy_ships:
-		if s.is_destroyed():
-			continue
-		if s.ship_id == "acero_dreadnought":
+		if not s.is_destroyed():
 			flagship = s
-		elif s.ship_id == "acero_corvette":
-			escort = s
-		elif flagship == null:
-			flagship = s
-		else:
-			escort = s
+			break
+	if flagship == null:
+		return
 
-	var primary_target: Ship = null
-	if flagship != null:
-		primary_target = _nearest_player_ship(flagship)
-	elif escort != null:
-		primary_target = _nearest_player_ship(escort)
-
+	var primary_target := _nearest_player_ship(flagship)
 	if primary_target == null:
 		return
 
-	# Flagship tactical doctrine: Predictive lead intercept + angled broadside battle line
-	if flagship != null:
-		var dist := flagship.state.position.distance_to(primary_target.state.position)
-		var heading := _compute_tactical_heading(flagship, primary_target, 3.5)
-		_set_order_heading(flagship, heading)
-
-		if dist > 48.0:
-			flagship.order.target_speed = flagship.state.max_speed * 0.65
-		elif dist > 22.0:
-			flagship.order.target_speed = 3.5
-		else:
-			flagship.order.target_speed = 0.0
-
-	# Escort tactical doctrine: Fast flanking & screening the Flagship's vulnerable stern
-	if escort != null:
-		if flagship != null and not flagship.is_destroyed():
-			var escort_station := flagship.state.position + Vector3(16.0, 2.0, -4.0)
-			var to_station := escort_station - escort.state.position
-			var dist_station := to_station.length()
-
-			if dist_station > 20.0:
-				_set_order_heading(escort, to_station.normalized())
-				escort.order.target_speed = escort.state.max_speed * 0.75
+	for i in range(_enemy_ships.size()):
+		var enemy := _enemy_ships[i]
+		if enemy.is_destroyed():
+			continue
+		var tgt := _nearest_player_ship(enemy)
+		if tgt == null:
+			tgt = primary_target
+		var dist := enemy.state.position.distance_to(tgt.state.position)
+		if i == 0:
+			var heading := _compute_tactical_heading(enemy, tgt, 3.5)
+			_set_order_heading(enemy, heading)
+			if dist > 48.0:
+				enemy.order.target_speed = enemy.state.max_speed * 0.65
+			elif dist > 22.0:
+				enemy.order.target_speed = 3.5
 			else:
-				var heading := _compute_tactical_heading(escort, primary_target, 2.5)
-				_set_order_heading(escort, heading)
-				var dist_target := escort.state.position.distance_to(primary_target.state.position)
-				if dist_target > 40.0:
-					escort.order.target_speed = escort.state.max_speed * 0.60
-				elif dist_target > 18.0:
-					escort.order.target_speed = 4.0
-				else:
-					escort.order.target_speed = 0.0
+				enemy.order.target_speed = 0.0
 		else:
-			var heading := _compute_tactical_heading(escort, primary_target, 2.5)
-			_set_order_heading(escort, heading)
-			var dist := escort.state.position.distance_to(primary_target.state.position)
-			if dist > 40.0:
-				escort.order.target_speed = escort.state.max_speed * 0.68
+			var heading := _compute_tactical_heading(enemy, tgt, 2.5)
+			_set_order_heading(enemy, heading)
+			if dist > 42.0:
+				enemy.order.target_speed = enemy.state.max_speed * 0.68
 			elif dist > 18.0:
-				escort.order.target_speed = 4.0
+				enemy.order.target_speed = 4.2
 			else:
-				escort.order.target_speed = 0.0
+				enemy.order.target_speed = 0.0
 
 func _plan_ai_tactical_orders() -> void:
 	# Focus-fire utility scoring: prioritize highest threat / lowest HP player unit in range
@@ -473,6 +446,11 @@ func _set_selected(ship: Ship) -> void:
 		candidate.selected = candidate == ship
 	_selected_ship = ship
 
+	if _cmd_port != null and ship != null:
+		var p_path := LoreDB.get_portrait_for_ship(ship.ship_id)
+		if p_path != "" and ResourceLoader.exists(p_path):
+			_cmd_port.texture = load(p_path)
+
 	if _tactical_grid != null:
 		_tactical_grid.selected_ship = ship
 
@@ -590,65 +568,22 @@ func _align_fleet_formation() -> void:
 	_add_combat_log("⊞ Fleet aligned to %s Line-of-Battle bearing (SPD %.1f m/s)" % [_selected_ship.ship_name, ref_spd], Color(0.35, 0.95, 1.0))
 
 func _update_ai_tactical_behavior(_delta: float) -> void:
-	var flagship: Ship = null
-	var escort: Ship = null
-	for s in _enemy_ships:
-		if s.is_destroyed():
+	for i in range(_enemy_ships.size()):
+		var enemy := _enemy_ships[i]
+		if enemy.is_destroyed():
 			continue
-		if s.ship_id == "acero_dreadnought":
-			flagship = s
-		elif s.ship_id == "acero_corvette":
-			escort = s
-		elif flagship == null:
-			flagship = s
-		else:
-			escort = s
-
-	var primary_target: Ship = null
-	if flagship != null:
-		primary_target = _nearest_player_ship(flagship)
-	elif escort != null:
-		primary_target = _nearest_player_ship(escort)
-
-	if primary_target == null:
-		return
-
-	if flagship != null:
-		var dist := flagship.state.position.distance_to(primary_target.state.position)
-		var heading := _compute_tactical_heading(flagship, primary_target, 1.8)
-		_set_order_heading(flagship, heading)
-		if dist > 48.0:
-			flagship.order.target_speed = 6.5
+		var tgt := _nearest_player_ship(enemy)
+		if tgt == null:
+			continue
+		var dist := enemy.state.position.distance_to(tgt.state.position)
+		var heading := _compute_tactical_heading(enemy, tgt, 1.6)
+		_set_order_heading(enemy, heading)
+		if dist > 45.0:
+			enemy.order.target_speed = 6.5
 		elif dist > 20.0:
-			flagship.order.target_speed = 3.2
+			enemy.order.target_speed = 3.5
 		else:
-			flagship.order.target_speed = 0.0
-
-	if escort != null:
-		if flagship != null and not flagship.is_destroyed():
-			var escort_station := flagship.state.position + Vector3(16.0, 2.0, -4.0)
-			var to_station := escort_station - escort.state.position
-			if to_station.length() > 20.0:
-				_set_order_heading(escort, to_station.normalized())
-				escort.order.target_speed = 8.0
-			else:
-				var heading := _compute_tactical_heading(escort, primary_target, 1.5)
-				_set_order_heading(escort, heading)
-				var dist_t := escort.state.position.distance_to(primary_target.state.position)
-				if dist_t > 40.0:
-					escort.order.target_speed = 6.0
-				elif dist_t > 18.0:
-					escort.order.target_speed = 3.5
-				else:
-					escort.order.target_speed = 0.0
-		else:
-			var heading := _compute_tactical_heading(escort, primary_target, 1.5)
-			_set_order_heading(escort, heading)
-			var dist_e := escort.state.position.distance_to(primary_target.state.position)
-			if dist_e > 35.0:
-				escort.order.target_speed = 6.0
-			else:
-				escort.order.target_speed = 3.0
+			enemy.order.target_speed = 0.0
 
 func _check_engagement_transition() -> void:
 	if _fleets_in_range():
@@ -1099,84 +1034,262 @@ func _build_calm_wavefront() -> void:
 		pillar.material_override = calm_mat
 		_calm_wall_root.add_child(pillar)
 
+var _sluice_ring_outer: Node3D = null
+var _sluice_ring_inner: Node3D = null
+
 func _build_sluice_station() -> void:
-	# Colossal 3D Acero Éteron Sluice-Gate Refinery ("Well-09", matching acero_stage1_briefing.png)
+	# Colossal Textured 3D Acero Éteron Sluice-Gate Refinery ("Well-09", matching card_acero.png & acero_stage1_briefing.png)
 	_sluice_station_root = Node3D.new()
 	_sluice_station_root.name = "SluiceStationWell09"
-	_sluice_station_root.position = Vector3(-26.0, -2.0, 6.0)
-	_sluice_station_root.rotation_degrees = Vector3(0.0, 22.0, 0.0)
+	_sluice_station_root.position = Vector3(-28.0, -1.0, 4.0)
+	_sluice_station_root.rotation_degrees = Vector3(0.0, 24.0, 0.0)
 	add_child(_sluice_station_root)
 
-	var steel_mat := StandardMaterial3D.new()
-	steel_mat.albedo_color = Color(0.18, 0.21, 0.26)
-	steel_mat.metallic = 0.78
-	steel_mat.roughness = 0.42
+	var hull_tex: Texture2D = load("res://assets/ships/acero/acero_hull.png")
 
-	var dark_plate := StandardMaterial3D.new()
-	dark_plate.albedo_color = Color(0.10, 0.12, 0.16)
-	dark_plate.metallic = 0.85
-	dark_plate.roughness = 0.35
+	var armor_tex_mat := StandardMaterial3D.new()
+	armor_tex_mat.albedo_texture = hull_tex
+	armor_tex_mat.albedo_color = Color(1.65, 1.72, 1.85)
+	armor_tex_mat.uv1_scale = Vector3(3.5, 3.5, 1.0)
+	armor_tex_mat.metallic = 0.45
+	armor_tex_mat.roughness = 0.40
+	armor_tex_mat.rim_enabled = true
+	armor_tex_mat.rim = 0.50
+	armor_tex_mat.emission_enabled = true
+	armor_tex_mat.emission = Color(0.09, 0.12, 0.17)
+	armor_tex_mat.emission_energy_multiplier = 0.35
+
+	var dark_steel_mat := StandardMaterial3D.new()
+	dark_steel_mat.albedo_texture = hull_tex
+	dark_steel_mat.albedo_color = Color(1.15, 1.22, 1.34)
+	dark_steel_mat.uv1_scale = Vector3(5.0, 5.0, 1.0)
+	dark_steel_mat.metallic = 0.52
+	dark_steel_mat.roughness = 0.36
+	dark_steel_mat.rim_enabled = true
+	dark_steel_mat.rim = 0.45
+
+	var trim_steel := StandardMaterial3D.new()
+	trim_steel.albedo_color = Color(0.56, 0.62, 0.72)
+	trim_steel.metallic = 0.55
+	trim_steel.roughness = 0.28
+
+	var furnace_amber := StandardMaterial3D.new()
+	furnace_amber.albedo_color = Color(1.0, 0.52, 0.14)
+	furnace_amber.emission_enabled = true
+	furnace_amber.emission = Color(0.98, 0.45, 0.10)
+	furnace_amber.emission_energy_multiplier = 1.65
+
+	var molten_core_mat := StandardMaterial3D.new()
+	molten_core_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	molten_core_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	molten_core_mat.albedo_color = Color(1.0, 0.58, 0.16, 0.88)
+	molten_core_mat.emission_enabled = true
+	molten_core_mat.emission = Color(1.0, 0.46, 0.10)
+	molten_core_mat.emission_energy_multiplier = 1.85
 
 	var sluice_cyan := StandardMaterial3D.new()
 	sluice_cyan.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	sluice_cyan.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	sluice_cyan.albedo_color = Color(0.22, 0.92, 1.0, 0.72)
+	sluice_cyan.albedo_color = Color(0.18, 0.78, 0.95, 0.55)
 	sluice_cyan.emission_enabled = true
-	sluice_cyan.emission = Color(0.2, 0.85, 1.0)
-	sluice_cyan.emission_energy_multiplier = 3.2
+	sluice_cyan.emission = Color(0.15, 0.68, 0.88)
+	sluice_cyan.emission_energy_multiplier = 0.95
 
-	var furnace_amber := StandardMaterial3D.new()
-	furnace_amber.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	furnace_amber.albedo_color = Color(1.0, 0.58, 0.18)
-	furnace_amber.emission_enabled = true
-	furnace_amber.emission = Color(1.0, 0.48, 0.12)
-	furnace_amber.emission_energy_multiplier = 3.5
+	# Dedicated Station Illumination Lights (Warm Forge Light + Cool Collector Light)
+	var forge_light := OmniLight3D.new()
+	forge_light.position = Vector3(0.0, 8.0, 6.0)
+	forge_light.light_color = Color(1.0, 0.62, 0.25)
+	forge_light.light_energy = 1.8
+	forge_light.omni_range = 36.0
+	_sluice_station_root.add_child(forge_light)
 
-	# Twin Towering Brutalist Refinery Pylons
+	var ring_light := OmniLight3D.new()
+	ring_light.position = Vector3(0.0, 2.0, -14.0)
+	ring_light.light_color = Color(0.35, 0.85, 1.0)
+	ring_light.light_energy = 1.5
+	ring_light.omni_range = 32.0
+	_sluice_station_root.add_child(ring_light)
+
+	# 1. Central Multi-Tiered Octagonal Blast-Furnace Citadel (like card_acero.png!)
+	var base_drum := MeshInstance3D.new()
+	var bd_cyl := CylinderMesh.new()
+	bd_cyl.top_radius = 9.2
+	bd_cyl.bottom_radius = 7.4
+	bd_cyl.height = 7.5
+	bd_cyl.radial_segments = 12
+	base_drum.mesh = bd_cyl
+	base_drum.position = Vector3(0.0, 0.0, 6.0)
+	base_drum.material_override = armor_tex_mat
+	_sluice_station_root.add_child(base_drum)
+
+	var upper_citadel := MeshInstance3D.new()
+	var uc_cyl := CylinderMesh.new()
+	uc_cyl.top_radius = 6.8
+	uc_cyl.bottom_radius = 8.4
+	uc_cyl.height = 6.0
+	uc_cyl.radial_segments = 8
+	upper_citadel.mesh = uc_cyl
+	upper_citadel.position = Vector3(0.0, 6.2, 6.0)
+	upper_citadel.material_override = dark_steel_mat
+	_sluice_station_root.add_child(upper_citadel)
+
+	# Glowing Molten Blast-Furnace Crown & Lower Crucible Vent
+	var crown_furnace := MeshInstance3D.new()
+	var cf_cyl := CylinderMesh.new()
+	cf_cyl.top_radius = 5.2
+	cf_cyl.bottom_radius = 5.8
+	cf_cyl.height = 2.4
+	cf_cyl.radial_segments = 12
+	crown_furnace.mesh = cf_cyl
+	crown_furnace.position = Vector3(0.0, 9.8, 6.0)
+	crown_furnace.material_override = molten_core_mat
+	_sluice_station_root.add_child(crown_furnace)
+
+	var lower_crucible := MeshInstance3D.new()
+	var lc_cyl := CylinderMesh.new()
+	lc_cyl.top_radius = 4.2
+	lc_cyl.bottom_radius = 1.2
+	lc_cyl.height = 6.5
+	lc_cyl.radial_segments = 10
+	lower_crucible.mesh = lc_cyl
+	lower_crucible.position = Vector3(0.0, -6.5, 6.0)
+	lower_crucible.material_override = dark_steel_mat
+	_sluice_station_root.add_child(lower_crucible)
+
+	# 6 Towering Industrial Smokestacks & Heat-Sink Towers around the Citadel
+	for i in range(6):
+		var ang := float(i) * TAU / 6.0
+		var sx := cos(ang) * 6.2
+		var sz := 6.0 + sin(ang) * 6.2
+		var stack := MeshInstance3D.new()
+		var st_cyl := CylinderMesh.new()
+		st_cyl.top_radius = 0.65
+		st_cyl.bottom_radius = 0.95
+		st_cyl.height = 9.5 + float(i % 2) * 3.0
+		st_cyl.radial_segments = 8
+		stack.mesh = st_cyl
+		stack.position = Vector3(sx, 8.5 + float(i % 2) * 1.5, sz)
+		stack.material_override = armor_tex_mat
+		_sluice_station_root.add_child(stack)
+
+		var stack_glow := MeshInstance3D.new()
+		var sg_cyl := CylinderMesh.new()
+		sg_cyl.top_radius = 0.55
+		sg_cyl.bottom_radius = 0.55
+		sg_cyl.height = 0.8
+		stack_glow.mesh = sg_cyl
+		stack_glow.position = stack.position + Vector3(0.0, st_cyl.height * 0.5, 0.0)
+		stack_glow.material_override = furnace_amber
+		_sluice_station_root.add_child(stack_glow)
+
+	# Port & Starboard Heavy Docking Gantries and Furnace Windows
 	for side in [-1.0, 1.0]:
-		var tower := MeshInstance3D.new()
-		var t_box := BoxMesh.new()
-		t_box.size = Vector3(3.8, 22.0, 5.2)
-		tower.mesh = t_box
-		tower.position = Vector3(float(side) * 4.8, 3.0, 0.0)
-		tower.material_override = steel_mat
-		_sluice_station_root.add_child(tower)
+		var wing := MeshInstance3D.new()
+		var w_box := BoxMesh.new()
+		w_box.size = Vector3(8.5, 3.2, 4.4)
+		wing.mesh = w_box
+		wing.position = Vector3(float(side) * 11.2, 0.5, 6.0)
+		wing.material_override = armor_tex_mat
+		_sluice_station_root.add_child(wing)
 
-		# Horizontal Gantry Cross-Arms
-		var arm := MeshInstance3D.new()
-		var a_box := BoxMesh.new()
-		a_box.size = Vector3(12.0, 2.2, 2.8)
-		arm.mesh = a_box
-		arm.position = Vector3(float(side) * 11.5, 1.5, 0.0)
-		arm.material_override = dark_plate
-		_sluice_station_root.add_child(arm)
+		var trim_bar := MeshInstance3D.new()
+		var tb_box := BoxMesh.new()
+		tb_box.size = Vector3(9.0, 0.45, 4.8)
+		trim_bar.mesh = tb_box
+		trim_bar.position = Vector3(float(side) * 11.2, 2.2, 6.0)
+		trim_bar.material_override = trim_steel
+		_sluice_station_root.add_child(trim_bar)
 
-		# Ember Furnace Core Window
-		var vent := MeshInstance3D.new()
-		var v_box := BoxMesh.new()
-		v_box.size = Vector3(1.6, 4.2, 5.4)
-		vent.mesh = v_box
-		vent.position = Vector3(float(side) * 4.8, 6.5, 0.0)
-		vent.material_override = furnace_amber
-		_sluice_station_root.add_child(vent)
+		for w_i in range(3):
+			var win := MeshInstance3D.new()
+			var win_box := BoxMesh.new()
+			win_box.size = Vector3(1.6, 0.9, 4.55)
+			win.mesh = win_box
+			win.position = Vector3(float(side) * (8.5 + float(w_i) * 2.4), 0.5, 6.0)
+			win.material_override = furnace_amber
+			_sluice_station_root.add_child(win)
 
-	# Upper & Lower Sluice Gate Bridge Arch
-	var arch_top := MeshInstance3D.new()
-	var at_box := BoxMesh.new()
-	at_box.size = Vector3(13.5, 3.0, 5.6)
-	arch_top.mesh = at_box
-	arch_top.position = Vector3(0.0, 11.5, 0.0)
-	arch_top.material_override = dark_plate
-	_sluice_station_root.add_child(arch_top)
+	# 2. Axial Sluice Conduit Barrel extending forward (-Z) to the Collector Ring
+	var conduit := MeshInstance3D.new()
+	var c_cyl := CylinderMesh.new()
+	c_cyl.top_radius = 3.2
+	c_cyl.bottom_radius = 3.8
+	c_cyl.height = 16.0
+	c_cyl.radial_segments = 12
+	conduit.mesh = c_cyl
+	conduit.position = Vector3(0.0, 1.2, -4.5)
+	conduit.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+	conduit.material_override = dark_steel_mat
+	_sluice_station_root.add_child(conduit)
 
-	# Glowing Cyan Éther Sluice Stream Passing Through the Gate
-	var stream := MeshInstance3D.new()
-	var s_box := BoxMesh.new()
-	s_box.size = Vector3(5.4, 5.2, 16.0)
-	stream.mesh = s_box
-	stream.position = Vector3(0.0, 0.5, 0.0)
-	stream.material_override = sluice_cyan
-	_sluice_station_root.add_child(stream)
+	for rib_i in range(4):
+		var rib := MeshInstance3D.new()
+		var r_tor := TorusMesh.new()
+		r_tor.inner_radius = 3.4
+		r_tor.outer_radius = 4.3
+		r_tor.rings = 16
+		r_tor.ring_segments = 8
+		rib.mesh = r_tor
+		rib.position = Vector3(0.0, 1.2, 1.0 - float(rib_i) * 3.6)
+		rib.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+		rib.material_override = trim_steel
+		_sluice_station_root.add_child(rib)
+
+	# 3. Colossal Forward Éteron Collector Ring Assembly (Counter-Rotating Outer & Inner Rings!)
+	_sluice_ring_outer = Node3D.new()
+	_sluice_ring_outer.position = Vector3(0.0, 1.2, -13.5)
+	_sluice_station_root.add_child(_sluice_ring_outer)
+
+	var main_ring := MeshInstance3D.new()
+	var mr_tor := TorusMesh.new()
+	mr_tor.inner_radius = 7.2
+	mr_tor.outer_radius = 9.4
+	mr_tor.rings = 32
+	mr_tor.ring_segments = 12
+	main_ring.mesh = mr_tor
+	main_ring.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+	main_ring.material_override = armor_tex_mat
+	_sluice_ring_outer.add_child(main_ring)
+
+	# 8 Radial Magnetic Clamp Pylons around the Collector Ring (matching card_acero.png!)
+	for c_i in range(8):
+		var c_ang := float(c_i) * TAU / 8.0
+		var pylon := MeshInstance3D.new()
+		var p_box := BoxMesh.new()
+		p_box.size = Vector3(1.8, 3.6, 2.4)
+		pylon.mesh = p_box
+		pylon.position = Vector3(cos(c_ang) * 9.2, sin(c_ang) * 9.2, 0.0)
+		pylon.rotation = Vector3(0.0, 0.0, c_ang + PI * 0.5)
+		pylon.material_override = trim_steel
+		_sluice_ring_outer.add_child(pylon)
+
+	_sluice_ring_inner = Node3D.new()
+	_sluice_ring_inner.position = Vector3(0.0, 1.2, -13.5)
+	_sluice_station_root.add_child(_sluice_ring_inner)
+
+	var inner_ring := MeshInstance3D.new()
+	var ir_tor := TorusMesh.new()
+	ir_tor.inner_radius = 5.4
+	ir_tor.outer_radius = 6.6
+	ir_tor.rings = 28
+	ir_tor.ring_segments = 10
+	inner_ring.mesh = ir_tor
+	inner_ring.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+	inner_ring.material_override = furnace_amber
+	_sluice_ring_inner.add_child(inner_ring)
+
+	# Central Siphon Aperture Core & Éther Capture Stream
+	var aperture_core := MeshInstance3D.new()
+	var ac_cyl := CylinderMesh.new()
+	ac_cyl.top_radius = 4.8
+	ac_cyl.bottom_radius = 2.6
+	ac_cyl.height = 18.0
+	ac_cyl.radial_segments = 16
+	aperture_core.mesh = ac_cyl
+	aperture_core.position = Vector3(0.0, 1.2, -18.0)
+	aperture_core.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+	aperture_core.material_override = sluice_cyan
+	_sluice_station_root.add_child(aperture_core)
 
 	var station_lbl := Label3D.new()
 	station_lbl.text = "◆ SLUICE STATION WELL-09\n[ACERO ÉTERON REFINERY]"
@@ -1185,7 +1298,7 @@ func _build_sluice_station() -> void:
 	station_lbl.modulate = Color(1.0, 0.78, 0.32)
 	station_lbl.outline_modulate = Color(0.01, 0.02, 0.05, 0.95)
 	station_lbl.outline_size = 3
-	station_lbl.position = Vector3(0.0, 16.5, 0.0)
+	station_lbl.position = Vector3(0.0, 16.5, 6.0)
 	_sluice_station_root.add_child(station_lbl)
 
 func _update_scenery(delta: float) -> void:
@@ -1193,6 +1306,10 @@ func _update_scenery(delta: float) -> void:
 		for cluster in _asteroid_root.get_children():
 			if cluster is Node3D:
 				cluster.rotate_y(delta * 0.06)
+	if _sluice_ring_outer != null:
+		_sluice_ring_outer.rotate_z(delta * 0.18)
+	if _sluice_ring_inner != null:
+		_sluice_ring_inner.rotate_z(-delta * 0.35)
 
 func _update_ether_flow(delta: float) -> void:
 	if _ether_particles == null:
@@ -1217,29 +1334,32 @@ func _build_tactical_grid() -> void:
 func _spawn_fleets() -> void:
 	match LoreDB.current_stage_id:
 		"acero_stage_1":
-			# ACT I // STAGE 01: The Armada of Acero defending Sluice Station Well-09 against Free Tide Raiders
+			# ACT I // STAGE 01: 100% Pure Armada of Acero vs 100% Pure Free Tide Corsairs
 			_player_ships.append(_spawn("acero_dreadnought", Vector3(-12.0, 5.0, 36.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("acero_battlecruiser", Vector3(4.0, 2.0, 34.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 38.0), Vector3.ZERO, 0))
 
-			_enemy_ships.append(_spawn("marea_galleon", Vector3(-8.0, 6.0, -40.0), Vector3(0.0, 0.0, 3.5), 1))
-			_enemy_ships.append(_spawn("marea_raider", Vector3(12.0, 3.0, -44.0), Vector3(0.0, 0.0, 4.0), 1))
-			_enemy_ships.append(_spawn("vinculados_anima", Vector3(2.0, 9.0, -36.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(-10.0, 6.0, -40.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(8.0, 3.0, -44.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(20.0, 8.0, -38.0), Vector3(0.0, 0.0, 4.5), 1))
 		"marea_stage_1":
+			# ACT III // STAGE 01: 100% Pure Free Tide Corsairs vs 100% Pure Armada of Acero
 			_player_ships.append(_spawn("marea_galleon", Vector3(-10.0, 5.0, 36.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_raider", Vector3(8.0, 2.0, 38.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_anima", Vector3(18.0, 7.0, 34.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(6.0, 2.0, 38.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(18.0, 7.0, 34.0), Vector3.ZERO, 0))
 
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(10.0, 3.0, -44.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 3.0, -44.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(18.0, 5.0, -40.0), Vector3(0.0, 0.0, 3.5), 1))
 		_:
-			# Vinculados Stage 1 / Classic Sandbox
-			_player_ships.append(_spawn("vinculados_suit", Vector3(-14.0, 8.0, 38.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_anima", Vector3(14.0, -6.0, 42.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_galleon", Vector3(0.0, 2.0, 36.0), Vector3.ZERO, 0))
+			# ACT II // STAGE 01: 100% Pure Vinculados Choir vs 100% Pure Armada of Acero
+			_player_ships.append(_spawn("vinculados_suit", Vector3(-12.0, 7.0, 38.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(12.0, -4.0, 40.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(0.0, 2.0, 35.0), Vector3.ZERO, 0))
 
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_corvette", Vector3(10.0, 4.0, -45.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 3.0, -44.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(18.0, 5.0, -40.0), Vector3(0.0, 0.0, 3.5), 1))
 
 	_tactical_grid.set_ships(_player_ships + _enemy_ships)
 
@@ -1394,19 +1514,17 @@ func _build_hud() -> void:
 	cmd_hbox.add_theme_constant_override("separation", 8)
 	cmd_card.add_child(cmd_hbox)
 
-	var cmd_port := TextureRect.new()
-	var port_path := "res://assets/factions/acero_commander.png"
-	if LoreDB.current_stage_id == "marea_stage_1":
-		port_path = "res://assets/ships/marea-libre/galleon_concept.png"
-	elif LoreDB.current_stage_id != "acero_stage_1":
-		port_path = "res://assets/ships/vinculados/suit_concept.png"
+	_cmd_port = TextureRect.new()
+	var port_path := "res://assets/heroes/ace_vane.png"
+	if not _player_ships.is_empty() and _player_ships[0] != null:
+		port_path = LoreDB.get_portrait_for_ship(_player_ships[0].ship_id)
 	var port_tex: Texture2D = load(port_path)
 	if port_tex != null:
-		cmd_port.texture = port_tex
-	cmd_port.custom_minimum_size = Vector2(44, 44)
-	cmd_port.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	cmd_port.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	cmd_hbox.add_child(cmd_port)
+		_cmd_port.texture = port_tex
+	_cmd_port.custom_minimum_size = Vector2(44, 44)
+	_cmd_port.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_cmd_port.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	cmd_hbox.add_child(_cmd_port)
 
 	var cmd_vbox := VBoxContainer.new()
 	cmd_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1470,6 +1588,7 @@ func _build_hud() -> void:
 	)
 	_order_panel.open_roster_pressed.connect(func() -> void:
 		if _roster_modal != null:
+			_roster_modal.set_battle_rosters(_player_ships, _enemy_ships)
 			_roster_modal.visible = true
 	)
 	_order_panel.ship_selected.connect(func(s: Ship) -> void:
@@ -1495,7 +1614,7 @@ func _build_hud() -> void:
 	_ace_panel = AcePanel.new()
 	_ace_panel.theme = _hud_theme
 	_ace_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	_ace_panel.offset_top = -195
+	_ace_panel.offset_top = -205
 	_ace_panel.offset_bottom = 0
 	_ace_panel.visible = false
 	_ace_panel.execute_round_pressed.connect(_execute_ace_round)
@@ -1505,6 +1624,18 @@ func _build_hud() -> void:
 	_ace_panel.ship_selected.connect(func(s: Ship) -> void:
 		_set_selected(s)
 		AudioManager.play_sfx("ui_click", -10.0)
+	)
+	_ace_panel.enemy_selected.connect(func(e: Ship) -> void:
+		_ace_target = e
+		if _tactical_grid != null:
+			_tactical_grid.target_ship = e
+		if _ace_panel != null:
+			_ace_panel.target = e
+		if _selected_ship != null:
+			_selected_ship.target_ship = e
+		AudioManager.play_sfx("ui_hover", -6.0)
+		_refresh_fleet_panel()
+		_add_combat_log("Hostile Ace locked: %s [%s]" % [e.pilot_name, e.ship_name], Color(1.0, 0.55, 0.35))
 	)
 	_ace_panel.exit_pressed.connect(func() -> void:
 		_add_combat_log("Disengaging Ace combat. Returning to Admiral fleet view.", Color(0.4, 0.9, 1.0))
@@ -1563,7 +1694,7 @@ func _build_hud() -> void:
 	_resolve_bar.custom_minimum_size = Vector2(0, 12)
 	res_vbox.add_child(_resolve_bar)
 
-	# 6. Hero Roster Modal (assets/mockups/roster.png) + Help / Victory / Defeat Overlays
+	# 6. Hero Roster Modal (Allied Aces vs. Hostile Commanders) + Help / Victory / Defeat Overlays
 	_roster_modal = HudWidgets.HeroRosterModal.new()
 	_roster_modal.theme = _hud_theme
 	layer.add_child(_roster_modal)
@@ -1578,8 +1709,10 @@ func _refresh_fleet_panel() -> void:
 	if _order_panel != null:
 		_order_panel.rebuild_unit_cards(_player_ships, _enemy_ships, _selected_ship, _ace_target)
 	if _ace_panel != null:
-		_ace_panel.set_fleet(_player_ships, _selected_ship)
+		_ace_panel.set_fleet(_player_ships, _selected_ship, _enemy_ships, _ace_target)
 		_ace_panel.target = _ace_target
+	if _roster_modal != null:
+		_roster_modal.set_battle_rosters(_player_ships, _enemy_ships)
 	if _callout_overlay != null:
 		_callout_overlay.ships = _player_ships + _enemy_ships
 		_callout_overlay.selected_ship = _selected_ship
