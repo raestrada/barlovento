@@ -12,39 +12,40 @@ func get_ship(id: String) -> ShipDef:
 
 func _register_ships() -> void:
     _add_ship(_make_def(
-        "acero_dreadnought", "Acero Dreadnought", "acero",
+        "acero_dreadnought", "Iron Bastion", "Cmdr. Vance", "acero",
         800.0, 6000.0, 4500.0, 400.0, 12.0,
-        400.0, 60.0, 40.0, 60.0,
+        350.0, 55.0, 35.0, 60.0,
         Color(0.7, 0.68, 0.62), Vector3(3.0, 2.0, 10.0)
     ))
     _add_ship(_make_def(
-        "acero_corvette", "Acero Corvette", "acero",
+        "acero_corvette", "Vanguard-03", "Lt. Drake", "acero",
         250.0, 3200.0, 3000.0, 550.0, 18.0,
-        160.0, 40.0, 18.0, 60.0,
+        140.0, 42.0, 18.0, 60.0,
         Color(0.55, 0.58, 0.66), Vector3(1.8, 1.0, 6.5)
     ))
     _add_ship(_make_def(
-        "vinculados_suit", "Vinculados Suit", "vinculados",
+        "vinculados_suit", "Eidolon Prime", "Ace Kaelen-7", "vinculados",
         60.0, 2000.0, 2200.0, 900.0, 30.0,
-        120.0, 30.0, 25.0, 90.0,
+        150.0, 35.0, 25.0, 90.0,
         Color(0.35, 0.7, 0.95), Vector3(1.5, 0.8, 5.0)
     ))
     _add_ship(_make_def(
-        "vinculados_anima", "Vinculados Anima", "vinculados",
+        "vinculados_anima", "Anima-01 (Aria)", "Pilot Mirei", "vinculados",
         45.0, 2400.0, 2600.0, 1100.0, 36.0,
-        90.0, 25.0, 20.0, 90.0,
+        100.0, 30.0, 20.0, 90.0,
         Color(0.5, 0.85, 0.85), Vector3(1.4, 0.7, 4.5)
     ))
     _add_ship(_make_def(
-        "marea_galleon", "Marea Libre Galleon", "marea_libre",
-        500.0, 1800.0, 1500.0, 300.0, 10.0,
-        300.0, 45.0, 35.0, 45.0,
+        "marea_galleon", "Viento Rojo", "Capt. Solano", "marea_libre",
+        380.0, 3400.0, 2800.0, 520.0, 22.0,
+        320.0, 50.0, 45.0, 140.0,
         Color(0.85, 0.55, 0.25), Vector3(2.5, 3.0, 9.0)
     ))
 
 func _make_def(
     id: String,
     display_name: String,
+    pilot_name: String,
     faction: String,
     mass: float,
     max_thrust: float,
@@ -61,6 +62,7 @@ func _make_def(
     var def := ShipDef.new()
     def.id = id
     def.display_name = display_name
+    def.pilot_name = pilot_name
     def.faction = faction
     def.mass = mass
     def.max_thrust = max_thrust

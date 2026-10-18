@@ -3,6 +3,7 @@ extends Resource
 
 @export var id: String = ""
 @export var display_name: String = ""
+@export var pilot_name: String = ""
 @export var faction: String = ""
 @export var mass: float = 100.0
 @export var max_thrust: float = 500.0

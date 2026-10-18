@@ -15,13 +15,9 @@ var _time_pips: Dictionary = {}
 func _process(_delta: float) -> void:
     match TurnManager.phase:
         TurnManager.Phase.ADMIRAL_PLAN:
-            _update_all_trajectories(TurnManager.resolution_window)
-        TurnManager.Phase.ACE:
-            var active := TurnManager.ace_active()
-            if active != null and active.team == 0 and not active.is_destroyed():
-                _update_single_trajectory(active, TurnManager.ACE_MOVE_DURATION)
-            else:
-                _hide_all()
+            _update_all_trajectories(TurnManager.admiral_resolution_window)
+        TurnManager.Phase.ACE_PLAN:
+            _update_all_trajectories(TurnManager.ace_resolution_window)
         _:
             _hide_all()
 

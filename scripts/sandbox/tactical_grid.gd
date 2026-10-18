@@ -18,6 +18,8 @@ var _stem_instance: MeshInstance3D
 var _footprints: Dictionary = {}
 var _distance_ruler: MeshInstance3D
 var _ruler_mesh: ImmediateMesh
+var _coherence_instance: MeshInstance3D
+var _coherence_mesh: ImmediateMesh
 
 func _ready() -> void:
     _build_grid_mesh()
@@ -25,6 +27,7 @@ func _ready() -> void:
     _build_bounds()
     _build_stems_system()
     _build_distance_ruler()
+    _build_coherence_system()
 
 func _build_bounds() -> void:
     var half := GRID_HALF_SPAN
@@ -93,6 +96,72 @@ func _rebuild_footprints() -> void:
 func _process(_delta: float) -> void:
     _update_stems_and_footprints()
     _update_distance_ruler()
+    _update_coherence_lines()
+
+func _build_coherence_system() -> void:
+    _coherence_mesh = ImmediateMesh.new()
+    _coherence_instance = MeshInstance3D.new()
+    _coherence_instance.mesh = _coherence_mesh
+
+    var mat := StandardMaterial3D.new()
+    mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat.vertex_color_use_as_albedo = true
+    mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    _coherence_instance.material_override = mat
+    add_child(_coherence_instance)
+
+func _update_coherence_lines() -> void:
+    if _coherence_mesh == null:
+        return
+    _coherence_mesh.clear_surfaces()
+
+    var allies: Array[Ship] = []
+    var enemies: Array[Ship] = []
+    for s in ships:
+        if s.is_destroyed():
+            continue
+        if s.team == 0:
+            allies.append(s)
+        else:
+            enemies.append(s)
+
+    _coherence_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
+
+    # 1. Allied line-of-battle coherence (cyan dashed aesthetic)
+    if allies.size() >= 2:
+        var c_color := Color(0.2, 0.85, 1.0, 0.40)
+        for i in range(allies.size()):
+            var s1 := allies[i]
+            for j in range(i + 1, allies.size()):
+                var s2 := allies[j]
+                _draw_dashed_line(_coherence_mesh, s1.global_position, s2.global_position, c_color, 2.5, 1.5)
+
+    # 2. Hostile line-of-battle coherence (amber dashed)
+    if enemies.size() >= 2:
+        var e_color := Color(1.0, 0.55, 0.25, 0.40)
+        for i in range(enemies.size()):
+            var s1 := enemies[i]
+            for j in range(i + 1, enemies.size()):
+                var s2 := enemies[j]
+                _draw_dashed_line(_coherence_mesh, s1.global_position, s2.global_position, e_color, 2.5, 1.5)
+
+    _coherence_mesh.surface_end()
+
+func _draw_dashed_line(mesh: ImmediateMesh, from: Vector3, to: Vector3, color: Color, dash_len: float, gap_len: float) -> void:
+    var diff := to - from
+    var total_dist := diff.length()
+    if total_dist < 0.01:
+        return
+    var dir := diff.normalized()
+    var cur := 0.0
+    while cur < total_dist:
+        var p1 := from + dir * cur
+        var p2 := from + dir * minf(cur + dash_len, total_dist)
+        mesh.surface_set_color(color)
+        mesh.surface_add_vertex(p1)
+        mesh.surface_set_color(color)
+        mesh.surface_add_vertex(p2)
+        cur += dash_len + gap_len
 
 func _build_grid_mesh() -> void:
     var minor_vertices := PackedVector3Array()

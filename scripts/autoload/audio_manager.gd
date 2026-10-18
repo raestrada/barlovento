@@ -28,8 +28,12 @@ func _load_sfx() -> void:
     var files := {
         "laser": "res://assets/audio/sfx/laser_shot.ogg",
         "laser_small": "res://assets/audio/sfx/laser_small.ogg",
+        "laser_heavy": "res://assets/audio/sfx/laser_naval_heavy.wav",
+        "laser_pulse": "res://assets/audio/sfx/laser_lance_pulse.wav",
+        "laser_cannon": "res://assets/audio/sfx/laser_broadside_cannon.wav",
         "explosion": "res://assets/audio/sfx/explosion.ogg",
         "explosion_big": "res://assets/audio/sfx/explosion_big.ogg",
+        "shockwave": "res://assets/audio/sfx/explosion_cinematic_shockwave.wav",
         "impact": "res://assets/audio/sfx/impact.ogg",
         "ui_click": "res://assets/audio/sfx/ui_click.ogg",
         "ui_hover": "res://assets/audio/sfx/ui_hover.ogg",
@@ -37,7 +41,8 @@ func _load_sfx() -> void:
         "shield_hit": "res://assets/audio/sfx/shield_hit.ogg",
     }
     for key in files:
-        _sfx[key] = load(files[key])
+        if ResourceLoader.exists(files[key]):
+            _sfx[key] = load(files[key])
 
 func play_sfx(sfx_name: String, volume_db: float = 0.0) -> void:
     if not _sfx.has(sfx_name):

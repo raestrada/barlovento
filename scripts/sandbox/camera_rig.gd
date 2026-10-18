@@ -20,6 +20,8 @@ var _target_distance: float = 65.0
 var _target_position: Vector3 = Vector3.ZERO
 
 var _camera: Camera3D
+var _shake_time: float = 0.0
+var _shake_intensity: float = 0.0
 
 func _ready() -> void:
     _camera = Camera3D.new()
@@ -35,6 +37,10 @@ func _ready() -> void:
 
 func focus_on(pos: Vector3) -> void:
     _target_position = pos
+
+func shake(intensity: float = 0.9, duration: float = 0.22) -> void:
+    _shake_intensity = intensity
+    _shake_time = duration
 
 func _unhandled_input(event: InputEvent) -> void:
     if event is InputEventMouseMotion:
@@ -69,6 +75,16 @@ func _process(delta: float) -> void:
         distance * cos(_pitch) * cos(_yaw)
     )
     var cam_pos := target + offset
+
+    if _shake_time > 0.0:
+        _shake_time -= delta
+        var rnd := Vector3(
+            randf_range(-1.0, 1.0),
+            randf_range(-1.0, 1.0),
+            randf_range(-1.0, 1.0)
+        ) * _shake_intensity
+        cam_pos += rnd
+
     _camera.global_position = cam_pos
 
     var forward := target - cam_pos

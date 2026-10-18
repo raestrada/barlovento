@@ -1,53 +1,83 @@
 extends Node
 
-enum Phase { ADMIRAL_PLAN, ADMIRAL_RESOLVE, ACE }
-
-const ACE_ACTIONS_PER_SHIP := 2
-const ACE_MOVE_DURATION := 3.0
+enum Phase { ADMIRAL_PLAN, ADMIRAL_RESOLVE, ACE_PLAN, ACE_RESOLVE }
 
 signal phase_changed(phase: Phase)
-signal ace_activated(ship)
 signal admiral_resolve_finished
+signal ace_resolve_finished
+signal ace_fire_moment
 
 var phase: Phase = Phase.ADMIRAL_PLAN
 var turn_number: int = 1
 var ace_round: int = 1
 
-@export var resolution_window: float = 12.0
-@export var resolve_time_scale: float = 8.0
+@export var admiral_resolution_window: float = 6.0
+@export var admiral_time_scale: float = 3.0
+@export var ace_resolution_window: float = 3.5
+@export var ace_time_scale: float = 1.0
 
 var _resolve_time_left: float = 0.0
-var _ace_queue: Array[Ship] = []
-var _ace_index: int = -1
-var _ace_actions: int = 0
+var _fire_moment_triggered: bool = false
 
 func _ready() -> void:
     PhysicsSim.time_scale = 1.0
 
 func _process(delta: float) -> void:
-    if phase != Phase.ADMIRAL_RESOLVE:
-        return
-    _resolve_time_left -= delta * PhysicsSim.time_scale
-    if _resolve_time_left <= 0.0:
-        PhysicsSim.time_scale = 1.0
-        turn_number += 1
-        _set_phase(Phase.ADMIRAL_PLAN)
-        admiral_resolve_finished.emit()
+    match phase:
+        Phase.ADMIRAL_RESOLVE:
+            _resolve_time_left -= delta * PhysicsSim.time_scale
+            if _resolve_time_left <= 0.0:
+                PhysicsSim.time_scale = 1.0
+                turn_number += 1
+                _set_phase(Phase.ADMIRAL_PLAN)
+                admiral_resolve_finished.emit()
+
+        Phase.ACE_RESOLVE:
+            _resolve_time_left -= delta * PhysicsSim.time_scale
+
+            # Trigger simultaneous weapon broadside / laser fire at mid-maneuver
+            if not _fire_moment_triggered and _resolve_time_left <= (ace_resolution_window * 0.65):
+                _fire_moment_triggered = true
+                ace_fire_moment.emit()
+
+            if _resolve_time_left <= 0.0:
+                PhysicsSim.time_scale = 1.0
+                ace_round += 1
+                _set_phase(Phase.ACE_PLAN)
+                ace_resolve_finished.emit()
 
 func start_resolve() -> void:
-    if phase != Phase.ADMIRAL_PLAN:
+    if phase == Phase.ADMIRAL_PLAN:
+        _resolve_time_left = admiral_resolution_window
+        PhysicsSim.time_scale = admiral_time_scale
+        _set_phase(Phase.ADMIRAL_RESOLVE)
+    elif phase == Phase.ACE_PLAN:
+        start_ace_resolve()
+
+func start_ace_resolve() -> void:
+    if phase != Phase.ACE_PLAN:
         return
-    _resolve_time_left = resolution_window
-    PhysicsSim.time_scale = resolve_time_scale
-    _set_phase(Phase.ADMIRAL_RESOLVE)
+    _resolve_time_left = ace_resolution_window
+    _fire_moment_triggered = false
+    PhysicsSim.time_scale = ace_time_scale
+    _set_phase(Phase.ACE_RESOLVE)
+
+func start_ace_mode() -> void:
+    ace_round = 1
+    _resolve_time_left = 0.0
+    PhysicsSim.time_scale = 1.0
+    _set_phase(Phase.ACE_PLAN)
+
+func exit_ace_mode() -> void:
+    _resolve_time_left = 0.0
+    PhysicsSim.time_scale = 1.0
+    _set_phase(Phase.ADMIRAL_PLAN)
 
 func reset() -> void:
     _resolve_time_left = 0.0
     turn_number = 1
     ace_round = 1
-    _ace_queue.clear()
-    _ace_index = -1
-    _ace_actions = 0
+    _fire_moment_triggered = false
     PhysicsSim.time_scale = 1.0
     _set_phase(Phase.ADMIRAL_PLAN)
 
@@ -57,52 +87,11 @@ func remaining_resolve_time() -> float:
 func phase_name() -> String:
     return Phase.keys()[phase]
 
-func start_ace(ships: Array[Ship]) -> void:
-    _ace_queue.clear()
-    for ship in ships:
-        if not ship.is_destroyed():
-            _ace_queue.append(ship)
-    if _ace_queue.is_empty():
-        return
-    ace_round = 1
-    _ace_index = -1
-    _set_phase(Phase.ACE)
-    _advance_ace()
+func is_in_ace() -> bool:
+    return phase == Phase.ACE_PLAN or phase == Phase.ACE_RESOLVE
 
-func exit_ace() -> void:
-    _ace_queue.clear()
-    _ace_index = -1
-    _ace_actions = 0
-    _set_phase(Phase.ADMIRAL_PLAN)
-
-func ace_active() -> Ship:
-    if _ace_index < 0 or _ace_index >= _ace_queue.size():
-        return null
-    return _ace_queue[_ace_index]
-
-func ace_actions_left() -> int:
-    return _ace_actions
-
-func ace_spend_action() -> void:
-    _ace_actions -= 1
-    if _ace_actions <= 0:
-        _advance_ace()
-
-func ace_skip_ship() -> void:
-    _ace_actions = 0
-    _advance_ace()
-
-func _advance_ace() -> void:
-    for _attempt in range(_ace_queue.size()):
-        _ace_index += 1
-        if _ace_index >= _ace_queue.size():
-            _ace_index = 0
-            ace_round += 1
-        var ship := _ace_queue[_ace_index]
-        if not ship.is_destroyed():
-            _ace_actions = ACE_ACTIONS_PER_SHIP
-            ace_activated.emit(ship)
-            return
+func is_resolving() -> bool:
+    return phase == Phase.ADMIRAL_RESOLVE or phase == Phase.ACE_RESOLVE
 
 func _set_phase(new_phase: Phase) -> void:
     phase = new_phase

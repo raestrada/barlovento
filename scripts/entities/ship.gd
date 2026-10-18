@@ -2,6 +2,7 @@ class_name Ship
 extends Node3D
 
 signal clicked(ship: Ship)
+signal right_clicked(ship: Ship)
 
 const VELOCITY_ARROW_SCALE := 0.75
 const ORDER_ARROW_SCALE := 0.75
@@ -22,9 +23,16 @@ const ORDER_ARROW_SCALE := 0.75
 @export var selected: bool = false
 
 var ship_name: String = "Ship"
+var pilot_name: String = ""
 var ship_id: String = ""
 var faction: String = "acero"
 var max_hp: float = 100.0
+var is_evading: bool = false
+var is_animating_burn: bool = false
+var _burn_time_left: float = 0.0
+var _burn_total_time: float = 0.0
+var _burn_sim_duration: float = 0.0
+var _burn_callback: Callable = Callable()
 var state: ShipState
 var order: ShipOrder
 var ether: EtherField = null
@@ -64,6 +72,7 @@ func _ready() -> void:
 func apply_def(def: ShipDef) -> void:
     ship_id = def.id
     ship_name = def.display_name
+    pilot_name = def.pilot_name
     faction = def.faction
     mass = def.mass
     max_thrust = def.max_thrust
@@ -82,7 +91,10 @@ func apply_def(def: ShipDef) -> void:
         _build_detailed_ship_model()
         _rebuild_firing_arc()
         if _overhead_name != null:
-            _overhead_name.text = ship_name
+            if pilot_name != "":
+                _overhead_name.text = "%s\n[%s]" % [ship_name, pilot_name]
+            else:
+                _overhead_name.text = ship_name
 
 func speed() -> float:
     return state.speed()
@@ -103,10 +115,35 @@ func advance(duration: float, dt: float = 0.1) -> void:
         t += dt
     _sync_transform()
 
+func start_smooth_burn(sim_duration: float, anim_time: float = 0.65, on_complete: Callable = Callable()) -> void:
+    is_animating_burn = true
+    _burn_sim_duration = sim_duration
+    _burn_total_time = maxf(anim_time, 0.05)
+    _burn_time_left = _burn_total_time
+    _burn_callback = on_complete
+    AudioManager.play_sfx("engine", -10.0)
+
+func _process(delta: float) -> void:
+    if is_animating_burn:
+        var dt := delta * (_burn_sim_duration / _burn_total_time)
+        PhysicsSim.step_state(state, order, dt, ether)
+        _sync_transform()
+        _burn_time_left -= delta
+        if _burn_time_left <= 0.0:
+            is_animating_burn = false
+            var cb := _burn_callback
+            _burn_callback = Callable()
+            if cb.is_valid():
+                cb.call()
+
+enum Stance { FIRE, EVASIVE, FLANK }
+var stance: Stance = Stance.FIRE
+var target_ship: Ship = null
+
 func _physics_process(delta: float) -> void:
     if is_destroyed():
         return
-    if TurnManager.phase == TurnManager.Phase.ADMIRAL_RESOLVE:
+    if TurnManager.is_resolving():
         var sim_delta := delta * PhysicsSim.time_scale
         PhysicsSim.apply_order(state, order, sim_delta, ether)
         _sync_transform()
@@ -115,7 +152,10 @@ func _physics_process(delta: float) -> void:
 func _sync_transform() -> void:
     global_position = state.position
     if state.forward.length_squared() > 0.0001:
-        look_at(global_position + state.forward, Vector3.UP)
+        var up := Vector3.UP
+        if absf(state.forward.dot(Vector3.UP)) > 0.90:
+            up = Vector3.BACK if state.forward.y > 0.0 else Vector3.FORWARD
+        look_at(global_position + state.forward, up)
 
 func update_indicators() -> void:
     _update_velocity_arrow()
@@ -134,7 +174,7 @@ func _update_velocity_arrow() -> void:
     if is_vis:
         var vel_norm := state.velocity.normalized()
         var arrow_len := maxf(cur_speed * VELOCITY_ARROW_SCALE, 1.5)
-        var up := Vector3.UP if absf(vel_norm.dot(Vector3.UP)) < 0.95 else Vector3.RIGHT
+        var up := Vector3.UP if absf(vel_norm.dot(Vector3.UP)) < 0.90 else Vector3.RIGHT
         _velocity_arrow.look_at(global_position + vel_norm, up)
         _velocity_arrow.scale = Vector3(1.0, 1.0, arrow_len)
         if _velocity_label != null:
@@ -143,22 +183,27 @@ func _update_velocity_arrow() -> void:
 func _update_order_arrow() -> void:
     if _order_arrow == null:
         return
-    var planning := TurnManager.phase == TurnManager.Phase.ADMIRAL_PLAN or TurnManager.phase == TurnManager.Phase.ACE
-    var is_vis := selected and planning and order.target_speed > 0.1
+    var planning := not TurnManager.is_resolving()
+    var is_vis := selected and planning
     _order_arrow.visible = is_vis
     if is_vis:
         var heading := order.heading()
-        var arrow_len := maxf(order.target_speed * ORDER_ARROW_SCALE, 1.5)
-        var up := Vector3.UP if absf(heading.dot(Vector3.UP)) < 0.95 else Vector3.RIGHT
+        var arrow_len := maxf(order.target_speed * ORDER_ARROW_SCALE, 2.2)
+        var up := Vector3.UP if absf(heading.dot(Vector3.UP)) < 0.90 else Vector3.RIGHT
         _order_arrow.look_at(global_position + heading, up)
         _order_arrow.scale = Vector3(1.0, 1.0, arrow_len)
         if _order_label != null:
-            _order_label.text = "CMD: %.1f m/s" % order.target_speed
+            if order.target_speed < 0.1:
+                _order_label.text = "HEADING [STOPPED]"
+                _order_label.modulate = Color(1.0, 0.75, 0.3)
+            else:
+                _order_label.text = "CMD: %.1f m/s" % order.target_speed
+                _order_label.modulate = Color(1.0, 0.85, 0.25)
 
 func _update_firing_arc() -> void:
     if _firing_arc_instance == null:
         return
-    var planning := TurnManager.phase == TurnManager.Phase.ADMIRAL_PLAN or TurnManager.phase == TurnManager.Phase.ACE
+    var planning := not TurnManager.is_resolving()
     _firing_arc_instance.visible = selected and planning
 
 func _update_selection_visuals() -> void:
@@ -182,10 +227,11 @@ func _update_overhead_hp() -> void:
             mat.albedo_color = Color(1.0, 0.3, 0.2)
 
 func _update_thruster_fx() -> void:
-    var resolving := TurnManager.phase == TurnManager.Phase.ADMIRAL_RESOLVE
+    var resolving := TurnManager.is_resolving()
     var cur_speed := state.speed()
-    var accelerating := resolving and cur_speed < order.target_speed - 0.2
+    var accelerating := (resolving and cur_speed < order.target_speed - 0.2) or is_animating_burn
     for fx in _thruster_lights:
+        fx.visible = accelerating or (resolving and cur_speed > 1.0)
         fx.visible = accelerating or (resolving and cur_speed > 1.0)
 
 func _build_detailed_ship_model() -> void:
@@ -357,5 +403,8 @@ func _build_click_detection() -> void:
     add_child(area)
 
 func _on_area_input_event(_camera: Node, event: InputEvent, _position: Vector3, _normal: Vector3, _shape_idx: int) -> void:
-    if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-        clicked.emit(self)
+    if event is InputEventMouseButton and event.pressed:
+        if event.button_index == MOUSE_BUTTON_LEFT:
+            clicked.emit(self)
+        elif event.button_index == MOUSE_BUTTON_RIGHT:
+            right_clicked.emit(self)

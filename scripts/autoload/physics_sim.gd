@@ -10,7 +10,12 @@ func step_state(ship: ShipState, order: ShipOrder, dt: float, ether: EtherField 
     turn_toward(ship, order.heading(), dt)
     _control_speed(ship, order.target_speed, dt)
     if ether != null:
-        ship.velocity += ether.current_at(ship.position) * dt
+        var cur := ether.current_at(ship.position)
+        var ether_force := cur
+        var wind_alignment := ship.forward.dot(cur.normalized()) if cur.length_squared() > 0.001 else 0.0
+        if wind_alignment > 0.0:
+            ether_force += ship.forward * (cur.length() * wind_alignment * 0.45)
+        ship.velocity += ether_force * dt
     ship.position += ship.velocity * dt
     _clamp_to_bounds(ship)
 
@@ -49,16 +54,28 @@ func turn_toward(ship: ShipState, target: Vector3, dt: float) -> void:
 
 func _control_speed(ship: ShipState, target_speed: float, dt: float) -> void:
     var target := clampf(target_speed, 0.0, ship.max_speed)
-    var speed := ship.speed()
+    var target_velocity := ship.forward * target
+    var delta_v := target_velocity - ship.velocity
 
-    if speed < target - 0.0001:
-        ship.velocity += ship.forward * ((ship.max_thrust / ship.mass) * dt)
-    elif speed > target + 0.0001:
-        var new_speed: float = maxf(speed - (ship.brake_thrust / ship.mass) * dt, target)
-        if speed > 0.0001:
-            ship.velocity = ship.velocity.normalized() * new_speed
-        else:
-            ship.velocity = Vector3.ZERO
+    if delta_v.length_squared() < 0.0001:
+        ship.velocity = target_velocity
+        return
+
+    var delta_dir := delta_v.normalized()
+    var forward_alignment := delta_dir.dot(ship.forward)
+
+    # Main engines provide forward thrust; maneuvering / retro thrusters provide lateral & reverse correction
+    var effective_thrust: float
+    if forward_alignment > 0.0:
+        effective_thrust = lerpf(ship.brake_thrust, ship.max_thrust, forward_alignment)
+    else:
+        effective_thrust = ship.brake_thrust
+
+    var max_step := (effective_thrust / ship.mass) * dt
+    if delta_v.length() <= max_step:
+        ship.velocity = target_velocity
+    else:
+        ship.velocity += delta_dir * max_step
 
     if ship.speed() > ship.max_speed:
         ship.velocity = ship.velocity.normalized() * ship.max_speed
