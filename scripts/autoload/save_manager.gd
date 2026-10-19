@@ -83,13 +83,17 @@ func get_veteran_title(rank: int) -> String:
         _:
             return "★★★★ LEGENDARY ACE"
 
-func record_stage_victory(stage_id: String, surviving_ships: Array, enemies_destroyed: int) -> String:
+func record_stage_victory(stage_id: String, surviving_ships: Array, enemies_destroyed: int = 3) -> String:
     completed_stages[stage_id] = true
     total_victories += 1
     total_kills += enemies_destroyed
 
     for s in surviving_ships:
-        if s != null and is_instance_valid(s) and not s.is_destroyed():
+        if s is String:
+            var sid: String = s
+            var cur_rank := get_veteran_rank(sid)
+            veteran_ranks[sid] = mini(cur_rank + 1, 5)
+        elif s != null and is_instance_valid(s) and not s.is_destroyed():
             var cur_rank := get_veteran_rank(s.ship_id)
             veteran_ranks[s.ship_id] = mini(cur_rank + 1, 5)
 
@@ -136,15 +140,17 @@ func get_tactical_save_summary() -> String:
 
 func save_tactical_state(
     stage_id: String,
-    faction: String,
     turn_num: int,
-    ace_rnd: int,
     phase_val: int,
+    ace_rnd: int,
     player_ships: Array,
     enemy_ships: Array,
-    selected_idx: int,
-    target_idx: int
+    faction: String = "",
+    selected_idx: int = 0,
+    target_idx: int = 0
 ) -> bool:
+    if faction == "":
+        faction = LoreDB.selected_faction
     var allies_data: Array = []
     for s in player_ships:
         if s != null and is_instance_valid(s):
@@ -215,5 +221,11 @@ func _serialize_ship(s: Node) -> Dictionary:
         "order_yaw": s.order.yaw,
         "order_pitch": s.order.pitch,
         "order_speed": s.order.target_speed,
-        "stance": int(s.stance)
+        "stance": int(s.stance),
+        "is_evading": s.is_evading
     }
+
+func arr_to_vec3(arr: Array) -> Vector3:
+    if arr.size() >= 3:
+        return Vector3(float(arr[0]), float(arr[1]), float(arr[2]))
+    return Vector3.ZERO
