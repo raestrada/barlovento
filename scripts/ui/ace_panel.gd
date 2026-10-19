@@ -56,6 +56,14 @@ var _btn_rcs_burn: Button
 var _btn_resolve: Button
 
 var _current_ap: int = 7
+var _base_round_ap: int = 7
+
+func set_strategic_bonus_ap(extra_ap: int) -> void:
+    _base_round_ap = 7 + extra_ap * 2
+    _current_ap = _base_round_ap
+    if _ap_bar != null:
+        _ap_bar.current_ap = _current_ap
+        _ap_bar.queue_redraw()
 
 func _get_portrait(ship_id: String) -> Texture2D:
     var path := LoreDB.get_portrait_for_ship(ship_id)
@@ -155,7 +163,7 @@ func _build_ui() -> void:
     helm_row.add_child(_make_helm_btn("-SPD [S]", func() -> void: speed_down.emit()))
     helm_row.add_child(_make_helm_btn("+SPD [W]", func() -> void: speed_up.emit()))
     helm_row.add_child(_make_helm_btn("TARGET [C]", func() -> void: cycle_target_pressed.emit()))
-    helm_row.add_child(_make_helm_btn("ADMIRAL VIEW", func() -> void: exit_pressed.emit()))
+    helm_row.add_child(_make_helm_btn("🗺 ADMIRAL CHART", func() -> void: exit_pressed.emit()))
 
     # Target Solution & Telemetry Line
     var status_row := HBoxContainer.new()
@@ -241,7 +249,7 @@ func _build_ui() -> void:
     pills_row.add_child(btn_shield)
 
     _btn_resolve = _make_pill_btn("▶ RESOLVE [SPACE]", true, func() -> void:
-        _current_ap = 7
+        _current_ap = _base_round_ap
         execute_round_pressed.emit()
     )
     _btn_resolve.add_theme_color_override("font_color", HudWidgets.COL_GREEN)

@@ -55,6 +55,9 @@ var _mission_completed: bool = false
 var _victory_title_label: Label
 var _victory_sub_label: Label
 var _victory_next_btn: Button
+var _admiral_chart: AdmiralChart
+var _admiral_layer: CanvasLayer
+var _strategic_bonuses: Dictionary = {}
 
 func _ready() -> void:
 	TurnManager.reset()
@@ -122,6 +125,7 @@ func _ready() -> void:
 
 	# Auto-save initial tactical state at start of stage
 	_save_battle_state(true)
+	_open_admiral_chart()
 
 func _physics_process(delta: float) -> void:
 	if not TurnManager.is_resolving():
@@ -139,6 +143,13 @@ func _process(delta: float) -> void:
 	_update_3d_targeting_hud()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _admiral_chart != null and _admiral_chart.visible:
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.is_action_pressed("resolve"):
+				_admiral_chart.execute_strategic_turn()
+			elif event.is_action_pressed("toggle_roster") and _roster_modal != null:
+				_roster_modal.visible = not _roster_modal.visible
+		return
 	# Direct 3D Plane Vector Steering via Shift + Left-Click / Drag
 	if not TurnManager.is_resolving():
 		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
@@ -230,7 +241,7 @@ func _apply_mouse_vector_steering(screen_pos: Vector2, play_feedback: bool) -> v
 		_spawn_impact_flash(hit_pos, Color(0.3, 0.95, 1.0, 0.6))
 
 func _handle_flight_controls(delta: float) -> void:
-	if _selected_ship == null:
+	if _selected_ship == null or (_admiral_chart != null and _admiral_chart.visible):
 		return
 
 	var order := _selected_ship.order
@@ -454,6 +465,7 @@ func _on_ace_resolve_finished() -> void:
 	_check_stage_objectives()
 	if not _mission_completed:
 		_update_round_banner()
+		_tick_strategic_barlovento()
 		_save_battle_state(true)
 
 func _on_admiral_resolve_finished() -> void:
@@ -1798,8 +1810,9 @@ func _build_hud() -> void:
 		_add_combat_log("Hostile Ace locked: %s [%s]" % [e.pilot_name, e.ship_name], Color(1.0, 0.55, 0.35))
 	)
 	_ace_panel.exit_pressed.connect(func() -> void:
-		_add_combat_log("Disengaging Ace combat. Returning to Admiral fleet view.", Color(0.4, 0.9, 1.0))
+		_add_combat_log("Disengaging to the Admiral strategic chart for repositioning.", Color(0.4, 0.9, 1.0))
 		TurnManager.exit_ace_mode()
+		_open_admiral_chart()
 	)
 	_ace_panel.yaw_left.connect(func() -> void:
 		if _selected_ship != null:
@@ -1857,7 +1870,10 @@ func _build_hud() -> void:
 	# 6. Hero Roster Modal (Allied Aces vs. Hostile Commanders) + Help / Victory / Defeat Overlays
 	_roster_modal = HudWidgets.HeroRosterModal.new()
 	_roster_modal.theme = _hud_theme
-	layer.add_child(_roster_modal)
+	var roster_layer := CanvasLayer.new()
+	roster_layer.layer = 20
+	add_child(roster_layer)
+	roster_layer.add_child(_roster_modal)
 
 	_refresh_fleet_panel()
 	_build_help_overlay(layer)
@@ -2380,3 +2396,115 @@ func _add_action(action: String, keys: Array) -> void:
 		var event := InputEventKey.new()
 		event.physical_keycode = key
 		InputMap.action_add_event(action, event)
+
+func _open_admiral_chart() -> void:
+	if _admiral_chart == null:
+		_admiral_layer = CanvasLayer.new()
+		_admiral_layer.layer = 15
+		add_child(_admiral_layer)
+
+		_admiral_chart = AdmiralChart.new()
+		_admiral_chart.stage_title = _stage_title_label.text if _stage_title_label != null else "SECTOR OPERATION"
+		_admiral_chart.turn_executed.connect(_on_chart_turn_executed)
+		_admiral_chart.engage_3d_requested.connect(_on_chart_engage_3d)
+		_admiral_chart.ship_selected_on_chart.connect(func(idx: int) -> void:
+			if idx >= 0 and idx < _player_ships.size() and not _player_ships[idx].is_destroyed():
+				_set_selected(_player_ships[idx])
+		)
+		_admiral_chart.open_roster_requested.connect(func() -> void:
+			if _roster_modal != null:
+				_roster_modal.set_battle_rosters(_player_ships, _enemy_ships)
+				_roster_modal.visible = not _roster_modal.visible
+		)
+		_admiral_chart.return_menu_requested.connect(func() -> void:
+			AudioManager.play_sfx("ui_click", -8.0)
+			get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
+		)
+		_admiral_layer.add_child(_admiral_chart)
+
+	_admiral_chart.sync_from_3d_ships(_player_ships, _enemy_ships, _ether)
+	_admiral_chart.visible = true
+	AudioManager.play_sfx("ui_hover", -8.0)
+
+func _on_chart_turn_executed(summary_log: String, contact_reached: bool) -> void:
+	_add_combat_log(summary_log, Color(0.35, 0.95, 1.0))
+	if contact_reached:
+		_add_combat_log(">>> FLEET CONTACT! TRANSITIONING TO 3D ACE TACTICAL COMBAT <<<", Color(1.0, 0.82, 0.35))
+
+func _on_chart_engage_3d(bonuses: Dictionary) -> void:
+	_strategic_bonuses = bonuses
+	if _admiral_chart != null:
+		_admiral_chart.visible = false
+
+	# 1. Apply 3D Spawns & Vectors computed from 2D chart
+	var p_spawns: Array = bonuses.get("player_spawns", [])
+	for i in range(mini(_player_ships.size(), p_spawns.size())):
+		var s := _player_ships[i]
+		if s.is_destroyed():
+			continue
+		var info: Dictionary = p_spawns[i]
+		s.state.position = info.get("pos", s.state.position)
+		s.state.forward = info.get("fwd", s.state.forward)
+		var spd_mult: float = bonuses.get("speed_mult", 1.0)
+		s.order.target_speed = minf(s.state.max_speed * 0.70 * spd_mult, s.state.max_speed)
+		s.initial_velocity = s.state.forward * s.order.target_speed
+		s.state.velocity = s.initial_velocity
+		s.refresh_after_load()
+
+	var e_spawns: Array = bonuses.get("enemy_spawns", [])
+	for i in range(mini(_enemy_ships.size(), e_spawns.size())):
+		var e := _enemy_ships[i]
+		if e.is_destroyed():
+			continue
+		var info: Dictionary = e_spawns[i]
+		e.state.position = info.get("pos", e.state.position)
+		e.state.forward = info.get("fwd", e.state.forward)
+		e.initial_velocity = e.state.forward * 4.0
+		e.state.velocity = e.initial_velocity
+		e.refresh_after_load()
+
+	# 2. Apply Doctrine Buffs to Ships
+	var has_barlovento: bool = bonuses.get("has_barlovento", false)
+	var is_crossing_t: bool = bonuses.get("is_crossing_t", false)
+	var is_flanking: bool = bonuses.get("is_flanking", false)
+	var armor_mult: float = bonuses.get("armor_mult", 1.0)
+	var turn_mult: float = bonuses.get("turn_mult", 1.0)
+
+	for s in _player_ships:
+		s.set_meta("admiral_barlovento", has_barlovento)
+		s.set_meta("admiral_barlovento_rounds", 3 if has_barlovento else 0)
+		s.set_meta("formation_armor_mult", armor_mult)
+		if bonuses.get("formation", 0) == AdmiralChart.Formation.FLANKING_PINCER:
+			s.set_meta("formation_flank_mult", 1.20)
+		s.state.turn_power *= turn_mult
+
+	# 3. Apply Ace Panel Bonus AP
+	var bonus_ap: int = bonuses.get("bonus_ap", 0)
+	if _ace_panel != null:
+		_ace_panel.set_strategic_bonus_ap(bonus_ap)
+
+	# 4. Announce Strategic Results in Combat Log
+	if has_barlovento:
+		_add_combat_log("🌬 [BARLOVENTO SECURED] Fleet claims the weather gauge! (+1 AP, +15% Hit, +15% Damage for 3 rounds)", Color(0.35, 1.0, 0.72))
+	elif bonuses.get("enemy_barlovento", false):
+		_add_combat_log("🌬 [BARLOVENTO ENEMY] Hostile fleet holds the upwind current! (+15% Enemy Hit & Damage)", Color(1.0, 0.45, 0.35))
+	else:
+		_add_combat_log("🌬 [BARLOVENTO CONTESTED] Neutral Éther alignment across both battle groups.", Color(0.75, 0.85, 0.95))
+
+	if is_crossing_t:
+		_add_combat_log("🎯 [CROSSING THE 'T'] Enemy fleet flanked! Hostiles deployed with vulnerable port/starboard exposed!", Color(0.40, 0.96, 1.0))
+	elif is_flanking:
+		_add_combat_log("🎯 [PINCER AMBUSH] Flanking envelopment achieved! Allied wing deployed with stern firing angles!", Color(0.40, 0.96, 1.0))
+
+	_engage_ace_mode()
+
+func _tick_strategic_barlovento() -> void:
+	for s in _player_ships:
+		if s.has_meta("admiral_barlovento_rounds"):
+			var r := int(s.get_meta("admiral_barlovento_rounds")) - 1
+			if r <= 0:
+				s.set_meta("admiral_barlovento", false)
+				s.set_meta("admiral_barlovento_rounds", 0)
+			else:
+				s.set_meta("admiral_barlovento_rounds", r)
+

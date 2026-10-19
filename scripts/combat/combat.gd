@@ -41,7 +41,11 @@ static func get_hit_quadrant(shooter: Ship, target: Ship) -> String:
         return "STARBOARD"
 
 static func has_weather_gauge(shooter: Ship, target: Ship) -> bool:
-    if shooter == null or target == null or shooter.ether == null:
+    if shooter == null or target == null:
+        return false
+    if shooter.has_meta("admiral_barlovento") and bool(shooter.get_meta("admiral_barlovento")):
+        return true
+    if shooter.ether == null:
         return false
     var to_target := target.state.position - shooter.state.position
     if to_target.length_squared() < 0.01:
@@ -118,6 +122,11 @@ static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
         if not result["critical"] and randf() < 0.15:
             dmg *= 1.35
             result["critical"] = true
+
+        if quadrant != "BOW" and shooter.has_meta("formation_flank_mult"):
+            dmg *= float(shooter.get_meta("formation_flank_mult"))
+        if target.has_meta("formation_armor_mult"):
+            dmg /= maxf(float(target.get_meta("formation_armor_mult")), 0.1)
 
         result["damage"] = maxf(roundf(dmg), 4.0)
         target.take_directional_damage(result["damage"], quadrant)
