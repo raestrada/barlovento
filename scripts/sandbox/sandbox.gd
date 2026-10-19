@@ -147,6 +147,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.is_action_pressed("resolve"):
 				_admiral_chart.execute_strategic_turn()
+			elif event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
+				_admiral_chart._trigger_3d_engagement()
 			elif event.is_action_pressed("toggle_roster") and _roster_modal != null:
 				_roster_modal.visible = not _roster_modal.visible
 		return
@@ -2398,6 +2400,9 @@ func _add_action(action: String, keys: Array) -> void:
 		InputMap.action_add_event(action, event)
 
 func _open_admiral_chart() -> void:
+	if _camera_rig != null:
+		_camera_rig.set_admiral_zenith_view()
+
 	if _admiral_chart == null:
 		_admiral_layer = CanvasLayer.new()
 		_admiral_layer.layer = 15
@@ -2422,21 +2427,49 @@ func _open_admiral_chart() -> void:
 		)
 		_admiral_layer.add_child(_admiral_chart)
 
+	_admiral_chart.modulate.a = 1.0
 	_admiral_chart.sync_from_3d_ships(_player_ships, _enemy_ships, _ether)
 	_admiral_chart.visible = true
 	AudioManager.play_sfx("ui_hover", -8.0)
 
-func _on_chart_turn_executed(summary_log: String, contact_reached: bool) -> void:
+func _on_chart_turn_executed(summary_log: String, contact_reached: bool, p_spawns: Array = [], e_spawns: Array = []) -> void:
 	_add_combat_log(summary_log, Color(0.35, 0.95, 1.0))
 	if contact_reached:
-		_add_combat_log(">>> FLEET CONTACT! TRANSITIONING TO 3D ACE TACTICAL COMBAT <<<", Color(1.0, 0.82, 0.35))
+		_add_combat_log(">>> FLEET CONTACT! ENGAGING 3D ACE TACTICAL COMBAT <<<", Color(1.0, 0.82, 0.35))
+
+	# Animate real 3D ships simultaneously gliding to their new quadrant positions!
+	for i in range(mini(_player_ships.size(), p_spawns.size())):
+		var s := _player_ships[i]
+		if s != null and not s.is_destroyed():
+			var p_info: Dictionary = p_spawns[i]
+			var target_pos: Vector3 = p_info.get("pos", s.state.position)
+			var target_fwd: Vector3 = p_info.get("fwd", s.state.forward)
+			var tw := create_tween().set_parallel(true)
+			tw.tween_property(s, "position", target_pos, 0.85).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tw.tween_property(s.state, "position", target_pos, 0.85)
+			s.state.forward = target_fwd
+			s.order.yaw = Vector3.FORWARD.signed_angle_to(target_fwd, Vector3.UP)
+			s.refresh_after_load()
+
+	for i in range(mini(_enemy_ships.size(), e_spawns.size())):
+		var e := _enemy_ships[i]
+		if e != null and not e.is_destroyed():
+			var e_info: Dictionary = e_spawns[i]
+			var target_pos: Vector3 = e_info.get("pos", e.state.position)
+			var target_fwd: Vector3 = e_info.get("fwd", e.state.forward)
+			var tw := create_tween().set_parallel(true)
+			tw.tween_property(e, "position", target_pos, 0.85).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tw.tween_property(e.state, "position", target_pos, 0.85)
+			e.state.forward = target_fwd
+			e.order.yaw = Vector3.FORWARD.signed_angle_to(target_fwd, Vector3.UP)
+			e.refresh_after_load()
 
 func _on_chart_engage_3d(bonuses: Dictionary) -> void:
 	_strategic_bonuses = bonuses
 	if _admiral_chart != null:
-		_admiral_chart.visible = false
+		_admiral_chart.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# 1. Apply 3D Spawns & Vectors computed from 2D chart
+	# 1. Apply 3D Spawns & Vectors computed from strategic chart
 	var p_spawns: Array = bonuses.get("player_spawns", [])
 	for i in range(mini(_player_ships.size(), p_spawns.size())):
 		var s := _player_ships[i]
@@ -2444,7 +2477,9 @@ func _on_chart_engage_3d(bonuses: Dictionary) -> void:
 			continue
 		var info: Dictionary = p_spawns[i]
 		s.state.position = info.get("pos", s.state.position)
+		s.position = s.state.position
 		s.state.forward = info.get("fwd", s.state.forward)
+		s.order.yaw = Vector3.FORWARD.signed_angle_to(s.state.forward, Vector3.UP)
 		var spd_mult: float = bonuses.get("speed_mult", 1.0)
 		s.order.target_speed = minf(s.state.max_speed * 0.70 * spd_mult, s.state.max_speed)
 		s.initial_velocity = s.state.forward * s.order.target_speed
@@ -2458,12 +2493,18 @@ func _on_chart_engage_3d(bonuses: Dictionary) -> void:
 			continue
 		var info: Dictionary = e_spawns[i]
 		e.state.position = info.get("pos", e.state.position)
+		e.position = e.state.position
 		e.state.forward = info.get("fwd", e.state.forward)
+		e.order.yaw = Vector3.FORWARD.signed_angle_to(e.state.forward, Vector3.UP)
 		e.initial_velocity = e.state.forward * 4.0
 		e.state.velocity = e.initial_velocity
 		e.refresh_after_load()
 
-	# 2. Apply Doctrine Buffs to Ships
+	# 2. Smooth cinematic camera swoop into 3D follow perspective!
+	if _camera_rig != null and _selected_ship != null:
+		_camera_rig.set_ace_combat_view(_selected_ship.state.position, _selected_ship.order.yaw)
+
+	# 3. Apply Doctrine Buffs to Ships
 	var has_barlovento: bool = bonuses.get("has_barlovento", false)
 	var is_crossing_t: bool = bonuses.get("is_crossing_t", false)
 	var is_flanking: bool = bonuses.get("is_flanking", false)
@@ -2475,15 +2516,15 @@ func _on_chart_engage_3d(bonuses: Dictionary) -> void:
 		s.set_meta("admiral_barlovento_rounds", 3 if has_barlovento else 0)
 		s.set_meta("formation_armor_mult", armor_mult)
 		if bonuses.get("formation", 0) == AdmiralChart.Formation.FLANKING_PINCER:
-			s.set_meta("formation_flank_mult", 1.20)
+			s.set_meta("formation_flank_mult", 1.35)
 		s.state.turn_power *= turn_mult
 
-	# 3. Apply Ace Panel Bonus AP
+	# 4. Apply Ace Panel Bonus AP
 	var bonus_ap: int = bonuses.get("bonus_ap", 0)
 	if _ace_panel != null:
 		_ace_panel.set_strategic_bonus_ap(bonus_ap)
 
-	# 4. Announce Strategic Results in Combat Log
+	# 5. Announce Strategic Results in Combat Log
 	if has_barlovento:
 		_add_combat_log("🌬 [BARLOVENTO SECURED] Fleet claims the weather gauge! (+1 AP, +15% Hit, +15% Damage for 3 rounds)", Color(0.35, 1.0, 0.72))
 	elif bonuses.get("enemy_barlovento", false):
@@ -2496,6 +2537,9 @@ func _on_chart_engage_3d(bonuses: Dictionary) -> void:
 	elif is_flanking:
 		_add_combat_log("🎯 [PINCER AMBUSH] Flanking envelopment achieved! Allied wing deployed with stern firing angles!", Color(0.40, 0.96, 1.0))
 
+	if bonuses.get("sluice_held", false):
+		_add_combat_log("⚙ [SLUICE STATION HELD] Continuous power flow shields allied squadron (+20 SHLD regen)!", Color(1.0, 0.82, 0.35))
+
 	_engage_ace_mode()
 
 func _tick_strategic_barlovento() -> void:
@@ -2507,4 +2551,3 @@ func _tick_strategic_barlovento() -> void:
 				s.set_meta("admiral_barlovento_rounds", 0)
 			else:
 				s.set_meta("admiral_barlovento_rounds", r)
-

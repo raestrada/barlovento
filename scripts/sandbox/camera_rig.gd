@@ -38,6 +38,18 @@ func _ready() -> void:
 func focus_on(pos: Vector3) -> void:
     _target_position = pos
 
+func set_view_target(pos: Vector3, dist: float, pitch_val: float, yaw_val: float) -> void:
+    _target_position = pos
+    _target_distance = dist
+    _target_pitch = pitch_val
+    _target_yaw = yaw_val
+
+func set_admiral_zenith_view() -> void:
+    set_view_target(Vector3(0.0, 0.0, 0.0), 125.0, 1.25, 0.0)
+
+func set_ace_combat_view(focus_pos: Vector3, focus_yaw: float) -> void:
+    set_view_target(focus_pos, 42.0, 0.35, focus_yaw)
+
 func shake(intensity: float = 0.9, duration: float = 0.22) -> void:
     _shake_intensity = intensity
     _shake_time = duration
@@ -63,7 +75,7 @@ func _pan(relative: Vector2) -> void:
     _target_position += basis.y * relative.y * pan
 
 func _process(delta: float) -> void:
-    var smooth := clampf(delta * 10.0, 0.01, 1.0)
+    var smooth := clampf(delta * 4.5, 0.01, 1.0)
     target = target.lerp(_target_position, smooth)
     distance = lerpf(distance, _target_distance, smooth)
     _yaw = lerpf(_yaw, _target_yaw, smooth)
