@@ -860,7 +860,7 @@ func _on_board_gui_input(event: InputEvent) -> void:
 		var cur := _p_cells[selected_unit_idx]
 		var delta_c := clicked_cell - cur
 		# Max 1 sector standard, or 2 if in the Éther Stream or Spearhead Wedge
-		var in_stream := (_sector_types.get(cur, "") == "wind_stream")
+		var in_stream: bool = (_sector_types.get(cur, "") == "wind_stream")
 		var is_wedge := (current_formation == Formation.SPEARHEAD_WEDGE)
 		var max_step := 2 if (in_stream or is_wedge) else 1
 		var clamped_target := Vector2i(
@@ -1040,7 +1040,7 @@ func _draw_naval_chart() -> void:
 				icon_col = Color(0.95, 0.40, 1.0, 0.90)
 
 			# Reachable Quadrants for Selected Ship (subtle highlight)
-			var in_stream := (_sector_types.get(cur_sel_cell, "") == "wind_stream")
+			var in_stream: bool = (_sector_types.get(cur_sel_cell, "") == "wind_stream")
 			var is_wedge := (current_formation == Formation.SPEARHEAD_WEDGE)
 			var max_step := 2 if (in_stream or is_wedge) else 1
 			var is_reachable := (absi(gx - cur_sel_cell.x) <= max_step and absi(gy - cur_sel_cell.y) <= max_step)
