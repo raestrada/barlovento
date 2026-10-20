@@ -493,10 +493,8 @@ func _update_order_arrow() -> void:
                 _order_label.text = "VEC %.1f m/s" % order.target_speed
 
 func _update_firing_arc() -> void:
-    if _firing_arc_instance == null:
-        return
-    var planning := not TurnManager.is_resolving()
-    _firing_arc_instance.visible = selected and planning
+    if _firing_arc_instance != null:
+        _firing_arc_instance.visible = false
 
 func _update_selection_visuals() -> void:
     if _selection_ring != null:
@@ -504,9 +502,9 @@ func _update_selection_visuals() -> void:
         if _selection_ring.visible:
             _selection_ring.rotate_y(0.008)
     if _broadside_brackets != null:
-        _broadside_brackets.visible = not is_destroyed()
+        _broadside_brackets.visible = false
     if _overhead_hud != null:
-        _overhead_hud.visible = (not use_2d_callout) and (not is_destroyed())
+        _overhead_hud.visible = false
 
 func _update_overhead_hp() -> void:
     if _overhead_hp_bar == null:
@@ -818,35 +816,24 @@ func _build_selection_ring() -> void:
     _broadside_brackets.mesh = br_mesh
     add_child(_broadside_brackets)
 
-    # 2. Concentric Glowing Cyan Command Ring on Selected Ship (matches ACER_ANS_01 in admiral-phase.png)
+    # 2. Sleek Tactical Command Ring on Selected Ship
     _selection_ring = Node3D.new()
     _selection_ring.visible = false
     add_child(_selection_ring)
 
     var ring1 := MeshInstance3D.new()
     var torus1 := TorusMesh.new()
-    torus1.inner_radius = base_r * 0.82
-    torus1.outer_radius = base_r * 0.92
-    torus1.rings = 40
+    torus1.inner_radius = base_r * 0.95
+    torus1.outer_radius = base_r * 1.05
+    torus1.rings = 36
     ring1.mesh = torus1
-
-    var ring2 := MeshInstance3D.new()
-    var torus2 := TorusMesh.new()
-    torus2.inner_radius = base_r * 1.24
-    torus2.outer_radius = base_r * 1.32
-    torus2.rings = 40
-    ring2.mesh = torus2
 
     var mat := StandardMaterial3D.new()
     mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
     mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-    mat.albedo_color = Color(0.25, 0.90, 1.0, 0.82)
-    mat.emission_enabled = true
-    mat.emission = Color(0.2, 0.8, 1.0) * 1.4
+    mat.albedo_color = Color(0.30, 0.88, 1.0, 0.40)
     ring1.material_override = mat
-    ring2.material_override = mat
     _selection_ring.add_child(ring1)
-    _selection_ring.add_child(ring2)
 
 func _build_overhead_hud() -> void:
     _overhead_hud = Node3D.new()

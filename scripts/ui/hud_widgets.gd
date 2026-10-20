@@ -194,6 +194,34 @@ class ShipCalloutOverlay extends Control:
             var is_sel := ship == selected_ship
             var is_tgt := ship == target_ship
             var is_ally := ship.team == 0
+            var accent_col := COL_CYAN_BRIGHT if is_ally else Color(1.0, 0.48, 0.25, 1.0)
+            if is_sel:
+                accent_col = Color(0.45, 0.98, 1.0, 1.0)
+            elif is_tgt:
+                accent_col = Color(1.0, 0.35, 0.22, 1.0)
+
+            # Minimalist callout for unselected ships to avoid saturating 3D Ace view
+            if not is_sel and not is_tgt:
+                var mini_w := 64.0
+                var mini_h := 16.0
+                var mx := clampf(screen_pos.x - mini_w * 0.5, 8.0, vp_size.x - mini_w - 8.0)
+                var my := clampf(screen_pos.y - mini_h - 4.0, 48.0, vp_size.y - 120.0)
+                var mini_rect := Rect2(mx, my, mini_w, mini_h)
+                _badge_rects[ship] = mini_rect
+
+                draw_rect(mini_rect, Color(0.015, 0.04, 0.08, 0.60), true)
+                draw_rect(mini_rect, Color(accent_col.r, accent_col.g, accent_col.b, 0.35), false, 1.0)
+
+                # Tiny HP bar
+                var hp_rat := clampf(ship.hp / maxf(ship.max_hp, 1.0), 0.0, 1.0)
+                var b_col := COL_GREEN if hp_rat > 0.5 else (COL_AMBER if hp_rat > 0.25 else COL_RED)
+                draw_rect(Rect2(mx + 2, my + mini_h - 3, (mini_w - 4) * hp_rat, 2), b_col, true)
+
+                var s_short := ship.ship_name
+                if s_short.length() > 9:
+                    s_short = s_short.substr(0, 9)
+                draw_string(font, Vector2(mx + 4, my + 10), s_short, HORIZONTAL_ALIGNMENT_CENTER, int(mini_w - 8), 8, Color(accent_col.r, accent_col.g, accent_col.b, 0.85))
+                continue
 
             var badge_w := 196.0
             var badge_h := 38.0
@@ -203,13 +231,7 @@ class ShipCalloutOverlay extends Control:
             var full_rect := Rect2(bx - 18.0, by, badge_w + 18.0, badge_h)
             _badge_rects[ship] = full_rect
 
-            # Leader line from badge to ship
             var hex_center := Vector2(bx, by + badge_h * 0.5)
-            var accent_col := COL_CYAN_BRIGHT if is_ally else Color(1.0, 0.48, 0.25, 1.0)
-            if is_sel:
-                accent_col = Color(0.45, 0.98, 1.0, 1.0)
-            elif is_tgt:
-                accent_col = Color(1.0, 0.35, 0.22, 1.0)
 
             # Main dark rectangular callout plate (to the right of the hexagon)
             var plate_rect := Rect2(bx + 10.0, by, badge_w - 10.0, badge_h)

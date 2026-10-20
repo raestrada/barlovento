@@ -851,15 +851,10 @@ func _draw_naval_chart() -> void:
 	var cw := br.size.x / float(GRID_COLS)
 	var ch := br.size.y / float(GRID_ROWS)
 
-	# 1. Holographic Astrolabe Outer Circles & Compass Reticle
-	var center := br.get_center()
-	var max_r := minf(br.size.x, br.size.y) * 0.48
-	c.draw_arc(center, max_r, 0.0, TAU, 64, Color(0.25, 0.78, 1.0, 0.16), 1.5)
-	c.draw_arc(center, max_r * 0.65, 0.0, TAU, 48, Color(0.85, 0.68, 0.28, 0.12), 1.0)
-	c.draw_line(center - Vector2(max_r, 0), center + Vector2(max_r, 0), Color(0.25, 0.78, 1.0, 0.08), 1.0)
-	c.draw_line(center - Vector2(0, max_r), center + Vector2(0, max_r), Color(0.25, 0.78, 1.0, 0.08), 1.0)
+	var cur_sel_cell := _p_cells[selected_unit_idx]
+	var tgt_sel_cell := _p_targets[selected_unit_idx]
 
-	# 2. Draw 8x6 Strategic Quadrants & Holographic Terrain
+	# 1. Draw 8x6 Strategic Quadrants (Clean, unsaturated, non-intrusive)
 	var cols_lbl := ["A", "B", "C", "D", "E", "F", "G", "H"]
 	for gx in range(GRID_COLS):
 		for gy in range(GRID_ROWS):
@@ -867,121 +862,141 @@ func _draw_naval_chart() -> void:
 			var r := _cell_rect(cell).grow(-2.0)
 			var stype: String = _sector_types.get(cell, "open")
 
-			var fill_col := Color(0.015, 0.035, 0.07, 0.20)
-			var border_col := Color(0.22, 0.62, 0.88, 0.18)
-			var badge_txt := ""
-			var badge_col := Color(0.45, 0.75, 0.95, 0.65)
+			var fill_col := Color(0.012, 0.028, 0.055, 0.12)
+			var border_col := Color(0.22, 0.60, 0.85, 0.15)
+			var icon_txt := ""
+			var icon_col := Color(0.45, 0.75, 0.95, 0.60)
 
 			if stype == "wind_stream":
-				fill_col = Color(0.02, 0.18, 0.32, 0.32)
-				border_col = Color(0.28, 0.95, 1.0, 0.45)
-				badge_txt = "🌬 ÉTHER DELTA [+BARLOVENTO]"
-				badge_col = Color(0.35, 0.98, 1.0, 0.85)
+				fill_col = Color(0.02, 0.14, 0.25, 0.18)
+				border_col = Color(0.25, 0.85, 1.0, 0.28)
+				icon_txt = "ÉTHER"
+				icon_col = Color(0.35, 0.95, 1.0, 0.75)
 			elif stype == "reef":
-				fill_col = Color(0.08, 0.05, 0.02, 0.28)
-				border_col = Color(0.85, 0.60, 0.25, 0.35)
-				badge_txt = "⛰ BASALT REEF [+COVER]"
-				badge_col = Color(0.95, 0.75, 0.38, 0.85)
+				fill_col = Color(0.06, 0.04, 0.02, 0.18)
+				border_col = Color(0.85, 0.58, 0.22, 0.24)
+				icon_txt = "REEF"
+				icon_col = Color(0.95, 0.72, 0.35, 0.75)
 			elif stype == "sluice":
-				fill_col = Color(0.14, 0.09, 0.02, 0.38)
-				border_col = Color(1.0, 0.75, 0.22, 0.65)
-				badge_txt = "⚙ SLUICE REFINERY WELL-09"
-				badge_col = Color(1.0, 0.85, 0.32, 0.95)
+				fill_col = Color(0.10, 0.07, 0.02, 0.25)
+				border_col = Color(1.0, 0.75, 0.22, 0.45)
+				icon_txt = "SLUICE"
+				icon_col = Color(1.0, 0.82, 0.30, 0.88)
 			elif stype == "conduit":
-				fill_col = Color(0.05, 0.16, 0.22, 0.35)
-				border_col = Color(0.35, 1.0, 0.75, 0.55)
-				badge_txt = "⚡ ÉTHER CONDUIT [+SPEED]"
-				badge_col = Color(0.40, 1.0, 0.80, 0.90)
+				fill_col = Color(0.04, 0.12, 0.16, 0.20)
+				border_col = Color(0.35, 0.95, 0.72, 0.35)
+				icon_txt = "NODE"
+				icon_col = Color(0.40, 1.0, 0.80, 0.80)
 
-			# Highlight reachable quadrants for selected unit
-			var sel_cur := _p_cells[selected_unit_idx]
-			var max_step := 3 if _sector_types.get(sel_cur, "") == "wind_stream" else 2
-			var is_reachable := (absi(gx - sel_cur.x) <= max_step and absi(gy - sel_cur.y) <= max_step)
+			# Reachable Quadrants for Selected Ship (subtle highlight)
+			var max_step := 3 if _sector_types.get(cur_sel_cell, "") == "wind_stream" else 2
+			var is_reachable := (absi(gx - cur_sel_cell.x) <= max_step and absi(gy - cur_sel_cell.y) <= max_step)
 			if is_reachable and not is_animating_turn:
-				fill_col = fill_col.blend(Color(0.25, 0.85, 1.0, 0.12))
-				border_col = Color(0.35, 0.95, 1.0, 0.65)
+				fill_col = fill_col.blend(Color(0.20, 0.80, 1.0, 0.06))
+				border_col = Color(0.30, 0.85, 1.0, 0.38)
 
 			c.draw_rect(r, fill_col, true)
-			c.draw_rect(r, border_col, false, 1.5 if is_reachable else 1.0)
+			c.draw_rect(r, border_col, false, 1.0)
 
-			# Animated wind streamlines inside Éther Stream sectors
-			if stype == "wind_stream":
-				for w_i in range(2):
-					var phase := fmod(_anim_t * 32.0 + float(w_i) * 20.0 + float(gx * 12), r.size.x - 14.0)
-					var wy := r.position.y + r.size.y * (0.35 + float(w_i) * 0.30)
-					var wx := r.position.x + 6.0 + phase
-					c.draw_line(Vector2(wx, wy), Vector2(minf(wx + 20.0, r.end.x - 4.0), wy - 2.5), Color(0.35, 0.95, 1.0, 0.35), 2.0)
-
-			# Quadrant Coordinate label (A1..H6)
+			# Clean coordinate label in corner (A1..H6)
 			var coord_str := "%s%d" % [cols_lbl[gx], gy + 1]
-			c.draw_string(font, r.position + Vector2(6, 14), coord_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.60, 0.85, 1.0, 0.65))
+			c.draw_string(font, r.position + Vector2(6, 13), coord_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(0.55, 0.78, 0.95, 0.55))
 
-			if badge_txt != "" and (gx % 2 == 0 or stype == "sluice"):
-				c.draw_string(font, r.position + Vector2(6, r.size.y - 6), badge_txt, HORIZONTAL_ALIGNMENT_LEFT, int(r.size.x - 8), 9, badge_col)
+			# Clean subtle terrain tag in top-right corner
+			if icon_txt != "":
+				c.draw_string(font, r.position + Vector2(r.size.x - 38, 13), icon_txt, HORIZONTAL_ALIGNMENT_RIGHT, 32, 8, icon_col)
 
-	# 3. Draw Planned Movement Vectors (Dashed lines from current cell to target cell)
+	# 2. CLEARLY MARK THE SELECTED QUADRANTS:
+	# A. Currently Occupied Quadrant of Selected Ship
+	var sel_r := _cell_rect(cur_sel_cell).grow(-2.0)
+	c.draw_rect(sel_r, Color(0.20, 0.85, 1.0, 0.14), true)
+	c.draw_rect(sel_r, Color(0.35, 0.96, 1.0, 0.95), false, 2.0)
+	# Corner brackets on selected cell
+	var b_len := 10.0
+	c.draw_line(sel_r.position, sel_r.position + Vector2(b_len, 0), Color(1.0, 0.92, 0.45), 2.5)
+	c.draw_line(sel_r.position, sel_r.position + Vector2(0, b_len), Color(1.0, 0.92, 0.45), 2.5)
+	c.draw_line(Vector2(sel_r.end.x, sel_r.position.y), Vector2(sel_r.end.x - b_len, sel_r.position.y), Color(1.0, 0.92, 0.45), 2.5)
+	c.draw_line(Vector2(sel_r.end.x, sel_r.position.y), Vector2(sel_r.end.x, sel_r.position.y + b_len), Color(1.0, 0.92, 0.45), 2.5)
+	c.draw_line(sel_r.end, sel_r.end - Vector2(b_len, 0), Color(1.0, 0.92, 0.45), 2.5)
+	c.draw_line(sel_r.end, sel_r.end - Vector2(0, b_len), Color(1.0, 0.92, 0.45), 2.5)
+	c.draw_line(Vector2(sel_r.position.x, sel_r.end.y), Vector2(sel_r.position.x + b_len, sel_r.end.y), Color(1.0, 0.92, 0.45), 2.5)
+	c.draw_line(Vector2(sel_r.position.x, sel_r.end.y), Vector2(sel_r.position.x, sel_r.end.y - b_len), Color(1.0, 0.92, 0.45), 2.5)
+	c.draw_string(font, sel_r.position + Vector2(6, sel_r.size.y - 5), "● ACTIVE", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(0.40, 1.0, 0.85))
+
+	# B. Target Waypoint Quadrant of Selected Ship
+	if tgt_sel_cell != cur_sel_cell:
+		var tgt_r := _cell_rect(tgt_sel_cell).grow(-2.0)
+		c.draw_rect(tgt_r, Color(1.0, 0.82, 0.28, 0.16), true)
+		c.draw_rect(tgt_r, Color(1.0, 0.85, 0.35, 0.95), false, 2.0)
+		# Corner brackets on target cell
+		c.draw_line(tgt_r.position, tgt_r.position + Vector2(b_len, 0), Color(1.0, 0.85, 0.35), 2.0)
+		c.draw_line(tgt_r.position, tgt_r.position + Vector2(0, b_len), Color(1.0, 0.85, 0.35), 2.0)
+		c.draw_line(Vector2(tgt_r.end.x, tgt_r.position.y), Vector2(tgt_r.end.x - b_len, tgt_r.position.y), Color(1.0, 0.85, 0.35), 2.0)
+		c.draw_line(Vector2(tgt_r.end.x, tgt_r.position.y), Vector2(tgt_r.end.x, tgt_r.position.y + b_len), Color(1.0, 0.85, 0.35), 2.0)
+		c.draw_line(tgt_r.end, tgt_r.end - Vector2(b_len, 0), Color(1.0, 0.85, 0.35), 2.0)
+		c.draw_line(tgt_r.end, tgt_r.end - Vector2(0, b_len), Color(1.0, 0.85, 0.35), 2.0)
+		c.draw_line(Vector2(tgt_r.position.x, tgt_r.end.y), Vector2(tgt_r.position.x + b_len, tgt_r.end.y), Color(1.0, 0.85, 0.35), 2.0)
+		c.draw_line(Vector2(tgt_r.position.x, tgt_r.end.y), Vector2(tgt_r.position.x, tgt_r.end.y - b_len), Color(1.0, 0.85, 0.35), 2.0)
+		c.draw_string(font, tgt_r.position + Vector2(6, tgt_r.size.y - 5), "▶ WAYPOINT", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(1.0, 0.85, 0.35))
+
+	# 3. Draw Planned Movement Vectors (Clean, crisp lines with arrival reticle)
 	for i in range(3):
 		var p_from := _cell_center(_p_anim_pos[i])
 		var p_to := _cell_center(Vector2(_p_targets[i]))
 		var is_selected := (i == selected_unit_idx)
-		var line_col := Color(0.35, 0.98, 1.0, 0.85) if is_selected else Color(0.25, 0.75, 0.95, 0.45)
-		c.draw_line(p_from, p_to, line_col, 2.5 if is_selected else 1.5)
-		# Arrival target reticle
-		c.draw_circle(p_to, 5.0 if is_selected else 3.5, line_col)
-		c.draw_arc(p_to, 9.0, 0.0, TAU, 16, line_col, 1.0)
+		var line_col := Color(0.35, 0.98, 1.0, 0.85) if is_selected else Color(0.25, 0.70, 0.90, 0.35)
+		c.draw_line(p_from, p_to, line_col, 2.0 if is_selected else 1.2)
+		c.draw_circle(p_to, 4.0 if is_selected else 2.5, line_col)
+		if is_selected:
+			c.draw_arc(p_to, 7.5, 0.0, TAU, 16, line_col, 1.0)
 
-	# 4. Draw Real-time Hostile Ships (Diamond Brackets + Prows)
+	# 4. Draw Hostile Ships (Minimalist, sharp tactical markers)
 	for i in range(3):
 		if i < enemy_ships.size() and enemy_ships[i] != null and enemy_ships[i].is_destroyed():
 			continue
 		var e_pos := _cell_center(_e_anim_pos[i])
 		var ef := _e_facing[i].normalized()
-		var e_col := Color(1.0, 0.32, 0.28, 0.95)
+		var e_col := Color(1.0, 0.38, 0.30, 0.90)
 
 		# Hostile Bracket Diamond
 		var pts: PackedVector2Array = [
-			e_pos + Vector2(0, -12),
-			e_pos + Vector2(12, 0),
-			e_pos + Vector2(0, 12),
-			e_pos + Vector2(-12, 0)
+			e_pos + Vector2(0, -9),
+			e_pos + Vector2(9, 0),
+			e_pos + Vector2(0, 9),
+			e_pos + Vector2(-9, 0)
 		]
-		c.draw_polyline(pts, e_col, 2.0)
-		c.draw_line(pts[3], pts[0], e_col, 2.0)
-		# Heading arrow
-		c.draw_line(e_pos, e_pos + ef * 16.0, Color(1.0, 0.65, 0.35), 2.0)
+		c.draw_polyline(pts, e_col, 1.5)
+		c.draw_line(pts[3], pts[0], e_col, 1.5)
+		# Small heading pip
+		c.draw_line(e_pos, e_pos + ef * 12.0, Color(1.0, 0.65, 0.35), 1.8)
 
-		var e_name := "HOSTILE CAPITAL"
+		var e_name := "HOSTILE"
 		if i < enemy_ships.size() and enemy_ships[i] != null:
 			e_name = enemy_ships[i].ship_name
-		c.draw_string(font, e_pos + Vector2(-36, -15), e_name, HORIZONTAL_ALIGNMENT_CENTER, 72, 9, Color(1.0, 0.72, 0.72))
+		c.draw_string(font, e_pos + Vector2(-36, -12), e_name, HORIZONTAL_ALIGNMENT_CENTER, 72, 8, Color(1.0, 0.75, 0.75))
 
-	# 5. Draw Allied Ships (High-Tech Hex Reticle + Ship Class & Pilot)
+	# 5. Draw Allied Ships (Minimalist, sharp naval chevron icons)
 	for i in range(3):
 		if i < player_ships.size() and player_ships[i] != null and player_ships[i].is_destroyed():
 			continue
 		var p_pos := _cell_center(_p_anim_pos[i])
 		var pf := _p_facing[i].normalized()
 		var is_sel := (i == selected_unit_idx)
-		var p_col := Color(0.35, 1.0, 0.85) if is_sel else Color(0.30, 0.82, 1.0)
+		var p_col := Color(0.35, 1.0, 0.85) if is_sel else Color(0.30, 0.78, 0.95)
 
-		# Pulsing tactical selection ring
-		var ring_r := 16.0 + (sin(_anim_t * 6.0) * 2.0 if is_sel else 0.0)
-		c.draw_arc(p_pos, ring_r, 0.0, TAU, 32, p_col, 2.2 if is_sel else 1.5)
-		c.draw_circle(p_pos, 4.0, p_col)
+		# Center pip
+		c.draw_circle(p_pos, 3.5 if is_sel else 2.5, p_col)
 
 		# Directional Prow Arrow
-		var prow := p_pos + pf * 20.0
-		var p_left := p_pos + pf.rotated(deg_to_rad(140)) * 10.0
-		var p_right := p_pos + pf.rotated(deg_to_rad(-140)) * 10.0
-		c.draw_line(p_pos, prow, Color(1.0, 0.90, 0.40), 2.5)
-		c.draw_line(prow, p_left, Color(1.0, 0.90, 0.40), 1.5)
-		c.draw_line(prow, p_right, Color(1.0, 0.90, 0.40), 1.5)
+		var prow := p_pos + pf * 15.0
+		var p_left := p_pos + pf.rotated(deg_to_rad(140)) * 7.5
+		var p_right := p_pos + pf.rotated(deg_to_rad(-140)) * 7.5
+		c.draw_line(p_pos, prow, Color(1.0, 0.90, 0.40) if is_sel else p_col, 2.0 if is_sel else 1.5)
+		c.draw_line(prow, p_left, Color(1.0, 0.90, 0.40) if is_sel else p_col, 1.5)
+		c.draw_line(prow, p_right, Color(1.0, 0.90, 0.40) if is_sel else p_col, 1.5)
 
-		# Unit Name & Class Tag
+		# Unit Name
 		var u_lbl := "UNIT %d" % (i + 1)
-		var u_sub := ""
 		if i < player_ships.size() and player_ships[i] != null:
 			u_lbl = player_ships[i].ship_name
-			u_sub = "%s [%s]" % [player_ships[i].pilot_name, player_ships[i].ship_id.to_upper().replace("_", " ")]
-		c.draw_string(font, p_pos + Vector2(-50, 20), u_lbl, HORIZONTAL_ALIGNMENT_CENTER, 100, 10, Color(1.0, 1.0, 1.0) if is_sel else Color(0.85, 0.95, 1.0))
-		c.draw_string(font, p_pos + Vector2(-60, 32), u_sub, HORIZONTAL_ALIGNMENT_CENTER, 120, 8, Color(0.45, 0.88, 1.0))
+		c.draw_string(font, p_pos + Vector2(-45, 16), u_lbl, HORIZONTAL_ALIGNMENT_CENTER, 90, 9, Color(1.0, 1.0, 1.0) if is_sel else Color(0.75, 0.88, 0.96))
