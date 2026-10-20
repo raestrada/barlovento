@@ -7,9 +7,9 @@ signal ship_selected_on_chart(ship_index: int)
 signal open_roster_requested
 signal return_menu_requested
 
-const GRID_COLS := 8
-const GRID_ROWS := 6
-const MAX_STRATEGIC_TURNS := 5
+const GRID_COLS := 10
+const GRID_ROWS := 8
+const MAX_STRATEGIC_TURNS := 6
 
 enum Formation { LINE_OF_BATTLE, SPEARHEAD_WEDGE, FLANKING_PINCER }
 
@@ -32,20 +32,20 @@ var selected_unit_idx: int = 0
 var move_whole_fleet: bool = false
 var is_animating_turn: bool = false
 
-# 8x6 Grid Coordinates (Vector2i) and continuous animated positions (Vector2)
-var _p_cells: Array[Vector2i] = [Vector2i(3, 5), Vector2i(4, 5), Vector2i(5, 5)]
-var _p_targets: Array[Vector2i] = [Vector2i(3, 4), Vector2i(4, 4), Vector2i(5, 4)]
-var _p_anim_pos: Array[Vector2] = [Vector2(3, 5), Vector2(4, 5), Vector2(5, 5)]
+# 10x8 Grid Coordinates (Vector2i) and continuous animated positions (Vector2)
+var _p_cells: Array[Vector2i] = [Vector2i(4, 7), Vector2i(3, 7), Vector2i(5, 7)]
+var _p_targets: Array[Vector2i] = [Vector2i(4, 6), Vector2i(3, 6), Vector2i(5, 6)]
+var _p_anim_pos: Array[Vector2] = [Vector2(4, 7), Vector2(3, 7), Vector2(5, 7)]
 var _p_facing: Array[Vector2] = [Vector2(0, -1), Vector2(0, -1), Vector2(0, -1)]
 
-var _e_cells: Array[Vector2i] = [Vector2i(3, 0), Vector2i(4, 0), Vector2i(2, 0)]
-var _e_targets: Array[Vector2i] = [Vector2i(3, 1), Vector2i(4, 1), Vector2i(2, 1)]
-var _e_anim_pos: Array[Vector2] = [Vector2(3, 0), Vector2(4, 0), Vector2(2, 0)]
+var _e_cells: Array[Vector2i] = [Vector2i(4, 0), Vector2i(3, 0), Vector2i(5, 0)]
+var _e_targets: Array[Vector2i] = [Vector2i(4, 1), Vector2i(3, 1), Vector2i(5, 1)]
+var _e_anim_pos: Array[Vector2] = [Vector2(4, 0), Vector2(3, 0), Vector2(5, 0)]
 var _e_facing: Array[Vector2] = [Vector2(0, 1), Vector2(0, 1), Vector2(0, 1)]
 
-# Special terrain sectors on the 8x6 naval chart
+# Special terrain sectors on the 10x8 naval chart
 # "wind_stream" = Upwind Ether Current (+Barlovento), "reef" = Basalt Reef (+Cover), "sluice" = Sluice Station / Objective
-# "conduit" = Éther Booster Node
+# "conduit" = Éther Booster Node, "calm" = Dead Zone Hazard
 var _sector_types: Dictionary = {}
 
 var _board_canvas: Control
@@ -105,13 +105,13 @@ func set_selected_unit(idx: int) -> void:
 		_refresh_ui()
 
 func _world_to_cell(pos: Vector3, _is_player: bool, _idx: int) -> Vector2i:
-	var cx := clampi(roundi(remap(pos.x, -45.0, 45.0, 0.0, float(GRID_COLS - 1))), 0, GRID_COLS - 1)
-	var cy := clampi(roundi(remap(pos.z, -42.0, 42.0, 0.0, float(GRID_ROWS - 1))), 0, GRID_ROWS - 1)
+	var cx := clampi(roundi(remap(pos.x, -58.0, 58.0, 0.0, float(GRID_COLS - 1))), 0, GRID_COLS - 1)
+	var cy := clampi(roundi(remap(pos.z, -58.0, 58.0, 0.0, float(GRID_ROWS - 1))), 0, GRID_ROWS - 1)
 	return Vector2i(cx, cy)
 
 func _cell_to_world(cell: Vector2i, facing: Vector2, is_player: bool, idx: int) -> Dictionary:
-	var wx := remap(float(cell.x), 0.0, float(GRID_COLS - 1), -45.0, 45.0)
-	var wz := remap(float(cell.y), 0.0, float(GRID_ROWS - 1), -42.0, 42.0)
+	var wx := remap(float(cell.x), 0.0, float(GRID_COLS - 1), -58.0, 58.0)
+	var wz := remap(float(cell.y), 0.0, float(GRID_ROWS - 1), -58.0, 58.0)
 	var wy := 5.0 if idx == 0 else (2.0 if idx == 1 else 7.5)
 
 	if is_player:
@@ -142,30 +142,37 @@ func _cell_to_world(cell: Vector2i, facing: Vector2, is_player: bool, idx: int) 
 
 func _init_sector_terrain() -> void:
 	_sector_types.clear()
-	# Upwind Ether Stream corridor (grants Barlovento Weather-Gauge across central rows 2 & 3)
-	for x in range(1, 7):
-		_sector_types[Vector2i(x, 2)] = "wind_stream"
-		_sector_types[Vector2i(x, 3)] = "wind_stream"
+	# Upwind Ether Stream corridor (diagonal wind stream across rows 2 to 5)
+	for p in [
+		Vector2i(1, 1), Vector2i(2, 2), Vector2i(3, 2),
+		Vector2i(4, 3), Vector2i(5, 3),
+		Vector2i(4, 4), Vector2i(5, 4),
+		Vector2i(6, 5), Vector2i(7, 5), Vector2i(8, 6)
+	]:
+		_sector_types[p] = "wind_stream"
 
 	# Basalt Asteroid Reefs along flank lanes (grants Flank Cover & Ambush)
-	for y in range(1, 5):
+	for y in range(2, 6):
 		_sector_types[Vector2i(0, y)] = "reef"
-		_sector_types[Vector2i(7, y)] = "reef"
+		_sector_types[Vector2i(1, y)] = "reef"
+		_sector_types[Vector2i(8, y)] = "reef"
+		_sector_types[Vector2i(9, y)] = "reef"
 
-	# Sluice Station Well-09 Anchor & Defense Node (Rows 4, Cols 3 & 4)
-	_sector_types[Vector2i(3, 4)] = "sluice"
-	_sector_types[Vector2i(4, 4)] = "sluice"
+	# Sluice Station Well-09 Anchor & Defense Node (Rows 6 & 7, Cols 4 & 5)
+	_sector_types[Vector2i(4, 6)] = "sluice"
+	_sector_types[Vector2i(5, 6)] = "sluice"
 
-	# Éther Conduit Relays (Capture nodes for speed boost)
-	_sector_types[Vector2i(2, 2)] = "conduit"
-	_sector_types[Vector2i(5, 3)] = "conduit"
+	# Éther Conduit Relays (Strategic capture nodes for AP & speed boost)
+	_sector_types[Vector2i(2, 4)] = "conduit" # West Relay
+	_sector_types[Vector2i(7, 3)] = "conduit" # East Relay
+	_sector_types[Vector2i(4, 3)] = "conduit" # Central Contested Node
 
-	# Dimensional Fluid Seeps (The Calm encroaching from NW rift, NE incursion, deep north, and flank seeps)
+	# The Calm Dimensional Seeps (Hazard incursion pools along northern rim & rifts)
 	for p in [
-		Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), # Northwest Abyssal Rift
-		Vector2i(6, 0), Vector2i(7, 0), Vector2i(7, 1), # Northeast Void Incursion
-		Vector2i(3, 0), Vector2i(4, 0),                 # Deep North Breach
-		Vector2i(0, 3),                                 # Flank Incursion Seep
+		Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1), # Northwest Abyssal Rift
+		Vector2i(8, 0), Vector2i(9, 0), Vector2i(8, 1), Vector2i(9, 1), # Northeast Void Incursion
+		Vector2i(4, 0), Vector2i(5, 0),                                 # Deep North Breach
+		Vector2i(0, 5), Vector2i(9, 5)                                  # Flank Incursions
 	]:
 		_sector_types[p] = "calm"
 
@@ -194,18 +201,38 @@ func _plan_ai_chart_orders() -> void:
 		var best := cur
 		var best_score := -INF
 		for ox in range(-1, 2):
-			for oy in range(0, 2):
+			for oy in range(-1, 2):
 				var cand := Vector2i(clampi(cur.x + ox, 0, GRID_COLS - 1), clampi(cur.y + oy, 0, GRID_ROWS - 1))
 				if claimed.has(cand):
 					continue
-				var score := -Vector2(cand - target_p).length()
+				var score := 0.0
+				var dist_to_target := Vector2(cand - target_p).length()
+				score += (14.0 - dist_to_target) * 1.1
+
+				# Hazard avoidance: stay far out of The Calm!
+				if _sector_types.get(cand, "") == "calm":
+					score -= 75.0
+
+				# Contest Éther Conduits (+1 AP reward)
+				if _sector_types.get(cand, "") == "conduit":
+					score += 5.5
+
+				# Contest Barlovento Wind Stream (+Hit & Damage)
 				if _sector_types.get(cand, "") == "wind_stream":
-					score += 3.2
+					score += 4.0
+
+				# Flanking reefs cover
 				if _sector_types.get(cand, "") == "reef":
-					score += 0.8
+					score += 2.2
+
+				# Bias against idling unless holding a strategic conduit
+				if cand == cur and _sector_types.get(cur, "") != "conduit":
+					score -= 3.0
+
 				if score > best_score:
 					best_score = score
 					best = cand
+
 		claimed.append(best)
 		_e_targets[i] = best
 		var dv := Vector2(best - cur)
@@ -539,20 +566,20 @@ func _apply_formation_preset_to_targets() -> void:
 	var center_c := _p_cells[0]
 	match current_formation:
 		Formation.LINE_OF_BATTLE:
-			var target_row := maxi(center_c.y - 1, 1)
-			_p_targets[0] = Vector2i(3, target_row)
-			_p_targets[1] = Vector2i(2, target_row)
-			_p_targets[2] = Vector2i(4, target_row)
+			var target_row := maxi(center_c.y - 1, 0)
+			_p_targets[0] = Vector2i(clampi(center_c.x, 1, GRID_COLS - 2), target_row)
+			_p_targets[1] = Vector2i(clampi(_p_targets[0].x - 1, 0, GRID_COLS - 1), target_row)
+			_p_targets[2] = Vector2i(clampi(_p_targets[0].x + 1, 0, GRID_COLS - 1), target_row)
 		Formation.SPEARHEAD_WEDGE:
-			var lead_row := maxi(center_c.y - 2, 1)
-			_p_targets[0] = Vector2i(3, lead_row)
-			_p_targets[1] = Vector2i(2, mini(lead_row + 1, GRID_ROWS - 1))
-			_p_targets[2] = Vector2i(4, mini(lead_row + 1, GRID_ROWS - 1))
+			var lead_row := maxi(center_c.y - 2, 0)
+			_p_targets[0] = Vector2i(clampi(center_c.x, 1, GRID_COLS - 2), lead_row)
+			_p_targets[1] = Vector2i(clampi(_p_targets[0].x - 1, 0, GRID_COLS - 1), mini(lead_row + 1, GRID_ROWS - 1))
+			_p_targets[2] = Vector2i(clampi(_p_targets[0].x + 1, 0, GRID_COLS - 1), mini(lead_row + 1, GRID_ROWS - 1))
 		Formation.FLANKING_PINCER:
-			var pincer_row := maxi(center_c.y - 1, 1)
-			_p_targets[0] = Vector2i(3, pincer_row)
-			_p_targets[1] = Vector2i(1, maxi(pincer_row - 1, 0))
-			_p_targets[2] = Vector2i(6, maxi(pincer_row - 1, 0))
+			var pincer_row := maxi(center_c.y - 1, 0)
+			_p_targets[0] = Vector2i(clampi(center_c.x, 2, GRID_COLS - 3), pincer_row)
+			_p_targets[1] = Vector2i(clampi(_p_targets[0].x - 2, 0, GRID_COLS - 1), maxi(pincer_row - 1, 0))
+			_p_targets[2] = Vector2i(clampi(_p_targets[0].x + 2, 0, GRID_COLS - 1), maxi(pincer_row - 1, 0))
 
 	for i in range(3):
 		var dv := Vector2(_p_targets[i] - _p_cells[i])
@@ -563,6 +590,7 @@ func compute_strategic_bonuses() -> Dictionary:
 	var wind_cells_held := 0
 	var sluice_held := 0
 	var conduit_held := 0
+	var reef_held := 0
 	for i in range(3):
 		var c := _p_targets[i] if not is_animating_turn else _p_cells[i]
 		var stype: String = _sector_types.get(c, "")
@@ -572,13 +600,19 @@ func compute_strategic_bonuses() -> Dictionary:
 			sluice_held += 1
 		elif stype == "conduit":
 			conduit_held += 1
+		elif stype == "reef":
+			reef_held += 1
 
 	var enemy_wind_cells := 0
+	var enemy_conduit_held := 0
 	for i in range(3):
 		if i < enemy_ships.size() and enemy_ships[i] != null and enemy_ships[i].is_destroyed():
 			continue
-		if _sector_types.get(_e_cells[i], "") == "wind_stream":
+		var est: String = _sector_types.get(_e_cells[i], "")
+		if est == "wind_stream":
 			enemy_wind_cells += 1
+		elif est == "conduit":
+			enemy_conduit_held += 1
 
 	var has_barlovento := (wind_cells_held >= 1 and wind_cells_held > enemy_wind_cells)
 	var enemy_barlovento := (enemy_wind_cells >= 1 and enemy_wind_cells > wind_cells_held)
@@ -612,6 +646,8 @@ func compute_strategic_bonuses() -> Dictionary:
 		if _sector_types.get(c, "") == "calm":
 			calm_hazard_count += 1
 
+	var bonus_ap: int = (1 if has_barlovento else 0) + (1 if conduit_held > 0 else 0)
+
 	return {
 		"has_barlovento": has_barlovento,
 		"enemy_barlovento": enemy_barlovento,
@@ -619,15 +655,18 @@ func compute_strategic_bonuses() -> Dictionary:
 		"wind_cells_held": wind_cells_held,
 		"sluice_held": sluice_held > 0,
 		"conduit_held": conduit_held > 0,
+		"reef_held": reef_held > 0,
+		"enemy_conduit_held": enemy_conduit_held > 0,
 		"calm_hazard_count": calm_hazard_count,
 		"is_flanking": is_flanking,
 		"is_crossing_t": is_crossing_t,
 		"formation": current_formation,
-		"bonus_ap": 1 if has_barlovento else 0,
+		"bonus_ap": bonus_ap,
 		"accuracy_bonus": 0.15 if has_barlovento else 0.0,
 		"damage_bonus": 0.15 if (has_barlovento or is_crossing_t) else 0.0,
+		"crit_bonus": 0.25 if reef_held > 0 else 0.0,
 		"armor_mult": 1.20 if current_formation == Formation.LINE_OF_BATTLE else 1.0,
-		"speed_mult": 1.25 if current_formation == Formation.SPEARHEAD_WEDGE else (1.12 if has_barlovento else 1.0),
+		"speed_mult": (1.25 if current_formation == Formation.SPEARHEAD_WEDGE else 1.0) * (1.15 if conduit_held > 0 else 1.0),
 		"turn_mult": 1.15 if current_formation == Formation.FLANKING_PINCER else 1.0
 	}
 
@@ -641,9 +680,22 @@ func _refresh_ui() -> void:
 			dist_sectors = minf(dist_sectors, Vector2(p - e).length())
 	var dist_meters := dist_sectors * 15.0
 	if _range_telemetry_lbl != null:
-		var alert_tag := " [DECISIVE ENGAGEMENT]" if dist_meters <= 36.0 else (" [MID THEATER]" if dist_meters <= 60.0 else " [OUTER APPROACH]")
-		_range_telemetry_lbl.text = "FLEET SEPARATION: %.1fm%s" % [dist_meters, alert_tag]
-		_range_telemetry_lbl.modulate = Color(1.0, 0.45, 0.35) if dist_meters <= 36.0 else Color(1.0, 0.85, 0.35)
+		var alert_tag := " [CLOSE ENGAGEMENT ENVELOPE]" if dist_sectors <= 1.5 else (" [SENSOR LOCK — CAN ENGAGE]" if dist_sectors <= 3.6 else " [THEATER MANEUVER PHASE]")
+		_range_telemetry_lbl.text = "FLEET SEPARATION: %.1fm (%.1f sectors)%s" % [dist_meters, dist_sectors, alert_tag]
+		_range_telemetry_lbl.modulate = Color(1.0, 0.45, 0.35) if dist_sectors <= 1.5 else (Color(1.0, 0.88, 0.35) if dist_sectors <= 3.6 else Color(0.45, 0.95, 0.75))
+
+	if _engage_btn != null:
+		var can_engage := (dist_sectors <= 3.8 or strategic_turn >= 3)
+		_engage_btn.disabled = not can_engage
+		if dist_sectors <= 1.5:
+			_engage_btn.text = "⚔ CLOSE CONTACT: COMMENCE ACE COMBAT [ENTER]"
+			_engage_btn.modulate = Color(1.0, 0.45, 0.35)
+		elif can_engage:
+			_engage_btn.text = "⚔ SENSOR LOCK: COMMENCE ACE COMBAT [ENTER]"
+			_engage_btn.modulate = Color(1.0, 0.88, 0.35)
+		else:
+			_engage_btn.text = "⚔ COMMENCE COMBAT (APPROACH TO ≤55m)"
+			_engage_btn.modulate = Color(0.65, 0.70, 0.80, 0.6)
 
 	if _fleet_mode_btn != null:
 		_fleet_mode_btn.text = "⊞ MOVE WHOLE FORMATION: ON" if move_whole_fleet else "⊞ MOVE WHOLE FORMATION: OFF"
@@ -698,9 +750,11 @@ func _refresh_ui() -> void:
 		if b["sluice_held"]:
 			n_txt += "⚙ SLUICE REFINERY: DEFENDED (+20 Shield HP Regen)\n"
 		if b["conduit_held"]:
-			n_txt += "⚡ ÉTHER CONDUIT: SECURED (+25% Engine Speed)\n"
+			n_txt += "⚡ ÉTHER CONDUIT: CAPTURED (+1 AP & +15% Fleet Speed)!\n"
+		if b["reef_held"]:
+			n_txt += "🪨 REEF AMBUSH: SECURED (+25% Opening Salvo Crit DMG)!\n"
 		if n_txt == "":
-			n_txt = "⚙ STRATEGIC NODES: UNCONTESTED (Approach D5/E5 or C3)"
+			n_txt = "⚙ STRATEGIC NODES: UNCONTESTED (Capture Conduit C4/H3 or Reefs)"
 		_adv_nodes_lbl.text = n_txt
 		_adv_nodes_lbl.add_theme_color_override("font_color", Color(1.0, 0.45, 0.85) if b["calm_hazard_count"] > 0 else Color(0.45, 0.95, 0.75))
 
@@ -718,7 +772,7 @@ func _refresh_ui() -> void:
 		_board_canvas.queue_redraw()
 
 func _cell_name(c: Vector2i) -> String:
-	var cols := ["A", "B", "C", "D", "E", "F", "G", "H"]
+	var cols := ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
 	var col_s: String = cols[clampi(c.x, 0, cols.size() - 1)]
 	return "%s%d" % [col_s, c.y + 1]
 
@@ -805,8 +859,10 @@ func _on_board_gui_input(event: InputEvent) -> void:
 		# 2. MOVEMENT WAYPOINT PLANNING (only for empty or neutral quadrants)
 		var cur := _p_cells[selected_unit_idx]
 		var delta_c := clicked_cell - cur
-		# Max 2 sectors move, or 3 if in the Éther Stream
-		var max_step := 3 if _sector_types.get(cur, "") == "wind_stream" else 2
+		# Max 1 sector standard, or 2 if in the Éther Stream or Spearhead Wedge
+		var in_stream := (_sector_types.get(cur, "") == "wind_stream")
+		var is_wedge := (current_formation == Formation.SPEARHEAD_WEDGE)
+		var max_step := 2 if (in_stream or is_wedge) else 1
 		var clamped_target := Vector2i(
 			clampi(cur.x + clampi(delta_c.x, -max_step, max_step), 0, GRID_COLS - 1),
 			clampi(cur.y + clampi(delta_c.y, -max_step, max_step), 0, GRID_ROWS - 1)
@@ -860,7 +916,9 @@ func _on_strategic_turn_anim_done() -> void:
 		for e in _e_cells:
 			min_cell_dist = minf(min_cell_dist, Vector2(p - e).length())
 
-	var contact := (min_cell_dist <= 2.2) or (strategic_turn >= MAX_STRATEGIC_TURNS)
+	# Contact only occurs when fleets occupy the same or adjacent sector (<= 1.2),
+	# or when reaching MAX_STRATEGIC_TURNS (turn 6)
+	var contact := (min_cell_dist <= 1.2) or (strategic_turn >= MAX_STRATEGIC_TURNS)
 	var b := compute_strategic_bonuses()
 
 	var p_spawns: Array[Dictionary] = []
@@ -883,7 +941,10 @@ func _on_strategic_turn_anim_done() -> void:
 		strategic_turn += 1
 		if strategic_turn >= 2:
 			# Fluid seeps dilate and spread inward into adjacent sectors
-			for p in [Vector2i(1, 1), Vector2i(2, 0), Vector2i(5, 0), Vector2i(6, 1), Vector2i(0, 4), Vector2i(1, 3)]:
+			for p in [Vector2i(2, 0), Vector2i(2, 1), Vector2i(7, 0), Vector2i(7, 1), Vector2i(0, 2), Vector2i(9, 2)]:
+				_sector_types[p] = "calm"
+		if strategic_turn >= 4:
+			for p in [Vector2i(3, 0), Vector2i(6, 0), Vector2i(1, 2), Vector2i(8, 2), Vector2i(0, 6), Vector2i(9, 6)]:
 				_sector_types[p] = "calm"
 		_plan_initial_orders()
 		_refresh_ui()
@@ -939,8 +1000,8 @@ func _draw_naval_chart() -> void:
 
 	var cur_sel_cell := _p_cells[selected_unit_idx]
 
-	# 1. Draw 8x6 Strategic Quadrants (Clean, unsaturated, non-intrusive)
-	var cols_lbl := ["A", "B", "C", "D", "E", "F", "G", "H"]
+	# 1. Draw 10x8 Strategic Quadrants (Clean, unsaturated, non-intrusive)
+	var cols_lbl := ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
 	for gx in range(GRID_COLS):
 		for gy in range(GRID_ROWS):
 			var cell := Vector2i(gx, gy)
@@ -979,7 +1040,9 @@ func _draw_naval_chart() -> void:
 				icon_col = Color(0.95, 0.40, 1.0, 0.90)
 
 			# Reachable Quadrants for Selected Ship (subtle highlight)
-			var max_step := 3 if _sector_types.get(cur_sel_cell, "") == "wind_stream" else 2
+			var in_stream := (_sector_types.get(cur_sel_cell, "") == "wind_stream")
+			var is_wedge := (current_formation == Formation.SPEARHEAD_WEDGE)
+			var max_step := 2 if (in_stream or is_wedge) else 1
 			var is_reachable := (absi(gx - cur_sel_cell.x) <= max_step and absi(gy - cur_sel_cell.y) <= max_step)
 			if is_reachable and not is_animating_turn:
 				fill_col = fill_col.blend(Color(0.20, 0.80, 1.0, 0.06))

@@ -3,7 +3,7 @@ extends Node3D
 const TURN_SPEED := 2.2
 const SPEED_STEP := 8.0
 const PITCH_LIMIT := 1.15
-const ENGAGEMENT_RANGE := 65.0
+const ENGAGEMENT_RANGE := 42.0
 
 var _player_ships: Array[Ship] = []
 var _enemy_ships: Array[Ship] = []
@@ -1822,88 +1822,88 @@ func _spawn_fleets() -> void:
 	match LoreDB.current_stage_id:
 		"acero_stage_1":
 			# ACT I // STAGE 01 [TUTORIAL]: Defense of Sluice Station Well-09 (Acero vs Free Tide Corsair Scouts)
-			_player_ships.append(_spawn("acero_dreadnought", Vector3(-12.0, 5.0, 36.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_battlecruiser", Vector3(4.0, 2.0, 34.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 38.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 2.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 56.0), Vector3.ZERO, 0))
 
-			var e1 := _spawn("marea_galleon", Vector3(-10.0, 6.0, -40.0), Vector3(0.0, 0.0, 3.5), 1)
+			var e1 := _spawn("marea_galleon", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.5), 1)
 			e1.hp = roundf(e1.hp * 0.85)
 			e1.max_hp = e1.hp
 			_enemy_ships.append(e1)
-			var e2 := _spawn("marea_raider", Vector3(8.0, 3.0, -44.0), Vector3(0.0, 0.0, 4.0), 1)
+			var e2 := _spawn("marea_raider", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 4.0), 1)
 			e2.hp = roundf(e2.hp * 0.85)
 			e2.max_hp = e2.hp
 			_enemy_ships.append(e2)
-			var e3 := _spawn("marea_brigantine", Vector3(20.0, 8.0, -38.0), Vector3(0.0, 0.0, 4.5), 1)
+			var e3 := _spawn("marea_brigantine", Vector3(20.0, 8.0, -54.0), Vector3(0.0, 0.0, 4.5), 1)
 			e3.hp = roundf(e3.hp * 0.85)
 			e3.max_hp = e3.hp
 			_enemy_ships.append(e3)
 		"acero_stage_2":
 			# ACT I // STAGE 02: Ambush at the Resonance Spire (Acero vs Vinculados Choir Wing)
-			_player_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 4.0, 36.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 7.0, 34.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_corvette", Vector3(20.0, 2.0, 38.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 4.0, 55.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 7.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 2.0, 56.0), Vector3.ZERO, 0))
 
-			_enemy_ships.append(_spawn("vinculados_suit", Vector3(-12.0, 8.0, -42.0), Vector3(1.5, 0.0, 4.2), 1))
-			_enemy_ships.append(_spawn("vinculados_anima", Vector3(6.0, 2.0, -44.0), Vector3(-1.2, 0.0, 4.8), 1))
-			_enemy_ships.append(_spawn("vinculados_nous", Vector3(20.0, 6.0, -38.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(-8.0, 8.0, -55.0), Vector3(1.5, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(8.0, 2.0, -56.0), Vector3(-1.2, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(20.0, 6.0, -54.0), Vector3(0.0, 0.0, 3.8), 1))
 		"acero_stage_3":
 			# ACT I // STAGE 03: The Calm Threshold (Acero vs Veteran Free Tide Flagship Squadron)
-			_player_ships.append(_spawn("acero_dreadnought", Vector3(-12.0, 5.0, 36.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_battlecruiser", Vector3(4.0, 3.0, 34.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 38.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 3.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 56.0), Vector3.ZERO, 0))
 
-			var boss_gal := _spawn("marea_galleon", Vector3(-14.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.8), 1)
+			var boss_gal := _spawn("marea_galleon", Vector3(-10.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.8), 1)
 			boss_gal.hp = roundf(boss_gal.hp * 1.20)
 			boss_gal.max_hp = boss_gal.hp
 			_enemy_ships.append(boss_gal)
-			_enemy_ships.append(_spawn("marea_raider", Vector3(4.0, 3.0, -45.0), Vector3(0.0, 0.0, 4.4), 1))
-			_enemy_ships.append(_spawn("marea_brigantine", Vector3(20.0, 8.0, -40.0), Vector3(0.0, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(6.0, 3.0, -56.0), Vector3(0.0, 0.0, 4.4), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(20.0, 8.0, -54.0), Vector3(0.0, 0.0, 4.8), 1))
 		"marea_stage_1":
 			# ACT III // STAGE 01 [TUTORIAL]: Anvil Blockade (Free Tide Corsairs vs Acero Blockade)
-			_player_ships.append(_spawn("marea_galleon", Vector3(-10.0, 5.0, 36.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_raider", Vector3(6.0, 2.0, 38.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_brigantine", Vector3(18.0, 7.0, 34.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(6.0, 2.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(18.0, 7.0, 54.0), Vector3.ZERO, 0))
 
-			var me1 := _spawn("acero_dreadnought", Vector3(-10.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.0), 1)
+			var me1 := _spawn("acero_dreadnought", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.0), 1)
 			me1.hp = roundf(me1.hp * 0.85)
 			me1.max_hp = me1.hp
 			_enemy_ships.append(me1)
-			var me2 := _spawn("acero_battlecruiser", Vector3(6.0, 3.0, -44.0), Vector3(0.0, 0.0, 3.0), 1)
+			var me2 := _spawn("acero_battlecruiser", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1)
 			me2.hp = roundf(me2.hp * 0.85)
 			me2.max_hp = me2.hp
 			_enemy_ships.append(me2)
-			var me3 := _spawn("acero_corvette", Vector3(18.0, 5.0, -40.0), Vector3(0.0, 0.0, 3.5), 1)
+			var me3 := _spawn("acero_corvette", Vector3(20.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.5), 1)
 			me3.hp = roundf(me3.hp * 0.85)
 			me3.max_hp = me3.hp
 			_enemy_ships.append(me3)
 		"vinculados_stage_1":
 			# ACT II // STAGE 01 [TUTORIAL]: Sector Psalm-4 (Vinculados Choir vs Acero Vanguard)
-			_player_ships.append(_spawn("vinculados_suit", Vector3(-12.0, 7.0, 38.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_anima", Vector3(12.0, -4.0, 40.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_nous", Vector3(0.0, 2.0, 35.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_suit", Vector3(-8.0, 7.0, 55.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(12.0, -4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(2.0, 2.0, 54.0), Vector3.ZERO, 0))
 
-			var ve1 := _spawn("acero_dreadnought", Vector3(-10.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.0), 1)
+			var ve1 := _spawn("acero_dreadnought", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.0), 1)
 			ve1.hp = roundf(ve1.hp * 0.85)
 			ve1.max_hp = ve1.hp
 			_enemy_ships.append(ve1)
-			var ve2 := _spawn("acero_battlecruiser", Vector3(6.0, 3.0, -44.0), Vector3(0.0, 0.0, 3.0), 1)
+			var ve2 := _spawn("acero_battlecruiser", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1)
 			ve2.hp = roundf(ve2.hp * 0.85)
 			ve2.max_hp = ve2.hp
 			_enemy_ships.append(ve2)
-			var ve3 := _spawn("acero_corvette", Vector3(18.0, 5.0, -40.0), Vector3(0.0, 0.0, 3.5), 1)
+			var ve3 := _spawn("acero_corvette", Vector3(20.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.5), 1)
 			ve3.hp = roundf(ve3.hp * 0.85)
 			ve3.max_hp = ve3.hp
 			_enemy_ships.append(ve3)
 		_:
 			# Fallback Sandbox
-			_player_ships.append(_spawn("vinculados_suit", Vector3(-12.0, 7.0, 38.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_anima", Vector3(12.0, -4.0, 40.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_nous", Vector3(0.0, 2.0, 35.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_suit", Vector3(-8.0, 7.0, 55.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(12.0, -4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(2.0, 2.0, 54.0), Vector3.ZERO, 0))
 
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 3.0, -44.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_corvette", Vector3(18.0, 5.0, -40.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(20.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.5), 1))
 
 	_tactical_grid.set_ships(_player_ships + _enemy_ships)
 
@@ -3140,6 +3140,10 @@ func _on_chart_engage_3d(bonuses: Dictionary) -> void:
 
 	if bonuses.get("sluice_held", false):
 		_add_combat_log("⚙ [SLUICE STATION HELD] Continuous power flow shields allied squadron (+20 SHLD regen)!", Color(1.0, 0.82, 0.35))
+	if bonuses.get("conduit_held", false):
+		_add_combat_log("⚡ [CONDUIT RELAYS CAPTURED] Strategic grid online! (+1 AP & +15% Speed to all units)", Color(0.35, 1.0, 0.85))
+	if bonuses.get("reef_held", false):
+		_add_combat_log("🪨 [BASALT REEF AMBUSH] Flank squadron undetected in asteroid cover! (+25% Crit Damage on opening salvo)", Color(0.95, 0.75, 0.35))
 
 	_engage_ace_mode()
 
