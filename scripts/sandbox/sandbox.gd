@@ -487,11 +487,12 @@ func _advance_calm_wavefront() -> void:
 	for seep in _calm_seeps:
 		var growth: float = seep.get("growth", 2.2)
 		avg_growth += growth
-		seep["radius"] += growth
+		var cur_rad: float = seep.get("radius", 20.0) + growth
+		seep["radius"] = cur_rad
 		var s_root: Node3D = seep.get("root_node")
 		if s_root != null and is_instance_valid(s_root):
-			var cur_scale := s_root.scale
-			var growth_ratio := (seep["radius"] / maxf(seep["radius"] - growth, 1.0))
+			var cur_scale: Vector3 = s_root.scale
+			var growth_ratio: float = cur_rad / maxf(cur_rad - growth, 1.0)
 			var target_scale := Vector3(cur_scale.x * growth_ratio, cur_scale.y, cur_scale.z * growth_ratio)
 			tw.tween_property(s_root, "scale", target_scale, 1.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
