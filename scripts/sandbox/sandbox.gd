@@ -557,6 +557,10 @@ func _on_ship_clicked(clicked_ship: Ship) -> void:
 	else:
 		_set_selected(clicked_ship)
 		_add_combat_log("Selected unit: %s" % clicked_ship.ship_name, Color(0.35, 1.0, 0.6))
+		if _admiral_chart != null and _admiral_chart.visible:
+			var s_idx := _player_ships.find(clicked_ship)
+			if s_idx != -1:
+				_admiral_chart.set_selected_unit(s_idx)
 
 func _on_ship_right_clicked(clicked_ship: Ship) -> void:
 	if clicked_ship.team == 1:

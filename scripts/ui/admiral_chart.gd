@@ -13,6 +13,12 @@ const MAX_STRATEGIC_TURNS := 5
 
 enum Formation { LINE_OF_BATTLE, SPEARHEAD_WEDGE, FLANKING_PINCER }
 
+const UNIT_COLORS: Array[Color] = [
+	Color(0.22, 0.88, 1.0),   # Unit 1: Cyan / Electric Blue (Flagship)
+	Color(1.0, 0.80, 0.25),   # Unit 2: Amber / Gold (Vanguard)
+	Color(0.38, 1.0, 0.65)    # Unit 3: Emerald / Mint (Flanker)
+]
+
 var player_ships: Array[Ship] = []
 var enemy_ships: Array[Ship] = []
 var wind_dir: Vector2 = Vector2(1.0, -0.25).normalized()
@@ -92,6 +98,11 @@ func sync_from_3d_ships(p_ships: Array[Ship], e_ships: Array[Ship], ether_field:
 
 	_plan_initial_orders()
 	_refresh_ui()
+
+func set_selected_unit(idx: int) -> void:
+	if idx >= 0 and idx < 3:
+		selected_unit_idx = idx
+		_refresh_ui()
 
 func _world_to_cell(pos: Vector3, _is_player: bool, _idx: int) -> Vector2i:
 	var cx := clampi(roundi(remap(pos.x, -45.0, 45.0, 0.0, float(GRID_COLS - 1))), 0, GRID_COLS - 1)
@@ -631,8 +642,11 @@ func _refresh_ui() -> void:
 			p_name = player_ships[i].pilot_name
 		var c := _p_cells[i]
 		var t := _p_targets[i]
-		btn.text = "%s\n%s [%s→%s]" % [u_name, p_name, _cell_name(c), _cell_name(t)]
-		btn.modulate = Color(0.4, 1.0, 0.85) if i == selected_unit_idx else Color(0.82, 0.88, 0.96)
+		var is_sel := (i == selected_unit_idx)
+		var sel_mark := "★ " if is_sel else "▶ "
+		var u_col: Color = UNIT_COLORS[i]
+		btn.text = "%s%s: %s\n   [%s → %s]" % [sel_mark, u_name, p_name, _cell_name(c), _cell_name(t)]
+		btn.modulate = u_col if is_sel else u_col * Color(1.0, 1.0, 1.0, 0.60)
 
 	for i in range(_form_btns.size()):
 		var active := (int(current_formation) == i)
@@ -723,16 +737,46 @@ func _on_board_gui_input(event: InputEvent) -> void:
 			clampi(int((mpos.y - br.position.y) / ch), 0, GRID_ROWS - 1)
 		)
 
-		# 1. Direct ship selection: click on any allied ship's token or cell
+		# 1. DIRECT SHIP SELECTION:
+		# Check if the click is directly on any allied ship (3D model in space, current quadrant, or destination quadrant)
 		var clicked_ship_idx := -1
-		for i in range(3):
-			if i < player_ships.size() and player_ships[i] != null and player_ships[i].is_destroyed():
-				continue
-			var ship_screen_pos := _cell_center(_p_anim_pos[i])
-			if mpos.distance_to(ship_screen_pos) <= minf(cw, ch) * 0.48 or clicked_cell == _p_cells[i]:
-				clicked_ship_idx = i
-				break
+		var cam := get_viewport().get_camera_3d()
+		var global_mouse := get_viewport().get_mouse_position()
 
+		# A. Direct click on the 3D ship model in space via camera projection
+		if cam != null:
+			for i in range(mini(3, player_ships.size())):
+				var s := player_ships[i]
+				if s == null or s.is_destroyed():
+					continue
+				var s_screen := cam.unproject_position(s.global_position)
+				if global_mouse.distance_to(s_screen) <= 55.0:
+					clicked_ship_idx = i
+					break
+
+		# B. Direct click on any ship's current grid cell
+		if clicked_ship_idx == -1:
+			for i in range(3):
+				if clicked_cell == _p_cells[i]:
+					clicked_ship_idx = i
+					break
+
+		# C. Direct click on any ship's selected destination quadrant
+		if clicked_ship_idx == -1:
+			for i in range(3):
+				if i != selected_unit_idx and clicked_cell == _p_targets[i]:
+					clicked_ship_idx = i
+					break
+
+		# D. Direct click on 2D animated ship token
+		if clicked_ship_idx == -1:
+			for i in range(3):
+				var ship_2d := _cell_center(_p_anim_pos[i])
+				if mpos.distance_to(ship_2d) <= minf(cw, ch) * 0.45:
+					clicked_ship_idx = i
+					break
+
+		# If an allied ship was clicked, SELECT IT DIRECTLY!
 		if clicked_ship_idx != -1:
 			AudioManager.play_sfx("ui_click", -8.0)
 			selected_unit_idx = clicked_ship_idx
@@ -740,7 +784,7 @@ func _on_board_gui_input(event: InputEvent) -> void:
 			_refresh_ui()
 			return
 
-		# 2. Movement waypoint planning for selected ship (or whole fleet)
+		# 2. MOVEMENT WAYPOINT PLANNING (only for empty or neutral quadrants)
 		var cur := _p_cells[selected_unit_idx]
 		var delta_c := clicked_cell - cur
 		# Max 2 sectors move, or 3 if in the Éther Stream
@@ -925,60 +969,65 @@ func _draw_naval_chart() -> void:
 			if icon_txt != "":
 				c.draw_string(font, r.position + Vector2(r.size.x - 38, 13), icon_txt, HORIZONTAL_ALIGNMENT_RIGHT, 32, 8, icon_col)
 
-	# 2. MARK ALL ALLIED SHIPS' ACTIVE AND ARRIVAL QUADRANTS (Full Fleet Formation Overview)
+	# 2. ALL ALLIED SHIPS' TARGET & START QUADRANTS (Persistent for all ships at all times)
 	for i in range(3):
 		if i < player_ships.size() and player_ships[i] != null and player_ships[i].is_destroyed():
 			continue
 
+		var u_col: Color = UNIT_COLORS[i]
 		var p_cur := _p_cells[i]
 		var p_tgt := _p_targets[i]
 		var is_selected := (i == selected_unit_idx)
 
-		# A. Active Quadrant for Unit i
-		var cur_r := _cell_rect(p_cur).grow(-2.0)
-		if is_selected:
-			c.draw_rect(cur_r, Color(0.20, 0.85, 1.0, 0.14), true)
-			c.draw_rect(cur_r, Color(0.35, 0.96, 1.0, 0.95), false, 2.0)
-			_draw_corner_brackets(c, cur_r, Color(1.0, 0.92, 0.45), 10.0, 2.5)
-			c.draw_string(font, cur_r.position + Vector2(6, cur_r.size.y - 5), "● U%d ACTIVE" % (i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(0.40, 1.0, 0.85))
-		else:
-			c.draw_rect(cur_r, Color(0.20, 0.75, 0.95, 0.05), true)
-			c.draw_rect(cur_r, Color(0.25, 0.70, 0.90, 0.50), false, 1.2)
-			_draw_corner_brackets(c, cur_r, Color(0.35, 0.80, 0.95, 0.65), 6.0, 1.2)
-			c.draw_string(font, cur_r.position + Vector2(6, cur_r.size.y - 5), "● U%d" % (i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(0.55, 0.80, 0.95, 0.85))
+		# A. START QUADRANT (Where unit is right now)
+		if p_cur != p_tgt:
+			var cur_r := _cell_rect(p_cur).grow(-3.0)
+			var cur_border := u_col * Color(1.0, 1.0, 1.0, 0.60 if is_selected else 0.35)
+			c.draw_rect(cur_r, cur_border, false, 1.2)
+			_draw_corner_brackets(c, cur_r, cur_border, 5.0, 1.0)
+			c.draw_string(font, cur_r.position + Vector2(6, 13 + i * 11), "U%d START" % (i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, cur_border)
 
-		# B. Arrival/Target Waypoint Quadrant for Unit i (always visible so entire formation preview is clear)
-		if p_tgt != p_cur:
-			var tgt_r := _cell_rect(p_tgt).grow(-2.0)
-			if is_selected:
-				c.draw_rect(tgt_r, Color(1.0, 0.82, 0.28, 0.16), true)
-				c.draw_rect(tgt_r, Color(1.0, 0.85, 0.35, 0.95), false, 2.0)
-				_draw_corner_brackets(c, tgt_r, Color(1.0, 0.85, 0.35), 10.0, 2.0)
-				c.draw_string(font, tgt_r.position + Vector2(6, tgt_r.size.y - 5), "▶ U%d WAYPOINT" % (i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(1.0, 0.85, 0.35))
-			else:
-				c.draw_rect(tgt_r, Color(0.30, 0.85, 1.0, 0.09), true)
-				c.draw_rect(tgt_r, Color(0.35, 0.85, 1.0, 0.75), false, 1.5)
-				_draw_corner_brackets(c, tgt_r, Color(0.35, 0.85, 1.0, 0.85), 7.0, 1.5)
-				c.draw_string(font, tgt_r.position + Vector2(6, tgt_r.size.y - 5), "▶ U%d ARRIVAL" % (i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(0.40, 0.90, 1.0, 0.90))
+		# B. SELECTED DESTINATION QUADRANT (ALWAYS VISIBLE for all 3 ships!)
+		var tgt_r := _cell_rect(p_tgt).grow(-2.0)
+		var fill_alpha := 0.22 if is_selected else 0.12
+		var line_w := 2.5 if is_selected else 1.8
+		var brk_len := 11.0 if is_selected else 7.0
+
+		c.draw_rect(tgt_r, Color(u_col.r, u_col.g, u_col.b, fill_alpha), true)
+		c.draw_rect(tgt_r, u_col if is_selected else u_col * Color(1.0, 1.0, 1.0, 0.85), false, line_w)
+		_draw_corner_brackets(c, tgt_r, u_col if is_selected else u_col * Color(1.0, 1.0, 1.0, 0.90), brk_len, line_w)
+
+		var s_name := "U%d" % (i + 1)
+		if i < player_ships.size() and player_ships[i] != null:
+			s_name = player_ships[i].ship_name
+		var action_txt := ("★ U%d: %s" % [i + 1, s_name]) if is_selected else ("▶ U%d: %s" % [i + 1, s_name])
+		if p_tgt == p_cur:
+			action_txt += " [HOLD]"
+		else:
+			action_txt += " [TARGET]"
+
+		c.draw_string(font, tgt_r.position + Vector2(6, tgt_r.size.y - 6 - i * 11), action_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 9 if is_selected else 8, u_col if is_selected else u_col * Color(1.0, 1.0, 1.0, 0.95))
 
 	# 3. DRAW FLEET ARRIVAL FORMATION GEOMETRY (Line connecting all 3 arrival points)
 	var t0 := _cell_center(Vector2(_p_targets[0]))
 	var t1 := _cell_center(Vector2(_p_targets[1]))
 	var t2 := _cell_center(Vector2(_p_targets[2]))
-	var form_line_col := Color(0.35, 0.92, 1.0, 0.40)
-	c.draw_line(t1, t0, form_line_col, 1.5, true)
-	c.draw_line(t0, t2, form_line_col, 1.5, true)
+	var form_line_col := Color(0.35, 0.92, 1.0, 0.45)
+	c.draw_line(t1, t0, form_line_col, 1.8, true)
+	c.draw_line(t0, t2, form_line_col, 1.8, true)
 
-	# 4. Draw Planned Movement Vectors for all units
+	# 4. Draw Planned Movement Vectors for all units (NO CIRCLES!)
 	for i in range(3):
 		var p_from := _cell_center(_p_anim_pos[i])
 		var p_to := _cell_center(Vector2(_p_targets[i]))
 		var is_selected := (i == selected_unit_idx)
-		var line_col := Color(0.35, 0.98, 1.0, 0.85) if is_selected else Color(0.25, 0.70, 0.90, 0.45)
-		c.draw_line(p_from, p_to, line_col, 2.0 if is_selected else 1.3)
-		c.draw_circle(p_to, 4.0 if is_selected else 2.8, line_col)
-		if is_selected:
-			c.draw_arc(p_to, 8.0, 0.0, TAU, 16, line_col, 1.2)
+		var u_col: Color = UNIT_COLORS[i]
+		var vec_col := u_col if is_selected else u_col * Color(1.0, 1.0, 1.0, 0.65)
+		c.draw_line(p_from, p_to, vec_col, 2.2 if is_selected else 1.4)
+		# Clean crosshair tick at destination (NO circles!)
+		var cross_sz := 5.0 if is_selected else 3.5
+		c.draw_line(p_to - Vector2(cross_sz, 0), p_to + Vector2(cross_sz, 0), vec_col, 1.5)
+		c.draw_line(p_to - Vector2(0, cross_sz), p_to + Vector2(0, cross_sz), vec_col, 1.5)
 
 	# 5. Draw Hostile Ships (Minimalist, sharp tactical markers)
 	for i in range(3):
@@ -1005,28 +1054,20 @@ func _draw_naval_chart() -> void:
 			e_name = enemy_ships[i].ship_name
 		c.draw_string(font, e_pos + Vector2(-36, -12), e_name, HORIZONTAL_ALIGNMENT_CENTER, 72, 8, Color(1.0, 0.75, 0.75))
 
-	# 6. Draw Allied Ships (Tactical reticles overlaid directly on 3D ships, no 2D prow arrow)
+	# 6. Draw Allied Ships (Overlaid directly over 3D ships: NO CIRCLES, NO ARROWS!)
 	for i in range(3):
 		if i < player_ships.size() and player_ships[i] != null and player_ships[i].is_destroyed():
 			continue
 		var p_pos := _cell_center(_p_anim_pos[i])
 		var is_sel := (i == selected_unit_idx)
-		var p_col := Color(0.35, 1.0, 0.85) if is_sel else Color(0.30, 0.78, 0.95)
+		var u_col: Color = UNIT_COLORS[i]
 
-		# Tactical Reticle Ring around ship
-		var ring_radius := 11.0 if is_sel else 9.0
-		c.draw_arc(p_pos, ring_radius, 0.0, TAU, 24, p_col, 1.8 if is_sel else 1.2)
-
-		# Center Pip
-		c.draw_circle(p_pos, 3.5 if is_sel else 2.5, Color(1.0, 0.92, 0.45) if is_sel else p_col)
-
-		# Corner target brackets on selected ship reticle
+		# NO circles! NO arrows!
+		# Only a sleek rectangular bracket around the ship's footprint when selected:
 		if is_sel:
-			var ship_reticle_box := Rect2(p_pos - Vector2(14, 14), Vector2(28, 28))
-			_draw_corner_brackets(c, ship_reticle_box, Color(1.0, 0.90, 0.40), 5.0, 1.5)
+			var sel_box := Rect2(p_pos - Vector2(16, 12), Vector2(32, 24))
+			_draw_corner_brackets(c, sel_box, u_col, 5.0, 1.5)
 
-		# Unit Name
-		var u_lbl := "UNIT %d" % (i + 1)
-		if i < player_ships.size() and player_ships[i] != null:
-			u_lbl = player_ships[i].ship_name
-		c.draw_string(font, p_pos + Vector2(-45, 17), u_lbl, HORIZONTAL_ALIGNMENT_CENTER, 90, 9, Color(1.0, 1.0, 1.0) if is_sel else Color(0.75, 0.88, 0.96))
+		# Unit Name label underneath
+		var u_lbl := "U%d: %s" % [i + 1, player_ships[i].ship_name if i < player_ships.size() else ""]
+		c.draw_string(font, p_pos + Vector2(-45, 17), u_lbl, HORIZONTAL_ALIGNMENT_CENTER, 90, 9, u_col if is_sel else Color(0.85, 0.92, 1.0, 0.85))
