@@ -774,39 +774,53 @@ func _select_faction_and_open_briefing(fac_id: String) -> void:
 
         "vinculados":
             LoreDB.current_stage_id = "vinculados_stage_1"
-            _briefing_title_lbl.text = "ACT II // STAGE 01: RESONANCE WELL PSALM-4"
-            _briefing_sub_lbl.text = "FACTION: THE VINCULADOS // HOSTILES: THE ARMADA OF ACERO"
+            var v_btn := Button.new()
+            v_btn.text = "STAGE 01 [TUTORIAL]: PSALM-4"
+            v_btn.custom_minimum_size = Vector2(210, 32)
+            v_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+            _stage_selector_row.add_child(v_btn)
+
+            _briefing_title_lbl.text = "ACT II // STAGE 01 [TUTORIAL]: RESONANCE WELL PSALM-4"
+            _briefing_sub_lbl.text = "FACTION: THE VINCULADOS // CHOIR DRILL & STERN RAKE TUTORIAL"
             _briefing_art_rect.texture = load("res://assets/factions/card_vinculados.png")
             _commander_portrait_rect.texture = load("res://assets/heroes/ace_kaelen.png")
             _commander_name_lbl.text = "ACE PILOT KAELEN-7"
             _commander_role_lbl.text = "Lead Resonance Choir // Eidolon Prime"
-            _commander_quote_lbl.text = "\"An Armada of Acero battle group has anchored inside Resonance Well Psalm-4 to dam the current. Our neural link is clear—use our superior turn rate and high-thrust vectors to slip behind their dreadnought's stern armor and strike before the Calm arrives.\""
-            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Neutralize the 3 Acero warships (CNS Iron Bastion, CNS Hammer of Anvil, CNS Vanguard-03) occupying Sector Psalm-4.
-◆ SECONDARY OBJECTIVE: Keep Command Frame Eidolon Prime operational.
-◆ VINCULADOS DOCTRINE: Low mass and high turn power allow rapid vector changes, Weather-Gauge [BARLOVENTO] bonuses, and Stern Rake critical hits (+40% DMG)."""
+            _commander_quote_lbl.text = "\"Welcome to the Choir Wing, pilot. In this tactical training drill, learn how to synchronize your neural frame with the Éther. Our high turn rates allow us to out-pivot slow Acero warships. Slip into their rear quadrant for critical Stern Rakes and strike before the Calm advances.\""
+            _objectives_lbl.text = """◆ TUTORIAL DRILL 1 (MECHA MOBILITY): High turn rate, fast vectors, and neural barrier usage.
+◆ TUTORIAL DRILL 2 (CRITICAL DOCTRINE): Slip behind enemy dreadnoughts for devastating STERN RAKE (+40% CRITICAL DMG).
+◆ PRIMARY OBJECTIVE: Neutralize the 3 Acero warships (CNS Iron Bastion, CNS Hammer of Anvil, CNS Vanguard-03) occupying Sector Psalm-4.
+◆ SECONDARY OBJECTIVE: Keep Command Frame Eidolon Prime operational."""
             _add_squadron_row("vinculados_suit", "Eidolon Prime", "Eidolon Command Frame • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Resonance Lance & Barrier")
             _add_squadron_row("vinculados_anima", "Anima-01 (Aria)", "Anima Strike Frame • Ace Mirei-4", "HP 115 | SPD 36 m/s | Rapid Flank Interceptor")
             _add_squadron_row("vinculados_nous", "Nous-04 (Cantor)", "Nous Heavy Frame • Conductor Seraph-2", "HP 195 | SPD 27 m/s | Heavy Resonance Beam")
             if _launch_stage_btn != null:
-                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 01"
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
 
         "marea_libre":
             LoreDB.current_stage_id = "marea_stage_1"
-            _briefing_title_lbl.text = "ACT III // STAGE 01: BREAKING THE ANVIL BLOCKADE"
-            _briefing_sub_lbl.text = "FACTION: THE FREE TIDE // HOSTILES: THE ARMADA OF ACERO"
+            var m_btn := Button.new()
+            m_btn.text = "STAGE 01 [TUTORIAL]: ANVIL BLOCKADE"
+            m_btn.custom_minimum_size = Vector2(230, 32)
+            m_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+            _stage_selector_row.add_child(m_btn)
+
+            _briefing_title_lbl.text = "ACT III // STAGE 01 [TUTORIAL]: BREAKING THE ANVIL BLOCKADE"
+            _briefing_sub_lbl.text = "FACTION: THE FREE TIDE // CORSAIR DRILL & BARLOVENTO TUTORIAL"
             _briefing_art_rect.texture = load("res://assets/factions/card_marea.png")
             _commander_portrait_rect.texture = load("res://assets/heroes/ace_solano.png")
             _commander_name_lbl.text = "CAPTAIN SOLANO"
             _commander_role_lbl.text = "Corsair Flagship // Viento Rojo"
-            _commander_quote_lbl.text = "\"Acero thinks they can lock the Star Sea behind iron sluice-gates! Unfurl the quantum membranes, catch the tailwind, and sweep their flanks with our broadside field-lances!\""
-            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Break the 3-ship Acero blockade flotilla guarding the Sluice lane.
-◆ SECONDARY OBJECTIVE: Keep Corsair Flagship Viento Rojo afloat.
-◆ FREE TIDE DOCTRINE: Ride the cyan Éther current for bonus speed and Weather-Gauge [BARLOVENTO] accuracy (+12% Hit), unleashing devastating Port/Starboard broadsides (+18% Broadside Bonus)."""
+            _commander_quote_lbl.text = "\"Listen up, sea dogs! Time to learn how real sailors fight in the Star Sea. Unfurl the quantum sails, ride the cyan Éther current to claim the Weather-Gauge [BARLOVENTO], and sweep their flanks with port and starboard broadside volleys!\""
+            _objectives_lbl.text = """◆ TUTORIAL DRILL 1 (THE ÉTHER SEA): Sail along the cyan currents to gain tailwind speed boosts.
+◆ TUTORIAL DRILL 2 (WEATHER-GAUGE [BARLOVENTO]): Attack from upwind for +12% Hit accuracy, unleashing +18% port/starboard broadside barrages.
+◆ PRIMARY OBJECTIVE: Break the 3-ship Acero blockade flotilla guarding the Sluice lane.
+◆ SECONDARY OBJECTIVE: Keep Corsair Flagship Viento Rojo afloat."""
             _add_squadron_row("marea_galleon", "Viento Rojo", "Corsair Void-Galleon • Capt. Solano", "HP 300 | RNG 50m | Quantum Sails & Broadsides")
             _add_squadron_row("marea_raider", "La Descarada", "Corsair Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
             _add_squadron_row("marea_brigantine", "Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
             if _launch_stage_btn != null:
-                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 01"
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
 
     _switch_view(MenuView.BRIEFING)
 
@@ -819,7 +833,7 @@ func _populate_acero_stage_briefing(stage_id: String) -> void:
         child.queue_free()
 
     var stages := [
-        {"id": "acero_stage_1", "label": "STAGE 01: SLUICE WELL-09"},
+        {"id": "acero_stage_1", "label": "STAGE 01 [TUTORIAL]: SLUICE WELL-09"},
         {"id": "acero_stage_2", "label": "STAGE 02: RESONANCE SPIRE"},
         {"id": "acero_stage_3", "label": "STAGE 03: CALM THRESHOLD"}
     ]
@@ -867,14 +881,15 @@ func _populate_acero_stage_briefing(stage_id: String) -> void:
             if _launch_stage_btn != null:
                 _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 03"
         _:
-            _briefing_title_lbl.text = "ACT I // STAGE 01: DEFENSE OF SLUICE STATION WELL-09"
-            _briefing_sub_lbl.text = "FACTION: THE ARMADA OF ACERO // HOSTILES: THE FREE TIDE CORSAIRS"
-            _commander_quote_lbl.text = "\"The Calm has already starved three outer wells. Now Captain Solano's Free Tide corsair flotilla emerges from the basalt reefs to raid Sluice Station Well-09. Do not chase their sails — form a wall of steel alongside the Sluice Gate, angle our heavy bow armor, and shatter their hulls with interlocking broadsides. Steel endures.\""
-            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Destroy all 3 hostile Free Tide corsair warships (Viento Rojo, La Descarada, Brisa Negra) threatening Sluice Station Well-09.
-◆ SECONDARY OBJECTIVE: Ensure Flagship CNS Iron Bastion survives the engagement.
-◆ ACERO TACTICAL DOCTRINE: Your warships have the heaviest Bow & Flank armor in the Star Sea and fire both Forward and Port/Starboard Broadsides (42°–138°). Claim the upwind Weather-Gauge [BARLOVENTO] and Cross the Enemy's T!"""
+            _briefing_title_lbl.text = "ACT I // STAGE 01 [TUTORIAL]: DEFENSE OF SLUICE STATION WELL-09"
+            _briefing_sub_lbl.text = "FACTION: THE ARMADA OF ACERO // NAVAL ACADEMY & BATTLE DRILL"
+            _commander_quote_lbl.text = "\"Officers and Cadets, welcome to the tactical line. Sluice Station Well-09 is under raid by corsair scouts. Today you master the foundation of Acero warfare: heavy armor angling, simultaneous WEGO maneuvering, and interlocking broadside fire. Form a wall of steel. Steel endures.\""
+            _objectives_lbl.text = """◆ TUTORIAL DRILL 1 (FLEET COMMAND): Learn simultaneous Admiral WEGO movement, ship selection, and vector steering.
+◆ TUTORIAL DRILL 2 (ACERO DOCTRINE): Heavy Bow/Flank armor, broadsides (42°–138°), and Action Points (AP).
+◆ PRIMARY OBJECTIVE: Destroy all 3 hostile Free Tide corsair warships (Viento Rojo, La Descarada, Brisa Negra) threatening Sluice Station Well-09.
+◆ SECONDARY OBJECTIVE: Ensure Flagship CNS Iron Bastion survives the engagement."""
             if _launch_stage_btn != null:
-                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 01"
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
 
     _add_squadron_row("acero_dreadnought", "CNS Iron Bastion", "Anvil-Class Dreadnought • Adm. Vane", "HP 380 | RNG 58m | Forward & Broadside Batteries")
     _add_squadron_row("acero_battlecruiser", "CNS Hammer of Anvil", "Hammer-Class Battlecruiser • Capt. Korr", "HP 260 | RNG 52m | Twin Spinal Railguns")

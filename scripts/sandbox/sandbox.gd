@@ -60,9 +60,21 @@ var _admiral_chart: AdmiralChart
 var _admiral_layer: CanvasLayer
 var _strategic_bonuses: Dictionary = {}
 
+var _is_tutorial_stage: bool = false
+var _tutorial_layer: CanvasLayer = null
+var _tutorial_banner: PanelContainer = null
+var _tutorial_step: int = 0
+var _tutorial_step_label: Label = null
+var _tutorial_title_label: Label = null
+var _tutorial_body_label: Label = null
+var _tutorial_prev_btn: Button = null
+var _tutorial_next_btn: Button = null
+
 func _ready() -> void:
 	TurnManager.reset()
 	_setup_input_actions()
+
+	_is_tutorial_stage = LoreDB.current_stage_id in ["acero_stage_1", "vinculados_stage_1", "marea_stage_1"]
 
 	PhysicsSim.bounds = AABB(
 		Vector3(-TacticalGrid.GRID_HALF_SPAN, -TacticalGrid.BOUNDS_HALF_HEIGHT, -TacticalGrid.GRID_HALF_SPAN),
@@ -112,14 +124,23 @@ func _ready() -> void:
 
 	match LoreDB.current_stage_id:
 		"acero_stage_1":
-			_add_combat_log("ACT I // STAGE 01: Sluice Station Well-09 under Corsair raid!", Color(1.0, 0.72, 0.28))
-			_add_combat_log("Adm. Vane: \"Hold the Line of Battle. Present bow armor and cross their T!\"", Color(0.4, 0.92, 1.0))
+			_add_combat_log("ACT I // STAGE 01 [TUTORIAL]: Sluice Station Well-09 under Corsair raid!", Color(1.0, 0.72, 0.28))
+			_add_combat_log("Adm. Vane: \"Cadets, sound battle stations. Present heavy bow armor and cross their T!\"", Color(0.4, 0.92, 1.0))
+			_add_combat_log("🎓 TUTORIAL ACTIVE: Follow the guided instructions above. Press [N] for Next Step.", Color(0.35, 1.0, 0.75))
 		"acero_stage_2":
 			_add_combat_log("ACT I // STAGE 02: Resonance Spire — Vinculados Choir Wing detected!", Color(0.85, 0.45, 1.0))
 			_add_combat_log("Adm. Vane: \"Their mobile suits ride the crosswind. Use Weather-Gauge [BARLOVENTO] & broadsides!\"", Color(0.4, 0.92, 1.0))
 		"acero_stage_3":
 			_add_combat_log("ACT I // STAGE 03: The Calm Threshold — Grand Coalition Fleet ahead!", Color(1.0, 0.45, 0.30))
 			_add_combat_log("Adm. Vane: \"The Calm is behind us. Anchor the Anvil line — Steel Endures!\"", Color(0.4, 0.92, 1.0))
+		"vinculados_stage_1":
+			_add_combat_log("ACT II // STAGE 01 [TUTORIAL]: Resonance Well Psalm-4 — Acero battle group anchored!", Color(0.85, 0.45, 1.0))
+			_add_combat_log("Ace Kaelen-7: \"Harmonic link online. Use high turn rates to slip behind their stern armor!\"", Color(0.4, 0.92, 1.0))
+			_add_combat_log("🎓 TUTORIAL ACTIVE: Follow the guided instructions above. Press [N] for Next Step.", Color(0.35, 1.0, 0.75))
+		"marea_stage_1":
+			_add_combat_log("ACT III // STAGE 01 [TUTORIAL]: Anvil Blockade — Acero ironclads blocking the Sluice lane!", Color(0.45, 0.95, 0.85))
+			_add_combat_log("Capt. Solano: \"Unfurl quantum sails! Catch the cyan tailwind and rake them from Barlovento!\"", Color(1.0, 0.85, 0.35))
+			_add_combat_log("🎓 TUTORIAL ACTIVE: Follow the guided instructions above. Press [N] for Next Step.", Color(0.35, 1.0, 0.75))
 		_:
 			_add_combat_log("Tactical link established. Outer Veil // Sector Psalm-4.", Color(0.4, 0.9, 1.0))
 			_add_combat_log("Tip: Hold [SHIFT + Left-Click/Drag] on the 3D plane to aim vector & speed.", Color(1.0, 0.85, 0.3))
@@ -218,6 +239,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event is InputEventKey and event.keycode == KEY_Z:
 			if _ace_panel != null and _ace_panel.visible:
 				_ace_panel.reset_all_ap()
+		elif event is InputEventKey and event.keycode == KEY_T:
+			if _is_tutorial_stage and _tutorial_banner != null:
+				_tutorial_banner.visible = not _tutorial_banner.visible
+				AudioManager.play_sfx("ui_click", -10.0)
+		elif _is_tutorial_stage and _tutorial_banner != null and _tutorial_banner.visible:
+			if event is InputEventKey and event.keycode == KEY_N:
+				if _tutorial_step >= 3:
+					_tutorial_banner.visible = false
+					_add_combat_log("🎓 Tutorial guide dismissed. Press [T] to re-open.", Color(0.4, 0.9, 1.0))
+				else:
+					_set_tutorial_step(_tutorial_step + 1)
+			elif event is InputEventKey and event.keycode == KEY_B:
+				_set_tutorial_step(_tutorial_step - 1)
+			elif event is InputEventKey and event.keycode == KEY_X:
+				_tutorial_banner.visible = false
+				_add_combat_log("🎓 Tutorial guide dismissed. Press [T] to re-open.", Color(0.4, 0.9, 1.0))
 
 func _apply_mouse_vector_steering(screen_pos: Vector2, play_feedback: bool) -> void:
 	if _selected_ship == null or _selected_ship.is_destroyed():
@@ -573,6 +610,9 @@ func _engage_ace_mode() -> void:
 	_set_selected(_player_ships[0])
 	_ace_target = _enemy_ships[0]
 	_update_round_banner()
+	if _is_tutorial_stage and _tutorial_banner != null and _tutorial_step == 0:
+		_set_tutorial_step(1)
+		_tutorial_banner.visible = true
 
 func _cycle_selection() -> void:
 	if _player_ships.is_empty():
@@ -1781,14 +1821,23 @@ func _build_tactical_grid() -> void:
 func _spawn_fleets() -> void:
 	match LoreDB.current_stage_id:
 		"acero_stage_1":
-			# ACT I // STAGE 01: Defense of Sluice Station Well-09 (Acero vs Free Tide Corsairs)
+			# ACT I // STAGE 01 [TUTORIAL]: Defense of Sluice Station Well-09 (Acero vs Free Tide Corsair Scouts)
 			_player_ships.append(_spawn("acero_dreadnought", Vector3(-12.0, 5.0, 36.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("acero_battlecruiser", Vector3(4.0, 2.0, 34.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 38.0), Vector3.ZERO, 0))
 
-			_enemy_ships.append(_spawn("marea_galleon", Vector3(-10.0, 6.0, -40.0), Vector3(0.0, 0.0, 3.5), 1))
-			_enemy_ships.append(_spawn("marea_raider", Vector3(8.0, 3.0, -44.0), Vector3(0.0, 0.0, 4.0), 1))
-			_enemy_ships.append(_spawn("marea_brigantine", Vector3(20.0, 8.0, -38.0), Vector3(0.0, 0.0, 4.5), 1))
+			var e1 := _spawn("marea_galleon", Vector3(-10.0, 6.0, -40.0), Vector3(0.0, 0.0, 3.5), 1)
+			e1.hp = roundf(e1.hp * 0.85)
+			e1.max_hp = e1.hp
+			_enemy_ships.append(e1)
+			var e2 := _spawn("marea_raider", Vector3(8.0, 3.0, -44.0), Vector3(0.0, 0.0, 4.0), 1)
+			e2.hp = roundf(e2.hp * 0.85)
+			e2.max_hp = e2.hp
+			_enemy_ships.append(e2)
+			var e3 := _spawn("marea_brigantine", Vector3(20.0, 8.0, -38.0), Vector3(0.0, 0.0, 4.5), 1)
+			e3.hp = roundf(e3.hp * 0.85)
+			e3.max_hp = e3.hp
+			_enemy_ships.append(e3)
 		"acero_stage_2":
 			# ACT I // STAGE 02: Ambush at the Resonance Spire (Acero vs Vinculados Choir Wing)
 			_player_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 4.0, 36.0), Vector3.ZERO, 0))
@@ -1811,16 +1860,43 @@ func _spawn_fleets() -> void:
 			_enemy_ships.append(_spawn("marea_raider", Vector3(4.0, 3.0, -45.0), Vector3(0.0, 0.0, 4.4), 1))
 			_enemy_ships.append(_spawn("marea_brigantine", Vector3(20.0, 8.0, -40.0), Vector3(0.0, 0.0, 4.8), 1))
 		"marea_stage_1":
-			# ACT III // STAGE 01: 100% Pure Free Tide Corsairs vs 100% Pure Armada of Acero
+			# ACT III // STAGE 01 [TUTORIAL]: Anvil Blockade (Free Tide Corsairs vs Acero Blockade)
 			_player_ships.append(_spawn("marea_galleon", Vector3(-10.0, 5.0, 36.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("marea_raider", Vector3(6.0, 2.0, 38.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("marea_brigantine", Vector3(18.0, 7.0, 34.0), Vector3.ZERO, 0))
 
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 3.0, -44.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_corvette", Vector3(18.0, 5.0, -40.0), Vector3(0.0, 0.0, 3.5), 1))
+			var me1 := _spawn("acero_dreadnought", Vector3(-10.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.0), 1)
+			me1.hp = roundf(me1.hp * 0.85)
+			me1.max_hp = me1.hp
+			_enemy_ships.append(me1)
+			var me2 := _spawn("acero_battlecruiser", Vector3(6.0, 3.0, -44.0), Vector3(0.0, 0.0, 3.0), 1)
+			me2.hp = roundf(me2.hp * 0.85)
+			me2.max_hp = me2.hp
+			_enemy_ships.append(me2)
+			var me3 := _spawn("acero_corvette", Vector3(18.0, 5.0, -40.0), Vector3(0.0, 0.0, 3.5), 1)
+			me3.hp = roundf(me3.hp * 0.85)
+			me3.max_hp = me3.hp
+			_enemy_ships.append(me3)
+		"vinculados_stage_1":
+			# ACT II // STAGE 01 [TUTORIAL]: Sector Psalm-4 (Vinculados Choir vs Acero Vanguard)
+			_player_ships.append(_spawn("vinculados_suit", Vector3(-12.0, 7.0, 38.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(12.0, -4.0, 40.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(0.0, 2.0, 35.0), Vector3.ZERO, 0))
+
+			var ve1 := _spawn("acero_dreadnought", Vector3(-10.0, 6.0, -42.0), Vector3(0.0, 0.0, 3.0), 1)
+			ve1.hp = roundf(ve1.hp * 0.85)
+			ve1.max_hp = ve1.hp
+			_enemy_ships.append(ve1)
+			var ve2 := _spawn("acero_battlecruiser", Vector3(6.0, 3.0, -44.0), Vector3(0.0, 0.0, 3.0), 1)
+			ve2.hp = roundf(ve2.hp * 0.85)
+			ve2.max_hp = ve2.hp
+			_enemy_ships.append(ve2)
+			var ve3 := _spawn("acero_corvette", Vector3(18.0, 5.0, -40.0), Vector3(0.0, 0.0, 3.5), 1)
+			ve3.hp = roundf(ve3.hp * 0.85)
+			ve3.max_hp = ve3.hp
+			_enemy_ships.append(ve3)
 		_:
-			# ACT II // STAGE 01: 100% Pure Vinculados Choir vs 100% Pure Armada of Acero
+			# Fallback Sandbox
 			_player_ships.append(_spawn("vinculados_suit", Vector3(-12.0, 7.0, 38.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("vinculados_anima", Vector3(12.0, -4.0, 40.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("vinculados_nous", Vector3(0.0, 2.0, 35.0), Vector3.ZERO, 0))
@@ -1990,6 +2066,20 @@ func _build_hud() -> void:
 	help_btn.pressed.connect(_toggle_help)
 	tr_btn_row.add_child(help_btn)
 
+	if _is_tutorial_stage:
+		var tut_btn := Button.new()
+		tut_btn.text = "🎓 TUTORIAL [T]"
+		tut_btn.tooltip_text = "Toggle Tactical Academy Guide [T]"
+		tut_btn.theme = _hud_theme
+		tut_btn.custom_minimum_size = Vector2(110, 28)
+		tut_btn.add_theme_color_override("font_color", Color(1.0, 0.88, 0.40))
+		tut_btn.pressed.connect(func() -> void:
+			if _tutorial_banner != null:
+				_tutorial_banner.visible = not _tutorial_banner.visible
+				AudioManager.play_sfx("ui_click", -10.0)
+		)
+		tr_btn_row.add_child(tut_btn)
+
 	# Commander Bridge Comms & Stage Objective Card
 	var cmd_card := PanelContainer.new()
 	cmd_card.theme = _hud_theme
@@ -2019,15 +2109,17 @@ func _build_hud() -> void:
 	_stage_title_label = Label.new()
 	match LoreDB.current_stage_id:
 		"acero_stage_1":
-			_stage_title_label.text = "ACT I // STAGE 01: SLUICE WELL-09"
+			_stage_title_label.text = "ACT I // STAGE 01 [TUTORIAL]: SLUICE WELL-09"
 		"acero_stage_2":
 			_stage_title_label.text = "ACT I // STAGE 02: RESONANCE SPIRE"
 		"acero_stage_3":
 			_stage_title_label.text = "ACT I // STAGE 03: THE CALM THRESHOLD"
+		"vinculados_stage_1":
+			_stage_title_label.text = "ACT II // STAGE 01 [TUTORIAL]: RESONANCE WELL"
 		"marea_stage_1":
-			_stage_title_label.text = "ACT III // STAGE 01: ANVIL BLOCKADE"
+			_stage_title_label.text = "ACT III // STAGE 01 [TUTORIAL]: ANVIL BLOCKADE"
 		_:
-			_stage_title_label.text = "SECTOR PSALM-4 // RESONANCE WELL"
+			_stage_title_label.text = "TACTICAL ENGAGEMENT // STAR SEA"
 	_stage_title_label.add_theme_font_size_override("font_size", 10)
 	_stage_title_label.add_theme_color_override("font_color", Color(1.0, 0.78, 0.32))
 	cmd_vbox.add_child(_stage_title_label)
@@ -2204,6 +2296,7 @@ func _build_hud() -> void:
 	_build_help_overlay(layer)
 	_build_victory_overlay(layer)
 	_build_defeat_overlay(layer)
+	_build_tutorial_banner()
 	_disable_button_focus(layer)
 
 func _refresh_fleet_panel() -> void:
@@ -2352,7 +2445,11 @@ func _show_mission_victory() -> void:
 	SaveManager.record_stage_victory(LoreDB.current_stage_id, surviving_ids)
 
 	if LoreDB.current_stage_id == "acero_stage_1":
-		_add_combat_log("STAGE 01 COMPLETE: SLUICE STATION WELL-09 SECURED! STEEL ENDURES!", Color(0.3, 1.0, 0.6))
+		_add_combat_log("TUTORIAL COMPLETE: SLUICE STATION WELL-09 SECURED! STEEL ENDURES!", Color(0.3, 1.0, 0.6))
+	elif LoreDB.current_stage_id == "vinculados_stage_1":
+		_add_combat_log("TUTORIAL COMPLETE: RESONANCE DOCTRINE MASTERED!", Color(0.3, 1.0, 0.6))
+	elif LoreDB.current_stage_id == "marea_stage_1":
+		_add_combat_log("TUTORIAL COMPLETE: ÉTHER SAILING & BROADSIDES MASTERED!", Color(0.3, 1.0, 0.6))
 	elif LoreDB.current_stage_id == "acero_stage_2":
 		_add_combat_log("STAGE 02 COMPLETE: RESONANCE SPIRE SECURED!", Color(0.3, 1.0, 0.6))
 	elif LoreDB.current_stage_id == "acero_stage_3":
@@ -2405,11 +2502,15 @@ func _build_victory_overlay(layer: CanvasLayer) -> void:
 	_victory_title_label = Label.new()
 	match LoreDB.current_stage_id:
 		"acero_stage_1":
-			_victory_title_label.text = "STAGE 01 ACCOMPLISHED // STEEL ENDURES"
+			_victory_title_label.text = "TUTORIAL ACCOMPLISHED // STEEL ENDURES"
 		"acero_stage_2":
 			_victory_title_label.text = "STAGE 02 ACCOMPLISHED // THE CHOIR SILENCED"
 		"acero_stage_3":
 			_victory_title_label.text = "ACT I VICTORY // BASTION OF THE CALM"
+		"vinculados_stage_1":
+			_victory_title_label.text = "TUTORIAL ACCOMPLISHED // RESONANCE DOCTRINE MASTERED"
+		"marea_stage_1":
+			_victory_title_label.text = "TUTORIAL ACCOMPLISHED // ÉTHER SAILING MASTERED"
 		_:
 			_victory_title_label.text = "MISSION ACCOMPLISHED"
 	_victory_title_label.add_theme_font_size_override("font_size", 20)
@@ -2419,11 +2520,15 @@ func _build_victory_overlay(layer: CanvasLayer) -> void:
 	_victory_sub_label = Label.new()
 	match LoreDB.current_stage_id:
 		"acero_stage_1":
-			_victory_sub_label.text = "Sluice Station Well-09 Secured // The Armada of Acero\nFleet Admiral Vane's line of battle shattered Captain Solano's corsair raid. Refined éteron continues to flow toward the orbital forges of Anvil."
+			_victory_sub_label.text = "Sluice Station Well-09 Secured // The Armada of Acero\nYou have mastered basic vector steering, WEGO simultaneous execution, and broadside combat. Refined éteron continues to flow toward the orbital forges of Anvil."
 		"acero_stage_2":
 			_victory_sub_label.text = "Resonance Spire Secured // The Armada of Acero\nCommander Kaelen's Vinculados Choir Wing was forced to retreat before they could destabilize the sector's Éther currents."
 		"acero_stage_3":
 			_victory_sub_label.text = "The Calm Threshold Held // Act I Campaign Complete\nAgainst the encroaching Calm, Admiral Vane's veteran squadron broke the coalition vanguard and anchored the Sluice Wall."
+		"vinculados_stage_1":
+			_victory_sub_label.text = "Sector Psalm-4 Secured // The Vinculados\nYou have mastered high-agility vector maneuvers, neural barrier defense, and devastating stern rakes against heavily armored capital hulls!"
+		"marea_stage_1":
+			_victory_sub_label.text = "Anvil Blockade Broken // The Free Tide\nYou have harnessed the Éther currents, claimed the Barlovento weather gauge, and shattered the enemy line with broadside barrages!"
 		_:
 			_victory_sub_label.text = "Sector Psalm-4 // Resonance Well Secured\nThe hostile strike group has been repelled. Your squadron holds control of the local Éther currents."
 	_victory_sub_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -2645,6 +2750,159 @@ G                  Toggle 3D tactical grid & altitude stems"""
 func _toggle_help() -> void:
 	if _help_overlay != null:
 		_help_overlay.visible = not _help_overlay.visible
+
+func _get_tutorial_steps() -> Array[Dictionary]:
+	var faction_title := ""
+	var faction_body := ""
+	match LoreDB.current_stage_id:
+		"vinculados_stage_1":
+			faction_title = "VINCULADOS DOCTRINE: HIGH AGILE VECTORS & STERN RAKE"
+			faction_body = "Your mecha frames have unmatched turn rates and burst speed. Slip behind enemy warships to attack their unarmored rear: attacking the aft quadrant scores a STERN RAKE (+40% CRITICAL DAMAGE)! Deploy Barrier to absorb incoming fire."
+		"marea_stage_1":
+			faction_title = "FREE TIDE DOCTRINE: SURFING THE ÉTHER & BARLOVENTO"
+			faction_body = "Sail directly along the cyan currents to gain tailwind velocity. Attacking from upwind secures the Weather-Gauge [BARLOVENTO] (+12% Hit accuracy). Align your flanks to unleash devastating Port & Starboard broadsides (+18% DMG)!"
+		_:
+			faction_title = "ACERO DOCTRINE: WALL OF STEEL & BROADSIDES"
+			faction_body = "Your warships boast impenetrable Bow and Flank armor. Angle your prow toward hostiles to deflect salvos, and Cross the T to unleash heavy Port & Starboard broadsides (42°–138°). Keep Flagship CNS Iron Bastion operational!"
+
+	var steps: Array[Dictionary] = [
+		{
+			"header": "PHASE 1: ADMIRAL ORDERS & NEWTONIAN VECTORS",
+			"body": "Click any ship directly (or press [TAB]) to select it. Drag in 3D to set heading, or use [A/D] (yaw) and [W/S] (throttle speed). Ships have inertia and momentum! Once your squadron is positioned, press [SPACE] (RESOLVE) to execute simultaneous WEGO movement.",
+			"tag": "STEP 1/4 • FLEET MOVEMENT"
+		},
+		{
+			"header": "PHASE 2: ACE PHASE & ACTION POINT (AP) SYSTEM",
+			"body": "When closing to weapon range, tactical Ace mode activates. Each ship has Action Points (AP). Click ability pills (e.g. Broadside, Oar Burst, Shield) to toggle them ON or OFF. Press [Z] (↺ RESET) to refund 100% AP at any time. Press [SPACE] to resolve tactical fire!",
+			"tag": "STEP 2/4 • TACTICAL COMBAT & AP"
+		},
+		{
+			"header": faction_title,
+			"body": faction_body,
+			"tag": "STEP 3/4 • FACTION SPECIALTY"
+		},
+		{
+			"header": "TACTICAL HAZARD: THE ENCROACHING CALM",
+			"body": "Beware the dark violet dimensional fluid pools expanding from the flanks. Entering The Calm stalls propulsion and corrodes shields (-15 SHLD / -10 HULL). Push and herd hostile ships into the fluid to destroy them without firing a shot!",
+			"tag": "STEP 4/4 • STAR SEA HAZARDS"
+		}
+	]
+	return steps
+
+func _build_tutorial_banner() -> void:
+	if not _is_tutorial_stage:
+		return
+
+	_tutorial_layer = CanvasLayer.new()
+	_tutorial_layer.name = "TutorialLayer"
+	_tutorial_layer.layer = 25
+	add_child(_tutorial_layer)
+
+	_tutorial_banner = PanelContainer.new()
+	_tutorial_banner.name = "TutorialGuideBanner"
+	_tutorial_banner.theme = _hud_theme
+	_tutorial_banner.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_tutorial_banner.offset_left = -280
+	_tutorial_banner.offset_right = 280
+	_tutorial_banner.offset_top = 10
+	_tutorial_banner.offset_bottom = 120
+	_tutorial_banner.custom_minimum_size = Vector2(560, 105)
+
+	var st := StyleBoxFlat.new()
+	st.bg_color = Color(0.02, 0.05, 0.11, 0.94)
+	st.border_color = Color(0.35, 0.90, 1.0, 0.88)
+	st.set_border_width_all(1)
+	st.border_width_top = 3
+	st.set_corner_radius_all(4)
+	st.set_content_margin_all(8)
+	_tutorial_banner.add_theme_stylebox_override("panel", st)
+	_tutorial_layer.add_child(_tutorial_banner)
+
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 3)
+	_tutorial_banner.add_child(vb)
+
+	var top_row := HBoxContainer.new()
+	top_row.add_theme_constant_override("separation", 6)
+	vb.add_child(top_row)
+
+	var icon_lbl := Label.new()
+	icon_lbl.text = "🎓 TACTICAL ACADEMY //"
+	icon_lbl.add_theme_font_size_override("font_size", 11)
+	icon_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+	top_row.add_child(icon_lbl)
+
+	_tutorial_step_label = Label.new()
+	_tutorial_step_label.text = "STEP 1/4 • FLEET MOVEMENT"
+	_tutorial_step_label.add_theme_font_size_override("font_size", 11)
+	_tutorial_step_label.add_theme_color_override("font_color", Color(0.35, 1.0, 0.75))
+	_tutorial_step_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top_row.add_child(_tutorial_step_label)
+
+	_tutorial_prev_btn = Button.new()
+	_tutorial_prev_btn.text = "◀ PREV [B]"
+	_tutorial_prev_btn.theme = _hud_theme
+	_tutorial_prev_btn.custom_minimum_size = Vector2(85, 24)
+	_tutorial_prev_btn.pressed.connect(func() -> void:
+		_set_tutorial_step(_tutorial_step - 1)
+	)
+	top_row.add_child(_tutorial_prev_btn)
+
+	_tutorial_next_btn = Button.new()
+	_tutorial_next_btn.text = "NEXT ▶ [N]"
+	_tutorial_next_btn.theme = _hud_theme
+	_tutorial_next_btn.custom_minimum_size = Vector2(85, 24)
+	_tutorial_next_btn.pressed.connect(func() -> void:
+		if _tutorial_step >= 3:
+			_tutorial_banner.visible = false
+			_add_combat_log("🎓 Tutorial guide dismissed. Press [T] at any time to re-open.", Color(0.4, 0.9, 1.0))
+		else:
+			_set_tutorial_step(_tutorial_step + 1)
+	)
+	top_row.add_child(_tutorial_next_btn)
+
+	var close_btn := Button.new()
+	close_btn.text = "✕ [X]"
+	close_btn.theme = _hud_theme
+	close_btn.custom_minimum_size = Vector2(32, 24)
+	close_btn.pressed.connect(func() -> void:
+		_tutorial_banner.visible = false
+		_add_combat_log("🎓 Tutorial guide dismissed. Press [T] to re-open.", Color(0.4, 0.9, 1.0))
+	)
+	top_row.add_child(close_btn)
+
+	_tutorial_title_label = Label.new()
+	_tutorial_title_label.text = ""
+	_tutorial_title_label.add_theme_font_size_override("font_size", 12)
+	_tutorial_title_label.add_theme_color_override("font_color", Color(1.0, 0.92, 0.55))
+	vb.add_child(_tutorial_title_label)
+
+	_tutorial_body_label = Label.new()
+	_tutorial_body_label.text = ""
+	_tutorial_body_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_tutorial_body_label.add_theme_font_size_override("font_size", 11)
+	_tutorial_body_label.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
+	vb.add_child(_tutorial_body_label)
+
+	_set_tutorial_step(0)
+
+func _set_tutorial_step(step: int) -> void:
+	var steps := _get_tutorial_steps()
+	if steps.is_empty():
+		return
+	_tutorial_step = clampi(step, 0, steps.size() - 1)
+	var s: Dictionary = steps[_tutorial_step]
+	if _tutorial_step_label != null:
+		_tutorial_step_label.text = String(s.get("tag", ""))
+	if _tutorial_title_label != null:
+		_tutorial_title_label.text = String(s.get("header", ""))
+	if _tutorial_body_label != null:
+		_tutorial_body_label.text = String(s.get("body", ""))
+	if _tutorial_prev_btn != null:
+		_tutorial_prev_btn.disabled = (_tutorial_step == 0)
+	if _tutorial_next_btn != null:
+		_tutorial_next_btn.text = "GOT IT ✓ [N]" if _tutorial_step == steps.size() - 1 else "NEXT ▶ [N]"
+	AudioManager.play_sfx("ui_hover", -14.0)
 
 func _make_theme() -> Theme:
 	var theme := Theme.new()
