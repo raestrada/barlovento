@@ -425,7 +425,7 @@ func _process(delta: float) -> void:
                 _smoke_emit_timer = 0.26 if severe else 0.48
                 _emit_persistent_damage_smoke_puff(severe)
 
-enum Stance { FIRE, EVASIVE, FLANK }
+enum Stance { FIRE, EVASIVE, FLANK, NEUTRAL }
 var stance: Stance = Stance.FIRE
 var target_ship: Ship = null
 
