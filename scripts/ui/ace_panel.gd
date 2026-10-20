@@ -7,6 +7,8 @@ signal stance_changed(new_stance: Ship.Stance)
 signal exit_pressed
 signal intercept_pressed
 signal ability_used(ability_name: String)
+signal ability_toggled(ability_name: String, is_active: bool)
+signal reset_ap_pressed
 signal ship_selected(ship: Ship)
 signal enemy_selected(enemy: Ship)
 
@@ -54,8 +56,32 @@ var _btn_oar_burst: Button
 var _btn_trim_sails: Button
 var _btn_broadside: Button
 var _btn_rcs_burn: Button
+var _btn_shield: Button
+var _btn_reset_ap: Button
 var _btn_resolve: Button
 var _arcs_btn: Button
+
+var _ability_states: Dictionary = {
+    "oar_burst": false,
+    "trim_sails": false,
+    "broadside": false,
+    "rcs_burn": false,
+    "shield_pulse": false
+}
+var _ability_costs: Dictionary = {
+    "oar_burst": 1,
+    "trim_sails": 1,
+    "broadside": 2,
+    "rcs_burn": 1,
+    "shield_pulse": 2
+}
+var _ability_labels: Dictionary = {
+    "oar_burst": "Oar Burst [1]",
+    "trim_sails": "Trim Sails [1]",
+    "broadside": "Broadside [2]",
+    "rcs_burn": "RCS Burn [1]",
+    "shield_pulse": "🛡 Shield [2]"
+}
 
 var _current_ap: int = 7
 var _base_round_ap: int = 7
@@ -206,54 +232,51 @@ func _build_ui() -> void:
     _ap_bar = HudWidgets.ActionPointBar.new()
     dock_vbox.add_child(_ap_bar)
 
-    # Row 2 inside Dock: The 4 Pill Ability Buttons + Resolve Turn Pill
+    # Row 2 inside Dock: The 5 Pill Ability Buttons + Reset Pill + Resolve Turn Pill
     var pills_row := HBoxContainer.new()
-    pills_row.add_theme_constant_override("separation", 8)
+    pills_row.add_theme_constant_override("separation", 6)
     pills_row.alignment = BoxContainer.ALIGNMENT_CENTER
     dock_vbox.add_child(pills_row)
 
-    _btn_oar_burst = _make_pill_btn("Oar Burst", true, func() -> void:
-        _spend_ap(1)
-        speed_up.emit()
-        ability_used.emit("oar_burst")
+    _btn_oar_burst = _make_pill_btn(_ability_labels["oar_burst"], false, func() -> void:
+        toggle_ability("oar_burst")
     )
     pills_row.add_child(_btn_oar_burst)
 
-    _btn_trim_sails = _make_pill_btn("Trim Sails", false, func() -> void:
-        _spend_ap(1)
-        intercept_pressed.emit()
+    _btn_trim_sails = _make_pill_btn(_ability_labels["trim_sails"], false, func() -> void:
+        toggle_ability("trim_sails")
     )
     pills_row.add_child(_btn_trim_sails)
 
-    _btn_broadside = _make_pill_btn("Broadside", false, func() -> void:
-        _spend_ap(2)
-        if ship != null:
-            ship.stance = Ship.Stance.FIRE
-            stance_changed.emit(ship.stance)
-        ability_used.emit("precision")
-        refresh()
+    _btn_broadside = _make_pill_btn(_ability_labels["broadside"], false, func() -> void:
+        toggle_ability("broadside")
     )
     pills_row.add_child(_btn_broadside)
 
-    _btn_rcs_burn = _make_pill_btn("RCS Burn", false, func() -> void:
-        _spend_ap(1)
-        if ship != null:
-            ship.stance = Ship.Stance.EVASIVE
-            stance_changed.emit(ship.stance)
-        ability_used.emit("retro_brake")
-        refresh()
+    _btn_rcs_burn = _make_pill_btn(_ability_labels["rcs_burn"], false, func() -> void:
+        toggle_ability("rcs_burn")
     )
     pills_row.add_child(_btn_rcs_burn)
 
-    var btn_shield := _make_pill_btn("🛡 Overcharge", false, func() -> void:
-        _spend_ap(2)
-        ability_used.emit("shield_pulse")
-        refresh()
+    _btn_shield = _make_pill_btn(_ability_labels["shield_pulse"], false, func() -> void:
+        toggle_ability("shield_pulse")
     )
-    pills_row.add_child(btn_shield)
+    pills_row.add_child(_btn_shield)
+
+    _btn_reset_ap = _make_pill_btn("↺ RESET [Z]", false, func() -> void:
+        reset_all_ap()
+    )
+    _btn_reset_ap.add_theme_color_override("font_color", Color(1.0, 0.78, 0.28))
+    pills_row.add_child(_btn_reset_ap)
 
     _btn_resolve = _make_pill_btn("▶ RESOLVE [SPACE]", true, func() -> void:
+        for ab in _ability_states.keys():
+            _ability_states[ab] = false
         _current_ap = _base_round_ap
+        if _ap_bar != null:
+            _ap_bar.current_ap = _current_ap
+            _ap_bar.queue_redraw()
+        _update_pill_buttons()
         execute_round_pressed.emit()
     )
     _btn_resolve.add_theme_color_override("font_color", HudWidgets.COL_GREEN)
@@ -381,10 +404,82 @@ func set_fleet(allies: Array[Ship], selected: Ship, enemies: Array[Ship] = [], l
             )
             _enemy_tabs_hbox.add_child(eb)
 
-func _spend_ap(cost: int) -> void:
-    _current_ap = maxi(_current_ap - cost, 1)
+func toggle_ability(ab: String) -> void:
+    var cost: int = _ability_costs.get(ab, 1)
+    var is_on: bool = _ability_states.get(ab, false)
+    if is_on:
+        _ability_states[ab] = false
+        _current_ap = mini(_current_ap + cost, _base_round_ap)
+        if _ap_bar != null:
+            _ap_bar.current_ap = _current_ap
+            _ap_bar.queue_redraw()
+        ability_toggled.emit(ab, false)
+        AudioManager.play_sfx("ui_click", -10.0)
+    else:
+        if _current_ap < cost:
+            AudioManager.play_sfx("error", -6.0)
+            return
+        _ability_states[ab] = true
+        _current_ap -= cost
+        if _ap_bar != null:
+            _ap_bar.current_ap = _current_ap
+            _ap_bar.queue_redraw()
+        ability_toggled.emit(ab, true)
+        AudioManager.play_sfx("ui_click", -6.0)
+    _update_pill_buttons()
+    refresh()
+
+func reset_all_ap() -> void:
+    for ab in _ability_states.keys():
+        if _ability_states[ab]:
+            _ability_states[ab] = false
+            ability_toggled.emit(ab, false)
+    _current_ap = _base_round_ap
     if _ap_bar != null:
         _ap_bar.current_ap = _current_ap
+        _ap_bar.queue_redraw()
+    reset_ap_pressed.emit()
+    _update_pill_buttons()
+    AudioManager.play_sfx("ui_click", -8.0)
+    refresh()
+
+func _update_pill_buttons() -> void:
+    var btns := {
+        "oar_burst": _btn_oar_burst,
+        "trim_sails": _btn_trim_sails,
+        "broadside": _btn_broadside,
+        "rcs_burn": _btn_rcs_burn,
+        "shield_pulse": _btn_shield
+    }
+    for ab in btns.keys():
+        var b: Button = btns[ab]
+        if b != null:
+            var active: bool = _ability_states.get(ab, false)
+            b.text = ("✔ " + _ability_labels[ab]) if active else _ability_labels[ab]
+            _set_pill_style(b, active)
+
+func _set_pill_style(btn: Button, active: bool) -> void:
+    if btn == null:
+        return
+    var st := StyleBoxFlat.new()
+    st.bg_color = Color(0.08, 0.32, 0.44, 0.95) if active else Color(0.03, 0.10, 0.17, 0.88)
+    st.border_color = HudWidgets.COL_CYAN_BRIGHT if active else Color(0.22, 0.68, 0.88, 0.65)
+    st.set_border_width_all(2 if active else 1)
+    st.set_corner_radius_all(6)
+    st.set_content_margin_all(6)
+    btn.add_theme_stylebox_override("normal", st)
+    var st_hov := st.duplicate()
+    st_hov.bg_color = Color(0.12, 0.42, 0.58, 0.98) if active else Color(0.08, 0.22, 0.34, 0.95)
+    st_hov.border_color = HudWidgets.COL_CYAN_BRIGHT
+    st_hov.set_border_width_all(2)
+    btn.add_theme_stylebox_override("hover", st_hov)
+    btn.add_theme_color_override("font_color", Color(0.40, 1.0, 0.85) if active else Color(0.85, 0.92, 1.0))
+
+func _spend_ap(cost: int) -> void:
+    _current_ap = maxi(_current_ap - cost, 0)
+    if _ap_bar != null:
+        _ap_bar.current_ap = _current_ap
+        _ap_bar.queue_redraw()
         _ap_bar.queue_redraw()
 
 func _process(_delta: float) -> void:

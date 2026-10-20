@@ -214,6 +214,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event is InputEventKey and event.keycode == KEY_Y:
 			if _ace_panel != null:
 				_ace_panel.toggle_weapon_arcs()
+		elif event is InputEventKey and event.keycode == KEY_Z:
+			if _ace_panel != null and _ace_panel.visible:
+				_ace_panel.reset_all_ap()
 
 func _apply_mouse_vector_steering(screen_pos: Vector2, play_feedback: bool) -> void:
 	if _selected_ship == null or _selected_ship.is_destroyed():
@@ -591,6 +594,60 @@ func _intercept_target() -> void:
 		_add_combat_log("🎯 %s: Intercept vector locked on %s (SPD %.1f m/s)" % [
 			_selected_ship.ship_name, _ace_target.ship_name, _selected_ship.order.target_speed
 		], Color(1.0, 0.85, 0.35))
+
+func _on_ace_ability_toggled(ability_name: String, is_active: bool) -> void:
+	if _selected_ship == null or _selected_ship.is_destroyed():
+		return
+	match ability_name:
+		"oar_burst":
+			if is_active:
+				_selected_ship.order.target_speed = clampf(_selected_ship.order.target_speed + 4.0, 0.0, _selected_ship.state.max_speed)
+				AudioManager.play_sfx("engine", -8.0)
+				_add_combat_log("⚡ %s: Oar Burst armed! (+4 m/s target speed)" % _selected_ship.ship_name, Color(0.35, 0.95, 1.0))
+			else:
+				_selected_ship.order.target_speed = clampf(_selected_ship.order.target_speed - 4.0, 0.0, _selected_ship.state.max_speed)
+				_add_combat_log("↩ %s: Oar Burst disarmed (-4 m/s)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+		"trim_sails":
+			if is_active:
+				_intercept_target()
+				_add_combat_log("💨 %s: Trim Sails armed (Intercept heading locked)" % _selected_ship.ship_name, Color(0.35, 0.95, 1.0))
+			else:
+				_add_combat_log("↩ %s: Trim Sails disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+		"broadside":
+			if is_active:
+				_selected_ship.stance = Ship.Stance.FIRE
+				_selected_ship.set_meta("precision_boost", true)
+				AudioManager.play_sfx("ui_hover", -6.0)
+				_add_combat_log("🎯 %s: Broadside Salvo armed (+25%% Accuracy, FIRE Stance)" % _selected_ship.ship_name, Color(0.35, 1.0, 0.85))
+			else:
+				_selected_ship.stance = Ship.Stance.NEUTRAL
+				_selected_ship.remove_meta("precision_boost")
+				_add_combat_log("↩ %s: Broadside Salvo disarmed (NEUTRAL Stance)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+			_refresh_fleet_panel()
+		"rcs_burn":
+			if is_active:
+				_selected_ship.stance = Ship.Stance.EVASIVE
+				_selected_ship.set_meta("evasive_boost", true)
+				AudioManager.play_sfx("engine", -8.0)
+				_add_combat_log("💨 %s: RCS Burn armed (+35%% Evasion, EVASIVE Stance)" % _selected_ship.ship_name, Color(0.4, 0.9, 1.0))
+			else:
+				_selected_ship.stance = Ship.Stance.NEUTRAL
+				_selected_ship.remove_meta("evasive_boost")
+				_add_combat_log("↩ %s: RCS Burn disarmed (NEUTRAL Stance)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+			_refresh_fleet_panel()
+		"shield_pulse":
+			if is_active:
+				_selected_ship.shield_hp = minf(_selected_ship.shield_hp + 40.0, _selected_ship.max_shield_hp)
+				_selected_ship.hp = minf(_selected_ship.hp + 20.0, _selected_ship.max_hp)
+				_selected_ship.refresh_after_load()
+				AudioManager.play_sfx("shield", -8.0)
+				_add_combat_log("🛡 %s: Deflector barriers overcharged (+40 SHLD / +20 HULL)" % _selected_ship.ship_name, Color(0.3, 1.0, 0.6))
+			else:
+				_selected_ship.shield_hp = maxf(_selected_ship.shield_hp - 40.0, 0.0)
+				_selected_ship.hp = maxf(_selected_ship.hp - 20.0, 1.0)
+				_selected_ship.refresh_after_load()
+				_add_combat_log("↩ %s: Deflector Overcharge disarmed (-40 SHLD / -20 HULL)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+			_refresh_fleet_panel()
 
 func _on_ace_ability_used(ability_name: String) -> void:
 	if _selected_ship == null or _selected_ship.is_destroyed():
@@ -1802,6 +1859,10 @@ func _build_hud() -> void:
 	_ace_panel.cycle_target_pressed.connect(_cycle_hostile_target)
 	_ace_panel.intercept_pressed.connect(_intercept_target)
 	_ace_panel.ability_used.connect(_on_ace_ability_used)
+	_ace_panel.ability_toggled.connect(_on_ace_ability_toggled)
+	_ace_panel.reset_ap_pressed.connect(func() -> void:
+		_add_combat_log("↺ Action Points reset to maximum.", Color(1.0, 0.85, 0.35))
+	)
 	_ace_panel.ship_selected.connect(func(s: Ship) -> void:
 		_set_selected(s)
 		AudioManager.play_sfx("ui_click", -10.0)
