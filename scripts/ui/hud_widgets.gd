@@ -803,7 +803,7 @@ class HeroRosterModal extends Control:
             ally_ids = ["marea_galleon", "marea_raider", "marea_brigantine"]
             enemy_ids = ["acero_dreadnought", "acero_battlecruiser", "acero_corvette"]
         elif LoreDB.selected_faction == "vinculados":
-            ally_ids = ["vinculados_suit", "vinculados_anima", "vinculados_nous"]
+            ally_ids = ["vinculados_cradle", "vinculados_suit", "vinculados_anima"]
             enemy_ids = ["acero_dreadnought", "acero_battlecruiser", "acero_corvette"]
 
         var ids := ally_ids if is_ally else enemy_ids

@@ -43,27 +43,34 @@ func _register_ships() -> void:
         "res://assets/heroes/ace_drake.png", "Chisel-Class Escort Corvette"
     ))
 
-    # --- THE VINCULADOS (Principle: Soul / Resonance — 100% Pure Vinculados Choir) ---
+    # --- THE VINCULADOS (Principle: Soul / Resonance — Mobile Suit Platoons & Carrier Ark) ---
     _add_ship(_make_def(
-        "vinculados_suit", "Eidolon Prime", "Ace Kaelen-7", "vinculados",
-        60.0, 2000.0, 2200.0, 900.0, 30.0,
+        "vinculados_cradle", "Sanktuario Albor", "Conductor Seraph-2", "vinculados",
+        460.0, 4400.0, 3600.0, 420.0, 19.0,
+        250.0, 52.0, 36.0, 65.0,
+        Color(0.88, 0.92, 1.0), Vector3(3.2, 1.8, 10.2),
+        "res://assets/heroes/ace_kaelen.png", "Cradle-Class Carrier Ark"
+    ))
+    _add_ship(_make_def(
+        "vinculados_suit", "Eidolon Ace Wing", "Ace Kaelen-7", "vinculados",
+        60.0, 2200.0, 2400.0, 950.0, 30.0,
         160.0, 38.0, 26.0, 90.0,
-        Color(0.35, 0.7, 0.95), Vector3(1.5, 0.8, 5.0),
-        "res://assets/heroes/ace_kaelen.png", "Eidolon Command Frame"
+        Color(0.35, 0.7, 0.95), Vector3(2.6, 1.2, 4.8),
+        "res://assets/heroes/ace_kaelen.png", "Eidolon Mobile Suit Platoon"
     ))
     _add_ship(_make_def(
-        "vinculados_anima", "Anima-01 (Aria)", "Ace Mirei-4", "vinculados",
-        45.0, 2400.0, 2600.0, 1100.0, 36.0,
+        "vinculados_anima", "Anima-01 Interceptor Wing", "Ace Mirei-4", "vinculados",
+        45.0, 2600.0, 2800.0, 1150.0, 36.0,
         115.0, 34.0, 20.0, 90.0,
-        Color(0.5, 0.85, 0.85), Vector3(1.4, 0.7, 4.5),
-        "res://assets/heroes/ace_mirei.png", "Anima Strike Frame"
+        Color(0.5, 0.85, 0.85), Vector3(2.4, 1.1, 4.4),
+        "res://assets/heroes/ace_mirei.png", "Anima High-Speed Strike Wing"
     ))
     _add_ship(_make_def(
-        "vinculados_nous", "Nous-04 (Cantor)", "Conductor Seraph-2", "vinculados",
-        78.0, 1950.0, 2100.0, 820.0, 27.0,
-        195.0, 42.0, 29.0, 85.0,
-        Color(0.68, 0.45, 0.96), Vector3(1.65, 0.9, 5.4),
-        "res://assets/heroes/ace_kaelen.png", "Nous Heavy Resonance Frame"
+        "vinculados_nous", "Nous-04 Heavy Assault Wing", "Ace Orin-9", "vinculados",
+        78.0, 2100.0, 2200.0, 850.0, 27.0,
+        195.0, 44.0, 30.0, 85.0,
+        Color(0.68, 0.45, 0.96), Vector3(2.8, 1.3, 5.0),
+        "res://assets/heroes/ace_kaelen.png", "Nous Heavy Assault Platoon"
     ))
 
     # --- THE FREE TIDE / MAREA LIBRE (Principle: Wind / Liberty — Corsair Skirmishers) ---

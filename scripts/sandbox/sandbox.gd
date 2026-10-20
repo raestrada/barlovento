@@ -477,12 +477,13 @@ func _on_ace_fire_moment() -> void:
 		if target != null and not target.is_destroyed() and player.stance != Ship.Stance.EVASIVE:
 			if Combat.can_hit(player, target):
 				var result := Combat.resolve_shot(player, target)
-				var beam_color := Color(0.35, 0.95, 1.0)
-				_spawn_laser_beam(player.global_position, target.global_position, beam_color)
+				var is_cradle: bool = (player.ship_id == "vinculados_cradle")
+				var beam_color := Color(0.88, 0.45, 1.0) if is_cradle else Color(0.35, 0.95, 1.0)
+				_spawn_laser_beam(player.global_position, target.global_position, beam_color, is_cradle)
 				_spawn_impact_flash(target.global_position, beam_color)
 
 				if _camera_rig != null:
-					_camera_rig.shake(0.85, 0.22)
+					_camera_rig.shake(1.35 if is_cradle else 0.85, 0.28 if is_cradle else 0.22)
 
 				if result.hit:
 					var quad_tag := " [%s]" % result.quadrant
@@ -510,12 +511,13 @@ func _on_ace_fire_moment() -> void:
 		if target != null and not target.is_destroyed() and enemy.stance != Ship.Stance.EVASIVE:
 			if Combat.can_hit(enemy, target):
 				var result := Combat.resolve_shot(enemy, target)
-				var beam_color := Color(1.0, 0.4, 0.2)
-				_spawn_laser_beam(enemy.global_position, target.global_position, beam_color)
+				var enemy_is_cradle: bool = (enemy.ship_id == "vinculados_cradle")
+				var beam_color := Color(0.92, 0.40, 1.0) if enemy_is_cradle else Color(1.0, 0.4, 0.2)
+				_spawn_laser_beam(enemy.global_position, target.global_position, beam_color, enemy_is_cradle)
 				_spawn_impact_flash(target.global_position, beam_color)
 
 				if _camera_rig != null:
-					_camera_rig.shake(0.9, 0.24)
+					_camera_rig.shake(1.35 if enemy_is_cradle else 0.9, 0.28 if enemy_is_cradle else 0.24)
 
 				if result.hit:
 					var quad_tag := " [%s]" % result.quadrant
@@ -1121,7 +1123,7 @@ func _update_3d_targeting_hud() -> void:
 		if _target_line_mesh != null:
 			_target_line_mesh.visible = false
 
-func _spawn_laser_beam(from_pos: Vector3, to_pos: Vector3, color: Color) -> void:
+func _spawn_laser_beam(from_pos: Vector3, to_pos: Vector3, color: Color, is_mega_beam: bool = false) -> void:
 	var dir := to_pos - from_pos
 	var dist := dir.length()
 	if dist < 0.1:
@@ -1133,6 +1135,12 @@ func _spawn_laser_beam(from_pos: Vector3, to_pos: Vector3, color: Color) -> void
 
 	# Multi-salvo volumetric 3D beam cylinders + muzzle flash
 	var offsets := [Vector3.ZERO, right * 0.45 + Vector3.UP * 0.15, -right * 0.45 - Vector3.UP * 0.15]
+	if is_mega_beam:
+		offsets = [
+			Vector3.ZERO,
+			right * 0.75 + Vector3.UP * 0.35, -right * 0.75 - Vector3.UP * 0.35,
+			right * 0.40 - Vector3.UP * 0.40, -right * 0.40 + Vector3.UP * 0.40
+		]
 	for i in range(offsets.size()):
 		var off: Vector3 = offsets[i]
 		var start_p := from_pos + off
@@ -1148,7 +1156,7 @@ func _spawn_laser_beam(from_pos: Vector3, to_pos: Vector3, color: Color) -> void
 
 		var cyl_inst := MeshInstance3D.new()
 		var cyl := CylinderMesh.new()
-		var radius := 0.16 if i == 0 else 0.09
+		var radius := (0.42 if i == 0 else 0.18) if is_mega_beam else (0.16 if i == 0 else 0.09)
 		cyl.top_radius = radius
 		cyl.bottom_radius = radius
 		cyl.height = beam_len
@@ -1158,17 +1166,18 @@ func _spawn_laser_beam(from_pos: Vector3, to_pos: Vector3, color: Color) -> void
 		var mat := StandardMaterial3D.new()
 		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		mat.albedo_color = Color(1.0, 1.0, 1.0, 0.95) if i == 0 else color
+		mat.albedo_color = Color(1.0, 1.0, 1.0, 0.98) if i == 0 else color
 		mat.emission_enabled = true
 		mat.emission = color
-		mat.emission_energy_multiplier = 5.5 if i == 0 else 3.8
+		mat.emission_energy_multiplier = (8.5 if i == 0 else 5.5) if is_mega_beam else (5.5 if i == 0 else 3.8)
 		cyl_inst.material_override = mat
 		beam_node.add_child(cyl_inst)
 
 		var tween := create_tween()
-		tween.tween_property(mat, "albedo_color:a", 0.0, 0.32 + float(i) * 0.05)
-		tween.parallel().tween_property(cyl_inst, "scale:x", 0.1, 0.32 + float(i) * 0.05)
-		tween.parallel().tween_property(cyl_inst, "scale:z", 0.1, 0.32 + float(i) * 0.05)
+		var fade_dur := 0.48 if is_mega_beam else 0.32
+		tween.tween_property(mat, "albedo_color:a", 0.0, fade_dur + float(i) * 0.05)
+		tween.parallel().tween_property(cyl_inst, "scale:x", 0.1, fade_dur + float(i) * 0.05)
+		tween.parallel().tween_property(cyl_inst, "scale:z", 0.1, fade_dur + float(i) * 0.05)
 		tween.chain().tween_callback(beam_node.queue_free)
 
 func _spawn_impact_flash(pos: Vector3, color: Color) -> void:
@@ -1877,9 +1886,9 @@ func _spawn_fleets() -> void:
 			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 7.0, 54.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 2.0, 56.0), Vector3.ZERO, 0))
 
-			_enemy_ships.append(_spawn("vinculados_suit", Vector3(-8.0, 8.0, -55.0), Vector3(1.5, 0.0, 4.2), 1))
-			_enemy_ships.append(_spawn("vinculados_anima", Vector3(8.0, 2.0, -56.0), Vector3(-1.2, 0.0, 4.8), 1))
-			_enemy_ships.append(_spawn("vinculados_nous", Vector3(20.0, 6.0, -54.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 4.0, -58.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(-14.0, 8.0, -52.0), Vector3(1.5, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(14.0, 2.0, -50.0), Vector3(-1.2, 0.0, 4.8), 1))
 		"acero_stage_3":
 			# ACT I // STAGE 03: The Calm Threshold (Acero vs Veteran Free Tide Flagship Squadron)
 			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
@@ -1909,9 +1918,9 @@ func _spawn_fleets() -> void:
 			_enemy_ships.append(me3)
 		"vinculados_stage_1":
 			# ACT II // STAGE 01 [TUTORIAL]: Sector Psalm-4 (Vinculados Choir vs Acero Vanguard)
-			_player_ships.append(_spawn("vinculados_suit", Vector3(-8.0, 7.0, 55.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_anima", Vector3(12.0, -4.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_nous", Vector3(2.0, 2.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 2.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_suit", Vector3(-14.0, 6.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(14.0, -2.0, 50.0), Vector3.ZERO, 0))
 
 			var ve1 := _spawn("acero_dreadnought", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.0), 1)
 			_apply_tutorial_handicap(ve1, 0.65, 0.70)
@@ -1922,13 +1931,15 @@ func _spawn_fleets() -> void:
 			var ve3 := _spawn("acero_corvette", Vector3(20.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.5), 1)
 			_apply_tutorial_handicap(ve3, 0.65, 0.70)
 			_enemy_ships.append(ve3)
-			ve3.max_hp = ve3.hp
-			_enemy_ships.append(ve3)
 		_:
 			# Fallback Sandbox
-			_player_ships.append(_spawn("vinculados_suit", Vector3(-8.0, 7.0, 55.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_anima", Vector3(12.0, -4.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_nous", Vector3(2.0, 2.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 2.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_suit", Vector3(-14.0, 6.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(14.0, -2.0, 50.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(20.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.5), 1))
 
 			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.0), 1))
 			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))

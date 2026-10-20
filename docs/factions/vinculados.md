@@ -54,56 +54,54 @@ resources but for the soul itself.
 
 ## 5. Technology
 
-- **Frames** (mobile suits) are their primary vessels: sleek humanoid machines
-  that read the pilot's nervous system directly through the Link.
-- **Cradles** are carriers that also serve as temples and creches — they
-  sustain the pilots and broadcast resonance to keep links healthy.
+- **Frames** (mobile suits) are their primary combat vessels: agile humanoid machines
+  that read the pilot's nervous system directly through the Link. In battle, frames
+  deploy in **trio platoons / wings** (1 Lead Ace accompanied by 2 escorting wingmen),
+  moving in tight echelon formation and dynamically reacting in zero-G.
+- **Cradles** are grand Carrier Arks (inspired by the retro-futuristic Pegasus / White Base
+  catamaran archetype) that serve as mobile motherships, creches, and tactical anchors.
+  Featuring twin forward catamaran hangar decks with magnetic catapult runways, an elevated
+  command bridge spire, point-defense screening lasers, and a devastating **Spinal
+  High-Resonance Mega-Beam Cannon** ("Rayo de Resonancia").
 - **The Chorus** is their autonomous arm: unpiloted drones commanded through
   the Link by a Conductor hero.
-- **Propulsion:** reactionless in spirit — frames move with the same
-  drift-and-burn physics as everyone else, but their mass is low and their
-  control is unmatched. They do not need much energy because they are so
-  little material.
+- **Propulsion:** high-output vernier thruster arrays on backpacks, calves, and pauldrons.
+  In space flight, frames adopt an aggressive angled vector posture: torso leaned forward into
+  the burn, knees flexed, and legs swept backward trailing glowing cyan Éther plumes.
 
-## 6. Doctrine: agility and the duel
+## 6. Doctrine: agility, platoons, and the duel
 
-- The Vinculados fight as **individuals, not formations**. Where the Acero
-  commit to a line, a Vinculados squad dissolves into a dance of feints and
-  duels.
-- **Inertia profile:** the lowest mass and the highest agility in the game.
+- The Vinculados fight in **agile 3-suit platoons supported by a Carrier Ark**. Where the Acero
+  commit to rigid battlelines, Vinculados wings slip through firing arcs using matched vernier
+  thrust, flanking for critical stern rakes while the Cradle unleashes its spinal mega-beam cannon.
+- **Inertia profile:** low mass and unmatched rotational authority.
   They are the only faction that can truly *react* — turn on a vector, exploit
-  drift, slip through firing arcs.
-- The cost: they cannot trade broadsides. A frame that stands still dies. The
-  skill ceiling is the highest in the game, and so is the floor.
+  drift, and slip behind enemy hulls.
+- The cost: mobile suits cannot absorb prolonged broadside fire; they rely on speed, neural
+  barrier pulses, and carrier fire support.
 
 ## 7. Fleet roster
 
 | Class | Tier | Role | Inertia | Notes |
 | --- | --- | --- | --- | --- |
-| **Eidolon** | Command frame | Hero flagship | Low | The ace's signature machine |
-| **Nous** | Heavy frame | Assault | Low-medium | Firepower for breaking escorts |
-| **Anima** | Strike frame | Hit-and-run | Very low | Speed kills |
+| **Cradle** | Carrier Ark | Mothership + deploy + mega-beam | Medium | Pegasus-class catamaran ark with spinal cannon |
+| **Eidolon** | Command platoon | Hero flagship wing (3 suits) | Low | The ace's signature trio with beam carbines & shields |
+| **Nous** | Heavy platoon | Assault wing (3 suits) | Low-medium | Shoulder-mounted twin resonance choir cannons |
+| **Anima** | Strike platoon | Hit-and-run wing (3 suits) | Very low | High-speed swept booster vanes and rapid intercept |
 | **Psyche** | Scout frame | Recon | Very low | Eyes and feints |
 | **Thumos** | Berserker frame | Melee | Low | Aggression, closing range |
 | **Logos** | Support frame | EW / buffs | Low | Disrupts and amplifies the Link |
-| **Cradle** | Carrier | Sustain + deploy | Medium | The mobile home |
 | **Chorus** | Drone wing | Autonomous support | Very low | Commanded via the Link |
 
 ### Blurbs
 
-- **Eidolon** — the frame a great pilot grows into; a mirror of the soul that
-  flies it. No two are alike.
-- **Nous** — the reasoned fist: heavy enough to crack a shield, precise enough
-  to do it in one pass.
-- **Anima** — pure speed; a strike that is gone before the shot lands.
-- **Psyche** — the eyes of the squad; scout, bait, and the first to see the
-  opening.
-- **Thumos** — a frame built for the fury of close combat; a duelist's joy and
-  a commander's gamble.
-- **Logos** — carries the electronic-warfare choir; it sings the enemy's
-  sensors to sleep and wakes its own allies' Links.
-- **Cradle** — the mothership. Lose the Cradle and the squad loses its
-  resonance, its repair, and its home.
+- **Cradle** — the mothership. Twin catamaran flight decks launch mobile suit wings while its
+  spinal mega-beam cannon pierces through heavy enemy formations.
+- **Eidolon** — command platoon of 3 suits led by an ace pilot; balanced armor, beam carbines,
+  and reactive combat shields.
+- **Nous** — heavy assault platoon equipped with over-the-shoulder resonance cannons to shatter
+  hostile escorts.
+- **Anima** — ultra-fast strike trio; swept vernier vanes designed to intercept enemy flankers.
 
 ## 8. Hero types (the aces)
 
@@ -150,11 +148,19 @@ resources but for the soul itself.
 
 ## 11. Visual identity
 
-Sleek, organic-curved, humanoid frames. White ceramic armor, dark sinew
-joints, a glowing core; cold magenta/violet for the soul-link energy. Carriers
-are secondary; the frame is the icon. See
-[`../art/prompts/factions/vinculados.md`](../art/prompts/factions/vinculados.md)
-for the canonical prompt tokens.
+Real-robot anime aesthetic infused with Éther resonance lore:
+- **Mobile Suits:** Compact athletic humanoid combat machines deployed in 3-unit echelon wings.
+  Pristine white ceramic armor with cobalt blue chest/shoulder plating, dark slate articulated
+  mechanical frames, warm amber chest intake louvers, and an internal pulsing magenta Soul Core.
+  Equipped with beveled hexagonal shields, precision beam carbines, and dual swept harmonic antenna
+  blades on the brow. Always depicted in dynamic zero-G flight vector poses with knees bent and feet
+  swept back trailing active cyan vernier plumes.
+- **The Cradle Carrier Ark:** Retro-futuristic catamaran mothership inspired by the classic Pegasus /
+  White Base archetype. Twin forward catamaran hangar hulls with cyan magnetic catapult decks, an
+  elevated central conning spire bridge, point-defense screening laser casemates, massive aft twin
+  engine blocks, and a devastating central spinal high-resonance mega-beam cannon.
+See [`../art/prompts/factions/vinculados.md`](../art/prompts/factions/vinculados.md)
+for canonical prompt tokens.
 
 ## 12. Mood and audio
 

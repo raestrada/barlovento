@@ -121,6 +121,12 @@ func apply_def(def: ShipDef) -> void:
     body_size = def.body_size
 
     match ship_id:
+        "vinculados_cradle":
+            unit_code = "VINC_CRD_01"
+            armor_bow = 96.0
+            armor_port = 84.0
+            armor_stbd = 84.0
+            armor_stern = 72.0
         "vinculados_suit":
             unit_code = "VINC_ACE_01"
             armor_bow = 92.0

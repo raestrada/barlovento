@@ -276,9 +276,9 @@ func _build_menu_diorama_fleets() -> void:
     add_child(vinc_group)
     _diorama_ships["vinculados"] = vinc_group
 
-    _spawn_diorama_hull("vinculados_suit", vinc_group, Vector3.ZERO)
-    _spawn_diorama_hull("vinculados_anima", vinc_group, Vector3(-4.8, 1.6, 3.5))
-    _spawn_diorama_hull("vinculados_anima", vinc_group, Vector3(4.8, -1.2, 3.5))
+    _spawn_diorama_hull("vinculados_cradle", vinc_group, Vector3.ZERO)
+    _spawn_diorama_hull("vinculados_suit", vinc_group, Vector3(-5.8, 1.8, 2.5))
+    _spawn_diorama_hull("vinculados_anima", vinc_group, Vector3(5.8, -1.2, 2.8))
 
     # 3. The Free Tide Corsair Squadron (Right-Center)
     var marea_group := Node3D.new()

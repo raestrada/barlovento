@@ -785,15 +785,15 @@ func _select_faction_and_open_briefing(fac_id: String) -> void:
             _briefing_art_rect.texture = load("res://assets/factions/card_vinculados.png")
             _commander_portrait_rect.texture = load("res://assets/heroes/ace_kaelen.png")
             _commander_name_lbl.text = "ACE PILOT KAELEN-7"
-            _commander_role_lbl.text = "Lead Resonance Choir // Eidolon Prime"
-            _commander_quote_lbl.text = "\"Welcome to the Choir Wing, pilot. In this tactical training drill, learn how to synchronize your neural frame with the Éther. Our high turn rates allow us to out-pivot slow Acero warships. Slip into their rear quadrant for critical Stern Rakes and strike before the Calm advances.\""
+            _commander_role_lbl.text = "Lead Resonance Choir // Eidolon Ace Platoon"
+            _commander_quote_lbl.text = "\"Welcome to the Choir Wing, pilot. In this tactical training drill, learn how to synchronize your neural frame with the Éther. Our agile mobile suit platoons and the Cradle Carrier Ark operate in concert. Our high turn rates allow us to out-pivot slow Acero warships. Slip into their rear quadrant for critical Stern Rakes and strike before the Calm advances.\""
             _objectives_lbl.text = """◆ TUTORIAL DRILL 1 (MECHA MOBILITY): High turn rate, fast vectors, and neural barrier usage.
 ◆ TUTORIAL DRILL 2 (CRITICAL DOCTRINE): Slip behind enemy dreadnoughts for devastating STERN RAKE (+40% CRITICAL DMG).
 ◆ PRIMARY OBJECTIVE: Neutralize the 3 Acero warships (CNS Iron Bastion, CNS Hammer of Anvil, CNS Vanguard-03) occupying Sector Psalm-4.
-◆ SECONDARY OBJECTIVE: Keep Command Frame Eidolon Prime operational."""
-            _add_squadron_row("vinculados_suit", "Eidolon Prime", "Eidolon Command Frame • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Resonance Lance & Barrier")
-            _add_squadron_row("vinculados_anima", "Anima-01 (Aria)", "Anima Strike Frame • Ace Mirei-4", "HP 115 | SPD 36 m/s | Rapid Flank Interceptor")
-            _add_squadron_row("vinculados_nous", "Nous-04 (Cantor)", "Nous Heavy Frame • Conductor Seraph-2", "HP 195 | SPD 27 m/s | Heavy Resonance Beam")
+◆ SECONDARY OBJECTIVE: Keep the Cradle Carrier Ark (Sanktuario Albor) operational."""
+            _add_squadron_row("vinculados_cradle", "Sanktuario Albor", "Cradle-Class Carrier Ark • Conductor Seraph-2", "HP 250 | SPD 19 m/s | Spinal Resonance Mega-Beam & PD Lasers")
+            _add_squadron_row("vinculados_suit", "Eidolon Ace Wing", "Eidolon Mobile Suit Platoon • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Trio Formation, Beam Carbine & Shield")
+            _add_squadron_row("vinculados_anima", "Anima-01 Interceptor Wing", "Anima Strike Platoon • Ace Mirei-4", "HP 115 | SPD 36 m/s | High-Speed Echelon Trio & Flank Intercept")
             if _launch_stage_btn != null:
                 _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
 
