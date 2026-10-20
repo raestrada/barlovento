@@ -228,384 +228,384 @@ static func _build_acero(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> 
 # ---------------------------------------------------------------------------
 
 static func _build_vinculados(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
-	if ship.ship_id == "vinculados_cradle":
-		_build_vinculados_carrier(ship, root, thrusters)
-	else:
-		_build_vinculados_platoon(ship, root, thrusters)
+    if ship.ship_id == "vinculados_cradle":
+        _build_vinculados_carrier(ship, root, thrusters)
+    else:
+        _build_vinculados_platoon(ship, root, thrusters)
 
 static func _build_vinculados_carrier(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
-	var s := ship.body_size
-	var ceramic := _textured(load(VINCULADOS_HULL), 0.16, 0.22, Vector3(2.0, 2.0, 1.0))
-	ceramic.albedo_color = Color(1.0, 1.0, 1.0)
-	var cobalt_blue := _colored(Color(0.12, 0.22, 0.44), 0.42, 0.36)
-	var frame_dark := _colored(Color(0.14, 0.16, 0.22), 0.72, 0.36)
-	var amber_hab := _emissive(Color(0.98, 0.65, 0.12), 1.6)
-	var cyan_energy := _emissive(Color(0.25, 0.88, 1.0), 2.2)
-	var soul_core_mat := _get_soul_core_material()
+    var s := ship.body_size
+    var ceramic := _textured(load(VINCULADOS_HULL), 0.16, 0.22, Vector3(2.0, 2.0, 1.0))
+    ceramic.albedo_color = Color(1.0, 1.0, 1.0)
+    var cobalt_blue := _colored(Color(0.12, 0.22, 0.44), 0.42, 0.36)
+    var frame_dark := _colored(Color(0.14, 0.16, 0.22), 0.72, 0.36)
+    var amber_hab := _emissive(Color(0.98, 0.65, 0.12), 1.6)
+    var cyan_energy := _emissive(Color(0.25, 0.88, 1.0), 2.2)
+    var soul_core_mat := _get_soul_core_material()
 
-	# Dedicated Hull Fill Light
-	var hull_light := OmniLight3D.new()
-	hull_light.position = Vector3(0.0, s.y * 1.5, -s.z * 0.1)
-	hull_light.light_color = Color(0.85, 0.92, 1.0)
-	hull_light.light_energy = 1.25
-	hull_light.omni_range = maxf(s.z * 1.6, 14.0)
-	root.add_child(hull_light)
+    # Dedicated Hull Fill Light
+    var hull_light := OmniLight3D.new()
+    hull_light.position = Vector3(0.0, s.y * 1.5, -s.z * 0.1)
+    hull_light.light_color = Color(0.85, 0.92, 1.0)
+    hull_light.light_energy = 1.25
+    hull_light.omni_range = maxf(s.z * 1.6, 14.0)
+    root.add_child(hull_light)
 
-	# 1. Central Hull & Spanning Keel
-	root.add_child(_box(
-		Vector3(s.x * 0.48, s.y * 0.44, s.z * 0.68), ceramic,
-		Vector3(0.0, s.y * 0.04, s.z * 0.02)
-	))
-	root.add_child(_box(
-		Vector3(s.x * 0.24, s.y * 0.26, s.z * 0.82), cobalt_blue,
-		Vector3(0.0, -s.y * 0.18, 0.0)
-	))
+    # 1. Central Hull & Spanning Keel
+    root.add_child(_box(
+        Vector3(s.x * 0.48, s.y * 0.44, s.z * 0.68), ceramic,
+        Vector3(0.0, s.y * 0.04, s.z * 0.02)
+    ))
+    root.add_child(_box(
+        Vector3(s.x * 0.24, s.y * 0.26, s.z * 0.82), cobalt_blue,
+        Vector3(0.0, -s.y * 0.18, 0.0)
+    ))
 
-	# Central Exposed Soul Core Chamber on Dorsal Spine
-	var core_ring := _cyl(s.x * 0.14, s.x * 0.16, s.y * 0.14, 12, frame_dark, Vector3(0.0, s.y * 0.27, -s.z * 0.04), Vector3(90.0, 0.0, 0.0))
-	root.add_child(core_ring)
-	root.add_child(_sphere(s.x * 0.12, s.x * 0.24, soul_core_mat, Vector3(0.0, s.y * 0.27, -s.z * 0.04)))
+    # Central Exposed Soul Core Chamber on Dorsal Spine
+    var core_ring := _cyl(s.x * 0.14, s.x * 0.16, s.y * 0.14, 12, frame_dark, Vector3(0.0, s.y * 0.27, -s.z * 0.04), Vector3(90.0, 0.0, 0.0))
+    root.add_child(core_ring)
+    root.add_child(_sphere(s.x * 0.12, s.x * 0.24, soul_core_mat, Vector3(0.0, s.y * 0.27, -s.z * 0.04)))
 
-	# 2. Elevated Conning Spire / Command Bridge Tower (Retro-Military White Base Aesthetic)
-	var bridge_pylon := _box(
-		Vector3(s.x * 0.18, s.y * 0.48, s.z * 0.24), ceramic,
-		Vector3(0.0, s.y * 0.46, s.z * 0.06), Vector3(-6.0, 0.0, 0.0)
-	)
-	root.add_child(bridge_pylon)
-	var bridge_cupola := _box(
-		Vector3(s.x * 0.24, s.y * 0.18, s.z * 0.18), cobalt_blue,
-		Vector3(0.0, s.y * 0.72, s.z * 0.03)
-	)
-	root.add_child(bridge_cupola)
-	var bridge_view := _box(
-		Vector3(s.x * 0.26, s.y * 0.06, s.z * 0.12), amber_hab,
-		Vector3(0.0, s.y * 0.73, -s.z * 0.04)
-	)
-	root.add_child(bridge_view)
+    # 2. Elevated Conning Spire / Command Bridge Tower (Retro-Military White Base Aesthetic)
+    var bridge_pylon := _box(
+        Vector3(s.x * 0.18, s.y * 0.48, s.z * 0.24), ceramic,
+        Vector3(0.0, s.y * 0.46, s.z * 0.06), Vector3(-6.0, 0.0, 0.0)
+    )
+    root.add_child(bridge_pylon)
+    var bridge_cupola := _box(
+        Vector3(s.x * 0.24, s.y * 0.18, s.z * 0.18), cobalt_blue,
+        Vector3(0.0, s.y * 0.72, s.z * 0.03)
+    )
+    root.add_child(bridge_cupola)
+    var bridge_view := _box(
+        Vector3(s.x * 0.26, s.y * 0.06, s.z * 0.12), amber_hab,
+        Vector3(0.0, s.y * 0.73, -s.z * 0.04)
+    )
+    root.add_child(bridge_view)
 
-	# Twin Backward-Swept Communication Antenna Fins on Bridge Roof
-	for side in [-1.0, 1.0]:
-		root.add_child(_box(
-			Vector3(0.02, s.y * 0.34, s.z * 0.08), ceramic,
-			Vector3(side * s.x * 0.08, s.y * 0.90, s.z * 0.04),
-			Vector3(-20.0, side * 8.0, side * -12.0)
-		))
+    # Twin Backward-Swept Communication Antenna Fins on Bridge Roof
+    for side in [-1.0, 1.0]:
+        root.add_child(_box(
+            Vector3(0.02, s.y * 0.34, s.z * 0.08), ceramic,
+            Vector3(side * s.x * 0.08, s.y * 0.90, s.z * 0.04),
+            Vector3(-20.0, side * 8.0, side * -12.0)
+        ))
 
-	# 3. Twin Forward Catamaran Hangar Decks (Mobile Suit Launch Bays / Paws)
-	for side in [-1.0, 1.0]:
-		var hx: float = side * s.x * 0.38
-		# Forward Flight Deck Hull
-		root.add_child(_box(
-			Vector3(s.x * 0.32, s.y * 0.44, s.z * 0.58), ceramic,
-			Vector3(hx, 0.0, -s.z * 0.18)
-		))
-		# Sloped Bow Catapult Ramp
-		root.add_child(_prism(
-			Vector3(s.x * 0.32, s.y * 0.42, s.z * 0.20), ceramic,
-			Vector3(hx, 0.0, -s.z * 0.52), Vector3(-90.0, 0.0, 0.0)
-		))
-		# Magnetic Catapult Runway with Glowing Cyan Guide Track
-		root.add_child(_box(
-			Vector3(s.x * 0.08, 0.02, s.z * 0.52), cyan_energy,
-			Vector3(hx, s.y * 0.23, -s.z * 0.20)
-		))
-		root.add_child(_box(
-			Vector3(s.x * 0.28, 0.015, s.z * 0.06), cobalt_blue,
-			Vector3(hx, s.y * 0.23, -s.z * 0.42)
-		))
-		# Forward Launch Hangar Gate (Recessed dark opening where mobile suits deploy)
-		root.add_child(_box(
-			Vector3(s.x * 0.18, s.y * 0.22, 0.04), frame_dark,
-			Vector3(hx, -s.y * 0.04, -s.z * 0.48)
-		))
-		root.add_child(_box(
-			Vector3(s.x * 0.14, s.y * 0.06, 0.05), amber_hab,
-			Vector3(hx, s.y * 0.08, -s.z * 0.48)
-		))
-		# Lateral Armor Fairings & Sponson Wings
-		root.add_child(_box(
-			Vector3(s.x * 0.08, s.y * 0.28, s.z * 0.38), cobalt_blue,
-			Vector3(side * (s.x * 0.52), s.y * 0.02, -s.z * 0.14)
-		))
-		root.add_child(_box(
-			Vector3(s.x * 0.16, 0.03, s.z * 0.24), ceramic,
-			Vector3(side * (s.x * 0.60), -s.y * 0.04, -s.z * 0.10),
-			Vector3(0.0, 0.0, side * 14.0)
-		))
+    # 3. Twin Forward Catamaran Hangar Decks (Mobile Suit Launch Bays / Paws)
+    for side in [-1.0, 1.0]:
+        var hx: float = side * s.x * 0.38
+        # Forward Flight Deck Hull
+        root.add_child(_box(
+            Vector3(s.x * 0.32, s.y * 0.44, s.z * 0.58), ceramic,
+            Vector3(hx, 0.0, -s.z * 0.18)
+        ))
+        # Sloped Bow Catapult Ramp
+        root.add_child(_prism(
+            Vector3(s.x * 0.32, s.y * 0.42, s.z * 0.20), ceramic,
+            Vector3(hx, 0.0, -s.z * 0.52), Vector3(-90.0, 0.0, 0.0)
+        ))
+        # Magnetic Catapult Runway with Glowing Cyan Guide Track
+        root.add_child(_box(
+            Vector3(s.x * 0.08, 0.02, s.z * 0.52), cyan_energy,
+            Vector3(hx, s.y * 0.23, -s.z * 0.20)
+        ))
+        root.add_child(_box(
+            Vector3(s.x * 0.28, 0.015, s.z * 0.06), cobalt_blue,
+            Vector3(hx, s.y * 0.23, -s.z * 0.42)
+        ))
+        # Forward Launch Hangar Gate (Recessed dark opening where mobile suits deploy)
+        root.add_child(_box(
+            Vector3(s.x * 0.18, s.y * 0.22, 0.04), frame_dark,
+            Vector3(hx, -s.y * 0.04, -s.z * 0.48)
+        ))
+        root.add_child(_box(
+            Vector3(s.x * 0.14, s.y * 0.06, 0.05), amber_hab,
+            Vector3(hx, s.y * 0.08, -s.z * 0.48)
+        ))
+        # Lateral Armor Fairings & Sponson Wings
+        root.add_child(_box(
+            Vector3(s.x * 0.08, s.y * 0.28, s.z * 0.38), cobalt_blue,
+            Vector3(side * (s.x * 0.52), s.y * 0.02, -s.z * 0.14)
+        ))
+        root.add_child(_box(
+            Vector3(s.x * 0.16, 0.03, s.z * 0.24), ceramic,
+            Vector3(side * (s.x * 0.60), -s.y * 0.04, -s.z * 0.10),
+            Vector3(0.0, 0.0, side * 14.0)
+        ))
 
-	# 4. Central Heavy Spinal High-Resonance Mega-Beam Cannon ("Rayo de Resonancia")
-	root.add_child(_box(
-		Vector3(s.x * 0.20, s.y * 0.18, s.z * 0.34), frame_dark,
-		Vector3(0.0, s.y * 0.02, -s.z * 0.36)
-	))
-	for bside in [-1.0, 1.0]:
-		root.add_child(_cyl(
-			s.x * 0.035, s.x * 0.045, s.z * 0.28, 10, cobalt_blue,
-			Vector3(bside * s.x * 0.055, s.y * 0.02, -s.z * 0.46),
-			Vector3(90.0, 0.0, 0.0)
-		))
-		root.add_child(_cyl(
-			0.01, s.x * 0.03, 0.08, 8, cyan_energy,
-			Vector3(bside * s.x * 0.055, s.y * 0.02, -s.z * 0.60),
-			Vector3(90.0, 0.0, 0.0)
-		))
+    # 4. Central Heavy Spinal High-Resonance Mega-Beam Cannon ("Rayo de Resonancia")
+    root.add_child(_box(
+        Vector3(s.x * 0.20, s.y * 0.18, s.z * 0.34), frame_dark,
+        Vector3(0.0, s.y * 0.02, -s.z * 0.36)
+    ))
+    for bside in [-1.0, 1.0]:
+        root.add_child(_cyl(
+            s.x * 0.035, s.x * 0.045, s.z * 0.28, 10, cobalt_blue,
+            Vector3(bside * s.x * 0.055, s.y * 0.02, -s.z * 0.46),
+            Vector3(90.0, 0.0, 0.0)
+        ))
+        root.add_child(_cyl(
+            0.01, s.x * 0.03, 0.08, 8, cyan_energy,
+            Vector3(bside * s.x * 0.055, s.y * 0.02, -s.z * 0.60),
+            Vector3(90.0, 0.0, 0.0)
+        ))
 
-	# 5. Defensive Rapid-Fire Point-Defense Laser Casemates
-	for side in [-1.0, 1.0]:
-		var pd1 := _cyl(s.x * 0.05, s.x * 0.065, s.y * 0.12, 8, cobalt_blue, Vector3(side * s.x * 0.38, s.y * 0.26, 0.02))
-		root.add_child(pd1)
-		root.add_child(_cyl(0.015, 0.02, s.z * 0.12, 6, frame_dark, Vector3(side * s.x * 0.38, s.y * 0.30, -s.z * 0.05), Vector3(75.0, 0.0, 0.0)))
-		var pd2 := _cyl(s.x * 0.045, s.x * 0.06, s.y * 0.10, 8, frame_dark, Vector3(side * s.x * 0.54, -s.y * 0.06, s.z * 0.18))
-		root.add_child(pd2)
+    # 5. Defensive Rapid-Fire Point-Defense Laser Casemates
+    for side in [-1.0, 1.0]:
+        var pd1 := _cyl(s.x * 0.05, s.x * 0.065, s.y * 0.12, 8, cobalt_blue, Vector3(side * s.x * 0.38, s.y * 0.26, 0.02))
+        root.add_child(pd1)
+        root.add_child(_cyl(0.015, 0.02, s.z * 0.12, 6, frame_dark, Vector3(side * s.x * 0.38, s.y * 0.30, -s.z * 0.05), Vector3(75.0, 0.0, 0.0)))
+        var pd2 := _cyl(s.x * 0.045, s.x * 0.06, s.y * 0.10, 8, frame_dark, Vector3(side * s.x * 0.54, -s.y * 0.06, s.z * 0.18))
+        root.add_child(pd2)
 
-	# 6. Aft Main Propulsion Engine Nacelles
-	for side in [-1.0, 1.0]:
-		var hx: float = side * s.x * 0.38
-		root.add_child(_box(
-			Vector3(s.x * 0.30, s.y * 0.38, s.z * 0.38), ceramic,
-			Vector3(hx, 0.0, s.z * 0.32)
-		))
-		root.add_child(_box(
-			Vector3(s.x * 0.26, s.y * 0.08, s.z * 0.32), cobalt_blue,
-			Vector3(hx, s.y * 0.20, s.z * 0.32)
-		))
-		for vy in [-0.08, 0.08]:
-			var ez := s.z * 0.51
-			root.add_child(_cyl(s.x * 0.08, s.x * 0.11, s.z * 0.16, 12, frame_dark, Vector3(hx, vy * s.y, ez), Vector3(-90.0, 0.0, 0.0)))
-			var nozzle := _cyl(s.x * 0.065, s.x * 0.09, 0.35, 10, cyan_energy, Vector3(hx, vy * s.y, ez + 0.10), Vector3(-90.0, 0.0, 0.0))
-			root.add_child(nozzle)
-			thrusters.append(nozzle)
+    # 6. Aft Main Propulsion Engine Nacelles
+    for side in [-1.0, 1.0]:
+        var hx: float = side * s.x * 0.38
+        root.add_child(_box(
+            Vector3(s.x * 0.30, s.y * 0.38, s.z * 0.38), ceramic,
+            Vector3(hx, 0.0, s.z * 0.32)
+        ))
+        root.add_child(_box(
+            Vector3(s.x * 0.26, s.y * 0.08, s.z * 0.32), cobalt_blue,
+            Vector3(hx, s.y * 0.20, s.z * 0.32)
+        ))
+        for vy in [-0.08, 0.08]:
+            var ez := s.z * 0.51
+            root.add_child(_cyl(s.x * 0.08, s.x * 0.11, s.z * 0.16, 12, frame_dark, Vector3(hx, vy * s.y, ez), Vector3(-90.0, 0.0, 0.0)))
+            var nozzle := _cyl(s.x * 0.065, s.x * 0.09, 0.35, 10, cyan_energy, Vector3(hx, vy * s.y, ez + 0.10), Vector3(-90.0, 0.0, 0.0))
+            root.add_child(nozzle)
+            thrusters.append(nozzle)
 
 static func _build_vinculados_platoon(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
-	var s := ship.body_size
-	# 3 Agile Mobile Suits per tactical unit in tight echelon flight formation
-	# 1. Lead Suit (Commander / Ace)
-	_build_mobile_suit(root, 0.44, true, ship.ship_id, thrusters, 0.0, Vector3(0.0, 0.0, -s.z * 0.12), Vector3.ZERO)
-	# 2. Port Wingman (Left Escort)
-	_build_mobile_suit(root, 0.38, false, ship.ship_id, thrusters, 1.85, Vector3(-s.x * 0.52, s.y * 0.16, s.z * 0.22), Vector3(0.0, -5.0, 3.0))
-	# 3. Starboard Wingman (Right Escort)
-	_build_mobile_suit(root, 0.38, false, ship.ship_id, thrusters, 3.70, Vector3(s.x * 0.52, -s.y * 0.14, s.z * 0.26), Vector3(0.0, 5.0, -3.0))
+    var s := ship.body_size
+    # 3 Agile Mobile Suits per tactical unit in tight echelon flight formation
+    # 1. Lead Suit (Commander / Ace)
+    _build_mobile_suit(root, 0.44, true, ship.ship_id, thrusters, 0.0, Vector3(0.0, 0.0, -s.z * 0.12), Vector3.ZERO)
+    # 2. Port Wingman (Left Escort)
+    _build_mobile_suit(root, 0.38, false, ship.ship_id, thrusters, 1.85, Vector3(-s.x * 0.52, s.y * 0.16, s.z * 0.22), Vector3(0.0, -5.0, 3.0))
+    # 3. Starboard Wingman (Right Escort)
+    _build_mobile_suit(root, 0.38, false, ship.ship_id, thrusters, 3.70, Vector3(s.x * 0.52, -s.y * 0.14, s.z * 0.26), Vector3(0.0, 5.0, -3.0))
 
 static func _build_mobile_suit(
-	parent: Node3D,
-	suit_scale: float,
-	is_lead: bool,
-	ship_id: String,
-	thrusters: Array[Node3D],
-	phase_seed: float,
-	offset_pos: Vector3,
-	base_rot: Vector3
+    parent: Node3D,
+    suit_scale: float,
+    is_lead: bool,
+    ship_id: String,
+    thrusters: Array[Node3D],
+    phase_seed: float,
+    offset_pos: Vector3,
+    base_rot: Vector3
 ) -> void:
-	var suit := GundamSuitNode.new()
-	suit.phase_offset = phase_seed
-	suit.position = offset_pos
-	suit.rotation_degrees = base_rot
-	suit.scale = Vector3(suit_scale, suit_scale, suit_scale)
-	parent.add_child(suit)
+    var suit := GundamSuitNode.new()
+    suit.phase_offset = phase_seed
+    suit.position = offset_pos
+    suit.rotation_degrees = base_rot
+    suit.scale = Vector3(suit_scale, suit_scale, suit_scale)
+    parent.add_child(suit)
 
-	# Dynamic Flight Posture Node: torso pitched forward into zero-G flight vector
-	var flight_posture := Node3D.new()
-	flight_posture.rotation_degrees = Vector3(-18.0, 0.0, 0.0)
-	suit.add_child(flight_posture)
+    # Dynamic Flight Posture Node: torso pitched forward into zero-G flight vector
+    var flight_posture := Node3D.new()
+    flight_posture.rotation_degrees = Vector3(-18.0, 0.0, 0.0)
+    suit.add_child(flight_posture)
 
-	var is_anima := (ship_id == "vinculados_anima")
-	var is_nous := (ship_id == "vinculados_nous")
+    var is_anima := (ship_id == "vinculados_anima")
+    var is_nous := (ship_id == "vinculados_nous")
 
-	var ceramic_white := _textured(load(VINCULADOS_HULL), 0.18, 0.22, Vector3(2.0, 2.0, 1.0))
-	if is_anima:
-		ceramic_white.albedo_color = Color(0.92, 0.98, 1.0)
-	elif is_nous:
-		ceramic_white.albedo_color = Color(0.95, 0.92, 1.0)
-	else:
-		ceramic_white.albedo_color = Color(1.0, 1.0, 1.0)
+    var ceramic_white := _textured(load(VINCULADOS_HULL), 0.18, 0.22, Vector3(2.0, 2.0, 1.0))
+    if is_anima:
+        ceramic_white.albedo_color = Color(0.92, 0.98, 1.0)
+    elif is_nous:
+        ceramic_white.albedo_color = Color(0.95, 0.92, 1.0)
+    else:
+        ceramic_white.albedo_color = Color(1.0, 1.0, 1.0)
 
-	var cobalt_blue := _colored(Color(0.12, 0.22, 0.46), 0.45, 0.35)
-	var frame_dark := _colored(Color(0.12, 0.13, 0.17), 0.70, 0.38)
-	var amber_intake := _emissive(Color(0.98, 0.68, 0.12), 1.6)
-	var cyan_visor := _emissive(Color(0.25, 0.88, 1.0), 2.0)
-	var cyan_thruster := _emissive(Color(0.32, 0.92, 1.0), 2.4)
-	var crimson_accent := _colored(Color(0.76, 0.16, 0.18), 0.35, 0.40)
-	var soul_core_mat := _get_soul_core_material()
-	var beam_lance_mat := _emissive(Color(0.35, 0.95, 1.0), 2.5)
+    var cobalt_blue := _colored(Color(0.12, 0.22, 0.46), 0.45, 0.35)
+    var frame_dark := _colored(Color(0.12, 0.13, 0.17), 0.70, 0.38)
+    var amber_intake := _emissive(Color(0.98, 0.68, 0.12), 1.6)
+    var cyan_visor := _emissive(Color(0.25, 0.88, 1.0), 2.0)
+    var cyan_thruster := _emissive(Color(0.32, 0.92, 1.0), 2.4)
+    var crimson_accent := _colored(Color(0.76, 0.16, 0.18), 0.35, 0.40)
+    var soul_core_mat := _get_soul_core_material()
+    var beam_lance_mat := _emissive(Color(0.35, 0.95, 1.0), 2.5)
 
-	# 1. Torso Assembly (Classic Real-Robot Military Layout)
-	# White ceramic abdomen
-	flight_posture.add_child(_box(Vector3(0.34, 0.32, 0.26), ceramic_white, Vector3(0.0, 0.0, 0.0)))
-	# Cobalt blue upper chest block
-	flight_posture.add_child(_box(Vector3(0.56, 0.40, 0.38), cobalt_blue, Vector3(0.0, 0.32, -0.02)))
+    # 1. Torso Assembly (Classic Real-Robot Military Layout)
+    # White ceramic abdomen
+    flight_posture.add_child(_box(Vector3(0.34, 0.32, 0.26), ceramic_white, Vector3(0.0, 0.0, 0.0)))
+    # Cobalt blue upper chest block
+    flight_posture.add_child(_box(Vector3(0.56, 0.40, 0.38), cobalt_blue, Vector3(0.0, 0.32, -0.02)))
 
-	# Dual Angled Amber Cooling Intake Vents (Classic Gundam Chest Louvers)
-	for side in [-1.0, 1.0]:
-		flight_posture.add_child(_box(
-			Vector3(0.10, 0.08, 0.04), amber_intake,
-			Vector3(side * 0.16, 0.34, -0.21), Vector3(6.0, side * 8.0, 0.0)
-		))
+    # Dual Angled Amber Cooling Intake Vents (Classic Gundam Chest Louvers)
+    for side in [-1.0, 1.0]:
+        flight_posture.add_child(_box(
+            Vector3(0.10, 0.08, 0.04), amber_intake,
+            Vector3(side * 0.16, 0.34, -0.21), Vector3(6.0, side * 8.0, 0.0)
+        ))
 
-	# Central Exposed Pulsing Magenta Soul Core
-	flight_posture.add_child(_sphere(0.08, 0.14, soul_core_mat, Vector3(0.0, 0.30, -0.21)))
+    # Central Exposed Pulsing Magenta Soul Core
+    flight_posture.add_child(_sphere(0.08, 0.14, soul_core_mat, Vector3(0.0, 0.30, -0.21)))
 
-	# Cockpit Hatch Block (Angled Crimson Plate)
-	flight_posture.add_child(_box(
-		Vector3(0.12, 0.14, 0.06), crimson_accent if (is_lead or is_nous) else cobalt_blue,
-		Vector3(0.0, 0.18, -0.16)
-	))
+    # Cockpit Hatch Block (Angled Crimson Plate)
+    flight_posture.add_child(_box(
+        Vector3(0.12, 0.14, 0.06), crimson_accent if (is_lead or is_nous) else cobalt_blue,
+        Vector3(0.0, 0.18, -0.16)
+    ))
 
-	# Waist & Segmented Skirt Armor Plates
-	for side in [-1.0, 1.0]:
-		flight_posture.add_child(_box(
-			Vector3(0.14, 0.18, 0.04), ceramic_white,
-			Vector3(side * 0.10, -0.16, -0.14), Vector3(14.0, 0.0, side * -4.0)
-		))
-		flight_posture.add_child(_box(
-			Vector3(0.04, 0.18, 0.20), ceramic_white,
-			Vector3(side * 0.21, -0.16, 0.0)
-		))
-	flight_posture.add_child(_box(
-		Vector3(0.32, 0.16, 0.04), ceramic_white,
-		Vector3(0.0, -0.16, 0.14), Vector3(-12.0, 0.0, 0.0)
-	))
+    # Waist & Segmented Skirt Armor Plates
+    for side in [-1.0, 1.0]:
+        flight_posture.add_child(_box(
+            Vector3(0.14, 0.18, 0.04), ceramic_white,
+            Vector3(side * 0.10, -0.16, -0.14), Vector3(14.0, 0.0, side * -4.0)
+        ))
+        flight_posture.add_child(_box(
+            Vector3(0.04, 0.18, 0.20), ceramic_white,
+            Vector3(side * 0.21, -0.16, 0.0)
+        ))
+    flight_posture.add_child(_box(
+        Vector3(0.32, 0.16, 0.04), ceramic_white,
+        Vector3(0.0, -0.16, 0.14), Vector3(-12.0, 0.0, 0.0)
+    ))
 
-	# 2. Head Unit & Sensor Mask
-	flight_posture.add_child(_cyl(0.06, 0.08, 0.10, 8, frame_dark, Vector3(0.0, 0.54, 0.0)))
-	var helmet := _box(Vector3(0.22, 0.24, 0.24), ceramic_white, Vector3(0.0, 0.68, 0.0))
-	flight_posture.add_child(helmet)
-	# Chin guard & cheek cowls
-	flight_posture.add_child(_prism(
-		Vector3(0.08, 0.08, 0.06), crimson_accent if is_lead else cobalt_blue,
-		Vector3(0.0, 0.58, -0.13), Vector3(180.0, 0.0, 0.0)
-	))
-	# Glowing Cyan Sensor Visor / Dual Optics
-	flight_posture.add_child(_box(
-		Vector3(0.15, 0.032, 0.05), cyan_visor,
-		Vector3(0.0, 0.68, -0.13)
-	))
-	# Forehead Camera Sensor Box
-	flight_posture.add_child(_box(
-		Vector3(0.05, 0.05, 0.06), crimson_accent,
-		Vector3(0.0, 0.81, -0.10)
-	))
-	# Harmonic Crest: Original Swept-Back Aerodynamic Antenna Blades (Classic silhouette without trademark V-fin)
-	for side in [-1.0, 1.0]:
-		flight_posture.add_child(_box(
-			Vector3(0.02, 0.24, 0.08), ceramic_white,
-			Vector3(side * 0.08, 0.86, -0.04),
-			Vector3(-24.0, side * 12.0, side * -16.0)
-		))
-	flight_posture.add_child(_box(Vector3(0.03, 0.06, 0.04), cyan_visor, Vector3(0.0, 0.82, -0.08)))
+    # 2. Head Unit & Sensor Mask
+    flight_posture.add_child(_cyl(0.06, 0.08, 0.10, 8, frame_dark, Vector3(0.0, 0.54, 0.0)))
+    var helmet := _box(Vector3(0.22, 0.24, 0.24), ceramic_white, Vector3(0.0, 0.68, 0.0))
+    flight_posture.add_child(helmet)
+    # Chin guard & cheek cowls
+    flight_posture.add_child(_prism(
+        Vector3(0.08, 0.08, 0.06), crimson_accent if is_lead else cobalt_blue,
+        Vector3(0.0, 0.58, -0.13), Vector3(180.0, 0.0, 0.0)
+    ))
+    # Glowing Cyan Sensor Visor / Dual Optics
+    flight_posture.add_child(_box(
+        Vector3(0.15, 0.032, 0.05), cyan_visor,
+        Vector3(0.0, 0.68, -0.13)
+    ))
+    # Forehead Camera Sensor Box
+    flight_posture.add_child(_box(
+        Vector3(0.05, 0.05, 0.06), crimson_accent,
+        Vector3(0.0, 0.81, -0.10)
+    ))
+    # Harmonic Crest: Original Swept-Back Aerodynamic Antenna Blades (Classic silhouette without trademark V-fin)
+    for side in [-1.0, 1.0]:
+        flight_posture.add_child(_box(
+            Vector3(0.02, 0.24, 0.08), ceramic_white,
+            Vector3(side * 0.08, 0.86, -0.04),
+            Vector3(-24.0, side * 12.0, side * -16.0)
+        ))
+    flight_posture.add_child(_box(Vector3(0.03, 0.06, 0.04), cyan_visor, Vector3(0.0, 0.82, -0.08)))
 
-	# 3. High-Mobility Backpack Unit & Verniers
-	flight_posture.add_child(_box(Vector3(0.34, 0.36, 0.22), frame_dark, Vector3(0.0, 0.32, 0.22)))
-	flight_posture.add_child(_box(Vector3(0.30, 0.12, 0.20), cobalt_blue, Vector3(0.0, 0.48, 0.22)))
-	for side in [-1.0, 1.0]:
-		flight_posture.add_child(_cyl(
-			0.04, 0.075, 0.16, 8, frame_dark,
-			Vector3(side * 0.11, 0.24, 0.32), Vector3(-72.0, 0.0, 0.0)
-		))
-		var vernier := _cyl(
-			0.025, 0.055, 0.24, 8, cyan_thruster,
-			Vector3(side * 0.11, 0.24, 0.40), Vector3(-72.0, 0.0, 0.0)
-		)
-		flight_posture.add_child(vernier)
-		thrusters.append(vernier)
-		# Docked Beam Saber Hilts
-		flight_posture.add_child(_cyl(
-			0.015, 0.02, 0.24, 6, ceramic_white,
-			Vector3(side * 0.14, 0.58, 0.20), Vector3(28.0, side * 8.0, 0.0)
-		))
+    # 3. High-Mobility Backpack Unit & Verniers
+    flight_posture.add_child(_box(Vector3(0.34, 0.36, 0.22), frame_dark, Vector3(0.0, 0.32, 0.22)))
+    flight_posture.add_child(_box(Vector3(0.30, 0.12, 0.20), cobalt_blue, Vector3(0.0, 0.48, 0.22)))
+    for side in [-1.0, 1.0]:
+        flight_posture.add_child(_cyl(
+            0.04, 0.075, 0.16, 8, frame_dark,
+            Vector3(side * 0.11, 0.24, 0.32), Vector3(-72.0, 0.0, 0.0)
+        ))
+        var vernier := _cyl(
+            0.025, 0.055, 0.24, 8, cyan_thruster,
+            Vector3(side * 0.11, 0.24, 0.40), Vector3(-72.0, 0.0, 0.0)
+        )
+        flight_posture.add_child(vernier)
+        thrusters.append(vernier)
+        # Docked Beam Saber Hilts
+        flight_posture.add_child(_cyl(
+            0.015, 0.02, 0.24, 6, ceramic_white,
+            Vector3(side * 0.14, 0.58, 0.20), Vector3(28.0, side * 8.0, 0.0)
+        ))
 
-	if is_nous:
-		# Over-the-shoulder heavy twin resonance cannons
-		for side in [-1.0, 1.0]:
-			flight_posture.add_child(_cyl(
-				0.045, 0.06, 0.65, 10, ceramic_white,
-				Vector3(side * 0.22, 0.55, -0.15), Vector3(82.0, 0.0, 0.0)
-			))
-			flight_posture.add_child(_cyl(
-				0.025, 0.035, 0.18, 8, beam_lance_mat,
-				Vector3(side * 0.22, 0.58, -0.52), Vector3(82.0, 0.0, 0.0)
-			))
-	elif is_anima:
-		# Swept high-speed booster stabilizer vanes
-		for side in [-1.0, 1.0]:
-			flight_posture.add_child(_box(
-				Vector3(0.03, 0.38, 0.24), cobalt_blue,
-				Vector3(side * 0.32, 0.40, 0.34), Vector3(-30.0, side * 24.0, side * -28.0)
-			))
+    if is_nous:
+        # Over-the-shoulder heavy twin resonance cannons
+        for side in [-1.0, 1.0]:
+            flight_posture.add_child(_cyl(
+                0.045, 0.06, 0.65, 10, ceramic_white,
+                Vector3(side * 0.22, 0.55, -0.15), Vector3(82.0, 0.0, 0.0)
+            ))
+            flight_posture.add_child(_cyl(
+                0.025, 0.035, 0.18, 8, beam_lance_mat,
+                Vector3(side * 0.22, 0.58, -0.52), Vector3(82.0, 0.0, 0.0)
+            ))
+    elif is_anima:
+        # Swept high-speed booster stabilizer vanes
+        for side in [-1.0, 1.0]:
+            flight_posture.add_child(_box(
+                Vector3(0.03, 0.38, 0.24), cobalt_blue,
+                Vector3(side * 0.32, 0.40, 0.34), Vector3(-30.0, side * 24.0, side * -28.0)
+            ))
 
-	# 4. Shoulders & Arms
-	for side in [-1.0, 1.0]:
-		var pld := _box(Vector3(0.24, 0.22, 0.28), ceramic_white, Vector3(side * 0.42, 0.36, 0.0))
-		flight_posture.add_child(pld)
-		flight_posture.add_child(_box(Vector3(0.22, 0.06, 0.26), cobalt_blue, Vector3(side * 0.42, 0.48, 0.0)))
-		var sh_v := _cyl(0.02, 0.04, 0.08, 6, cyan_thruster, Vector3(side * 0.55, 0.36, 0.0), Vector3(0.0, 0.0, side * 90.0))
-		flight_posture.add_child(sh_v)
-		thrusters.append(sh_v)
+    # 4. Shoulders & Arms
+    for side in [-1.0, 1.0]:
+        var pld := _box(Vector3(0.24, 0.22, 0.28), ceramic_white, Vector3(side * 0.42, 0.36, 0.0))
+        flight_posture.add_child(pld)
+        flight_posture.add_child(_box(Vector3(0.22, 0.06, 0.26), cobalt_blue, Vector3(side * 0.42, 0.48, 0.0)))
+        var sh_v := _cyl(0.02, 0.04, 0.08, 6, cyan_thruster, Vector3(side * 0.55, 0.36, 0.0), Vector3(0.0, 0.0, side * 90.0))
+        flight_posture.add_child(sh_v)
+        thrusters.append(sh_v)
 
-	# Left Arm & Real-Robot Shield in Guard Stance
-	flight_posture.add_child(_capsule(0.06, 0.18, frame_dark, Vector3(-0.38, 0.22, -0.10), Vector3(25.0, 0.0, -15.0)))
-	flight_posture.add_child(_capsule(0.06, 0.18, ceramic_white, Vector3(-0.40, 0.10, -0.24), Vector3(45.0, 10.0, 0.0)))
-	# Shield Node (Beveled Tapered Defensive Shield)
-	var shield_node := Node3D.new()
-	shield_node.position = Vector3(-0.48, 0.12, -0.26)
-	shield_node.rotation_degrees = Vector3(14.0, 26.0, -8.0)
-	flight_posture.add_child(shield_node)
-	shield_node.add_child(_box(Vector3(0.18, 0.72, 0.04), ceramic_white, Vector3.ZERO))
-	shield_node.add_child(_box(Vector3(0.14, 0.38, 0.05), cobalt_blue, Vector3(0.0, 0.06, 0.01)))
-	shield_node.add_child(_box(Vector3(0.08, 0.04, 0.06), amber_intake, Vector3(0.0, 0.26, 0.01)))
+    # Left Arm & Real-Robot Shield in Guard Stance
+    flight_posture.add_child(_capsule(0.06, 0.18, frame_dark, Vector3(-0.38, 0.22, -0.10), Vector3(25.0, 0.0, -15.0)))
+    flight_posture.add_child(_capsule(0.06, 0.18, ceramic_white, Vector3(-0.40, 0.10, -0.24), Vector3(45.0, 10.0, 0.0)))
+    # Shield Node (Beveled Tapered Defensive Shield)
+    var shield_node := Node3D.new()
+    shield_node.position = Vector3(-0.48, 0.12, -0.26)
+    shield_node.rotation_degrees = Vector3(14.0, 26.0, -8.0)
+    flight_posture.add_child(shield_node)
+    shield_node.add_child(_box(Vector3(0.18, 0.72, 0.04), ceramic_white, Vector3.ZERO))
+    shield_node.add_child(_box(Vector3(0.14, 0.38, 0.05), cobalt_blue, Vector3(0.0, 0.06, 0.01)))
+    shield_node.add_child(_box(Vector3(0.08, 0.04, 0.06), amber_intake, Vector3(0.0, 0.26, 0.01)))
 
-	# Right Arm & Precision Beam Carbine / Rifle
-	flight_posture.add_child(_capsule(0.06, 0.18, frame_dark, Vector3(0.38, 0.22, -0.08), Vector3(20.0, 0.0, 10.0)))
-	flight_posture.add_child(_capsule(0.06, 0.18, ceramic_white, Vector3(0.38, 0.12, -0.22), Vector3(70.0, 0.0, 0.0)))
-	# Weapon Assembly extending along -Z
-	var gun_pos := Vector3(0.38, 0.12, -0.48)
-	flight_posture.add_child(_box(Vector3(0.07, 0.14, 0.38), frame_dark, gun_pos))
-	flight_posture.add_child(_cyl(0.025, 0.025, 0.12, 8, cobalt_blue, gun_pos + Vector3(0.0, 0.09, 0.02), Vector3(90.0, 0.0, 0.0)))
-	flight_posture.add_child(_sphere(0.02, 0.04, cyan_visor, gun_pos + Vector3(0.0, 0.09, -0.05)))
-	flight_posture.add_child(_cyl(0.02, 0.028, 0.48, 8, frame_dark, gun_pos + Vector3(0.0, 0.0, -0.36), Vector3(90.0, 0.0, 0.0)))
-	flight_posture.add_child(_cyl(0.005, 0.04, 0.16, 8, beam_lance_mat, gun_pos + Vector3(0.0, 0.0, -0.66), Vector3(90.0, 0.0, 0.0)))
+    # Right Arm & Precision Beam Carbine / Rifle
+    flight_posture.add_child(_capsule(0.06, 0.18, frame_dark, Vector3(0.38, 0.22, -0.08), Vector3(20.0, 0.0, 10.0)))
+    flight_posture.add_child(_capsule(0.06, 0.18, ceramic_white, Vector3(0.38, 0.12, -0.22), Vector3(70.0, 0.0, 0.0)))
+    # Weapon Assembly extending along -Z
+    var gun_pos := Vector3(0.38, 0.12, -0.48)
+    flight_posture.add_child(_box(Vector3(0.07, 0.14, 0.38), frame_dark, gun_pos))
+    flight_posture.add_child(_cyl(0.025, 0.025, 0.12, 8, cobalt_blue, gun_pos + Vector3(0.0, 0.09, 0.02), Vector3(90.0, 0.0, 0.0)))
+    flight_posture.add_child(_sphere(0.02, 0.04, cyan_visor, gun_pos + Vector3(0.0, 0.09, -0.05)))
+    flight_posture.add_child(_cyl(0.02, 0.028, 0.48, 8, frame_dark, gun_pos + Vector3(0.0, 0.0, -0.36), Vector3(90.0, 0.0, 0.0)))
+    flight_posture.add_child(_cyl(0.005, 0.04, 0.16, 8, beam_lance_mat, gun_pos + Vector3(0.0, 0.0, -0.66), Vector3(90.0, 0.0, 0.0)))
 
-	# 5. Articulated Legs Trailing Backwards in Slipstream!
-	for side in [-1.0, 1.0]:
-		var lx: float = side * 0.15
-		# Hip joint
-		flight_posture.add_child(_sphere(0.06, 0.12, frame_dark, Vector3(lx, -0.16, 0.0)))
-		# Thigh angled backward -15 deg
-		flight_posture.add_child(_box(
-			Vector3(0.14, 0.32, 0.18), ceramic_white,
-			Vector3(lx, -0.32, 0.08), Vector3(-15.0, 0.0, 0.0)
-		))
-		# Knee armor bent forward +32 deg
-		flight_posture.add_child(_box(
-			Vector3(0.12, 0.14, 0.08), cobalt_blue,
-			Vector3(lx, -0.44, 0.09), Vector3(32.0, 0.0, 0.0)
-		))
-		# Lower leg / calf swept backward -38 deg trailing in slipstream
-		flight_posture.add_child(_box(
-			Vector3(0.15, 0.42, 0.20), ceramic_white,
-			Vector3(lx, -0.65, 0.32), Vector3(-38.0, 0.0, 0.0)
-		))
-		# Rear calf vernier nozzle
-		flight_posture.add_child(_cyl(
-			0.035, 0.065, 0.14, 8, frame_dark,
-			Vector3(lx, -0.62, 0.44), Vector3(-65.0, 0.0, 0.0)
-		))
-		var calf_v := _cyl(
-			0.02, 0.045, 0.20, 8, cyan_thruster,
-			Vector3(lx, -0.62, 0.52), Vector3(-65.0, 0.0, 0.0)
-		)
-		flight_posture.add_child(calf_v)
-		thrusters.append(calf_v)
-		# Armored boot sole with rear thruster jet
-		flight_posture.add_child(_box(
-			Vector3(0.14, 0.14, 0.28), cobalt_blue if is_lead else frame_dark,
-			Vector3(lx, -0.86, 0.50), Vector3(-50.0, 0.0, 0.0)
-		))
-		var foot_v := _cyl(
-			0.02, 0.045, 0.16, 8, cyan_thruster,
-			Vector3(lx, -0.90, 0.62), Vector3(-50.0, 0.0, 0.0)
-		)
-		flight_posture.add_child(foot_v)
-		thrusters.append(foot_v)
+    # 5. Articulated Legs Trailing Backwards in Slipstream!
+    for side in [-1.0, 1.0]:
+        var lx: float = side * 0.15
+        # Hip joint
+        flight_posture.add_child(_sphere(0.06, 0.12, frame_dark, Vector3(lx, -0.16, 0.0)))
+        # Thigh angled backward -15 deg
+        flight_posture.add_child(_box(
+            Vector3(0.14, 0.32, 0.18), ceramic_white,
+            Vector3(lx, -0.32, 0.08), Vector3(-15.0, 0.0, 0.0)
+        ))
+        # Knee armor bent forward +32 deg
+        flight_posture.add_child(_box(
+            Vector3(0.12, 0.14, 0.08), cobalt_blue,
+            Vector3(lx, -0.44, 0.09), Vector3(32.0, 0.0, 0.0)
+        ))
+        # Lower leg / calf swept backward -38 deg trailing in slipstream
+        flight_posture.add_child(_box(
+            Vector3(0.15, 0.42, 0.20), ceramic_white,
+            Vector3(lx, -0.65, 0.32), Vector3(-38.0, 0.0, 0.0)
+        ))
+        # Rear calf vernier nozzle
+        flight_posture.add_child(_cyl(
+            0.035, 0.065, 0.14, 8, frame_dark,
+            Vector3(lx, -0.62, 0.44), Vector3(-65.0, 0.0, 0.0)
+        ))
+        var calf_v := _cyl(
+            0.02, 0.045, 0.20, 8, cyan_thruster,
+            Vector3(lx, -0.62, 0.52), Vector3(-65.0, 0.0, 0.0)
+        )
+        flight_posture.add_child(calf_v)
+        thrusters.append(calf_v)
+        # Armored boot sole with rear thruster jet
+        flight_posture.add_child(_box(
+            Vector3(0.14, 0.14, 0.28), cobalt_blue if is_lead else frame_dark,
+            Vector3(lx, -0.86, 0.50), Vector3(-50.0, 0.0, 0.0)
+        ))
+        var foot_v := _cyl(
+            0.02, 0.045, 0.16, 8, cyan_thruster,
+            Vector3(lx, -0.90, 0.62), Vector3(-50.0, 0.0, 0.0)
+        )
+        flight_posture.add_child(foot_v)
+        thrusters.append(foot_v)
 
 # ---------------------------------------------------------------------------
 # The Free Tide — Steampunk Void Galleons & Brigantines with curved mahogany
