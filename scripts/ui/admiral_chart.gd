@@ -160,9 +160,14 @@ func _init_sector_terrain() -> void:
 	_sector_types[Vector2i(2, 2)] = "conduit"
 	_sector_types[Vector2i(5, 3)] = "conduit"
 
-	# The encroaching Calm front along northern row 0 (Dead zone hazard: -50% SPD & Shield decay)
-	for x in range(GRID_COLS):
-		_sector_types[Vector2i(x, 0)] = "calm"
+	# Dimensional Fluid Seeps (The Calm encroaching from NW rift, NE incursion, deep north, and flank seeps)
+	for p in [
+		Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), # Northwest Abyssal Rift
+		Vector2i(6, 0), Vector2i(7, 0), Vector2i(7, 1), # Northeast Void Incursion
+		Vector2i(3, 0), Vector2i(4, 0),                 # Deep North Breach
+		Vector2i(0, 3),                                 # Flank Incursion Seep
+	]:
+		_sector_types[p] = "calm"
 
 func _plan_initial_orders() -> void:
 	for i in range(3):
@@ -877,8 +882,9 @@ func _on_strategic_turn_anim_done() -> void:
 	else:
 		strategic_turn += 1
 		if strategic_turn >= 2:
-			for x in range(GRID_COLS):
-				_sector_types[Vector2i(x, 1)] = "calm"
+			# Fluid seeps dilate and spread inward into adjacent sectors
+			for p in [Vector2i(1, 1), Vector2i(2, 0), Vector2i(5, 0), Vector2i(6, 1), Vector2i(0, 4), Vector2i(1, 3)]:
+				_sector_types[p] = "calm"
 		_plan_initial_orders()
 		_refresh_ui()
 

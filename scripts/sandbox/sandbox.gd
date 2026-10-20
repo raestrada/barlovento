@@ -47,8 +47,8 @@ var _defeat_overlay: Control
 var _hud_theme: Theme
 var _ether_particles: Node3D
 var _asteroid_root: Node3D
-var _calm_wall_root: Node3D
-var _calm_front_z: float = -88.0
+var _calm_root: Node3D
+var _calm_seeps: Array[Dictionary] = []
 var _sluice_station_root: Node3D
 var _is_vector_dragging: bool = false
 
@@ -480,13 +480,33 @@ func _on_ace_resolve_finished() -> void:
 		_save_battle_state(true)
 
 func _advance_calm_wavefront() -> void:
-	# The Calm encroaches deeper into the star sea!
-	_calm_front_z += 4.5
-	if _calm_wall_root != null:
-		var tw := create_tween()
-		tw.tween_property(_calm_wall_root, "position:z", _calm_front_z, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	_add_combat_log("🌊 THE CALM ADVANCES: Front reached Z=%.0fm (Outer currents extinguished!)" % _calm_front_z, Color(0.88, 0.45, 0.98))
+	if _calm_seeps.is_empty():
+		return
+	var tw := create_tween().set_parallel(true)
+	var avg_growth := 0.0
+	for seep in _calm_seeps:
+		var growth: float = seep.get("growth", 2.2)
+		avg_growth += growth
+		seep["radius"] += growth
+		var s_root: Node3D = seep.get("root_node")
+		if s_root != null and is_instance_valid(s_root):
+			var cur_scale := s_root.scale
+			var growth_ratio := (seep["radius"] / maxf(seep["radius"] - growth, 1.0))
+			var target_scale := Vector3(cur_scale.x * growth_ratio, cur_scale.y, cur_scale.z * growth_ratio)
+			tw.tween_property(s_root, "scale", target_scale, 1.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	avg_growth /= float(_calm_seeps.size())
+	_add_combat_log("🌊 THE CALM DILATES: Dimensional fluid seeps expand (+%.1fm across flanks)!" % avg_growth, Color(0.85, 0.45, 0.98))
 	AudioManager.play_sfx("shield", -10.0)
+
+func _is_point_in_calm(pos: Vector3) -> Dictionary:
+	var p2 := Vector2(pos.x, pos.z)
+	for seep in _calm_seeps:
+		var c2: Vector2 = seep.get("pos2", Vector2.ZERO)
+		var rad: float = seep.get("radius", 0.0)
+		if p2.distance_to(c2) <= rad:
+			return {"in_calm": true, "seep": seep}
+	return {"in_calm": false, "seep": {}}
 
 func _apply_calm_hazards() -> void:
 	var any_becalmed := false
@@ -495,8 +515,11 @@ func _apply_calm_hazards() -> void:
 	for p in _player_ships:
 		if p == null or p.is_destroyed():
 			continue
-		if p.global_position.z < _calm_front_z:
+		var check := _is_point_in_calm(p.global_position)
+		if check["in_calm"]:
 			any_becalmed = true
+			var seep_info: Dictionary = check["seep"]
+			var s_name: String = seep_info.get("name", "The Calm")
 			# Engines stall without Éther gradient
 			p.order.target_speed = minf(p.order.target_speed, p.state.max_speed * 0.45)
 			p.state.velocity *= 0.80
@@ -508,14 +531,17 @@ func _apply_calm_hazards() -> void:
 				p.hp = maxf(p.hp - 10.0, 1.0)
 				_spawn_combat_text(p.global_position, "⚠ BECALMED (-10 HULL)", Color(0.95, 0.35, 0.45))
 			p.refresh_after_load()
-			_add_combat_log("⚠ %s is BECALMED in The Calm! Propulsion stalled & shields decaying!" % p.ship_name, Color(0.95, 0.40, 0.90))
+			_add_combat_log("⚠ %s is BECALMED in %s! Propulsion stalled & shields decaying!" % [p.ship_name, s_name], Color(0.95, 0.40, 0.90))
 
 	# 2. Hostile fleet check (tactical reward: pushing hostiles into the Calm)
 	for e in _enemy_ships:
 		if e == null or e.is_destroyed():
 			continue
-		if e.global_position.z < _calm_front_z:
+		var check := _is_point_in_calm(e.global_position)
+		if check["in_calm"]:
 			any_becalmed = true
+			var seep_info: Dictionary = check["seep"]
+			var s_name: String = seep_info.get("name", "The Calm")
 			e.order.target_speed = minf(e.order.target_speed, e.state.max_speed * 0.40)
 			e.state.velocity *= 0.75
 			if e.shield_hp > 0.0:
@@ -525,7 +551,7 @@ func _apply_calm_hazards() -> void:
 				e.hp = maxf(e.hp - 10.0, 1.0)
 				_spawn_combat_text(e.global_position, "⚠ BECALMED (-10 HULL)", Color(0.95, 0.35, 0.45))
 			e.refresh_after_load()
-			_add_combat_log("💨 Hostile %s is BECALMED inside the Calm! Sails slack & shields eroding!" % e.ship_name, Color(0.85, 0.55, 0.95))
+			_add_combat_log("💨 Hostile %s is BECALMED inside %s! Sails slack & shields eroding!" % [e.ship_name, s_name], Color(0.85, 0.55, 0.95))
 
 	if any_becalmed:
 		_refresh_fleet_panel()
@@ -1258,122 +1284,181 @@ func _build_asteroid_field() -> void:
 		cluster.add_child(crystal)
 
 func _build_calm_wavefront() -> void:
-	# Lore Pillar (§9 of DESIGN.md): "The Calm" (La Calma) — an encroaching cosmological front of vacuum decay
-	# extinguishing the Éther currents across the Star Sea. No more primitive cones!
-	if LoreDB.current_stage_id == "acero_stage_3":
-		_calm_front_z = -68.0
-	else:
-		_calm_front_z = -88.0
+	# Lore Pillar (§9 of DESIGN.md): "The Calm" (La Calma) — cosmological incursion of dead vacuum
+	# manifesting as organic, viscous dimensional fluid spilling into the Star Sea from multiple rifts and flanks.
+	if _calm_root != null and is_instance_valid(_calm_root):
+		_calm_root.queue_free()
 
-	_calm_wall_root = Node3D.new()
-	_calm_wall_root.name = "TheCalmWavefront"
-	_calm_wall_root.position = Vector3(0.0, 0.0, _calm_front_z)
-	add_child(_calm_wall_root)
+	_calm_root = Node3D.new()
+	_calm_root.name = "DimensionalCalmFluidRoot"
+	add_child(_calm_root)
+	_calm_seeps.clear()
 
-	# 1. EVENT HORIZON HAZARD BOUNDARY RIBBON (at the celestial sea plane Y = 0.05)
-	var boundary_line := MeshInstance3D.new()
-	var line_mesh := BoxMesh.new()
-	line_mesh.size = Vector3(360.0, 0.35, 2.2)
-	boundary_line.mesh = line_mesh
-	boundary_line.position = Vector3(0.0, 0.05, 0.0)
+	var is_stage_3 := (LoreDB.current_stage_id == "acero_stage_3")
 
-	var line_mat := StandardMaterial3D.new()
-	line_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	line_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	line_mat.albedo_color = Color(0.75, 0.18, 0.95, 0.85)
-	line_mat.emission_enabled = true
-	line_mat.emission = Color(0.85, 0.22, 1.0)
-	line_mat.emission_energy_multiplier = 1.9
-	boundary_line.material_override = line_mat
-	_calm_wall_root.add_child(boundary_line)
+	var seep_configs: Array[Dictionary] = [
+		{
+			"id": "nw_abyssal_rift",
+			"name": "Northwest Abyssal Rift",
+			"pos": Vector3(-58.0, 0.0, -42.0 if is_stage_3 else -65.0),
+			"radius": 34.0 if is_stage_3 else 26.0,
+			"growth": 2.4,
+			"color": Color(0.02, 0.005, 0.045, 0.38),
+			"glow": Color(0.20, 0.03, 0.30),
+			"lobe_count": 5,
+		},
+		{
+			"id": "ne_void_spill",
+			"name": "Northeast Void Incursion",
+			"pos": Vector3(56.0, 0.0, -46.0 if is_stage_3 else -70.0),
+			"radius": 36.0 if is_stage_3 else 28.0,
+			"growth": 2.2,
+			"color": Color(0.015, 0.004, 0.04, 0.36),
+			"glow": Color(0.18, 0.025, 0.26),
+			"lobe_count": 5,
+		},
+		{
+			"id": "north_deep_breach",
+			"name": "Deep Northern Breach",
+			"pos": Vector3(0.0, 0.0, -78.0 if is_stage_3 else -95.0),
+			"radius": 46.0 if is_stage_3 else 36.0,
+			"growth": 2.8,
+			"color": Color(0.025, 0.006, 0.05, 0.42),
+			"glow": Color(0.22, 0.04, 0.34),
+			"lobe_count": 6,
+		},
+		{
+			"id": "west_flank_seep",
+			"name": "Western Flank Incursion",
+			"pos": Vector3(-56.0, 0.0, 16.0 if is_stage_3 else 8.0),
+			"radius": 24.0 if is_stage_3 else 18.0,
+			"growth": 1.8,
+			"color": Color(0.018, 0.005, 0.038, 0.34),
+			"glow": Color(0.16, 0.02, 0.24),
+			"lobe_count": 4,
+		},
+	]
 
-	# Warning hazard beacons along the event horizon
-	var beacon_mesh := BoxMesh.new()
-	beacon_mesh.size = Vector3(1.2, 2.8, 1.2)
-	var beacon_mat := StandardMaterial3D.new()
-	beacon_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	beacon_mat.albedo_color = Color(1.0, 0.35, 0.85)
-	beacon_mat.emission_enabled = true
-	beacon_mat.emission = Color(1.0, 0.40, 0.95)
-	beacon_mat.emission_energy_multiplier = 2.2
+	if is_stage_3:
+		seep_configs.append({
+			"id": "east_flank_eddy",
+			"name": "Eastern Void Eddy",
+			"pos": Vector3(58.0, 0.0, 24.0),
+			"radius": 22.0,
+			"growth": 1.6,
+			"color": Color(0.018, 0.005, 0.038, 0.34),
+			"glow": Color(0.16, 0.02, 0.24),
+			"lobe_count": 4,
+		})
 
-	for b_x in [-160.0, -120.0, -80.0, -40.0, 0.0, 40.0, 80.0, 120.0, 160.0]:
-		var beacon := MeshInstance3D.new()
-		beacon.mesh = beacon_mesh
-		beacon.position = Vector3(b_x, 1.4, 0.0)
-		beacon.rotation_degrees = Vector3(45.0, 45.0, 0.0)
-		beacon.material_override = beacon_mat
-		_calm_wall_root.add_child(beacon)
+	for cfg in seep_configs:
+		var s_root := Node3D.new()
+		s_root.name = "CalmSeep_" + String(cfg["id"])
+		s_root.position = cfg["pos"]
+		_calm_root.add_child(s_root)
 
-	# 2. CURVED COSMIC ABYSSAL CURTAIN (The encroaching oceanic void wall)
-	var wall_mat := StandardMaterial3D.new()
-	wall_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	wall_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	wall_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	wall_mat.albedo_color = Color(0.025, 0.008, 0.045, 0.92)
-	wall_mat.emission_enabled = true
-	wall_mat.emission = Color(0.18, 0.03, 0.25)
-	wall_mat.emission_energy_multiplier = 1.35
+		var seep_dict: Dictionary = {
+			"id": cfg["id"],
+			"name": cfg["name"],
+			"center": cfg["pos"],
+			"pos2": Vector2(cfg["pos"].x, cfg["pos"].z),
+			"radius": cfg["radius"],
+			"growth": cfg["growth"],
+			"root_node": s_root,
+			"lobes": []
+		}
 
-	for i in range(-5, 6):
-		var panel := MeshInstance3D.new()
-		var qm := QuadMesh.new()
-		qm.size = Vector2(48.0, 75.0)
-		panel.mesh = qm
-		var x_pos := float(i) * 34.0
-		var z_offset := -14.0 - absf(float(i)) * 4.5
-		panel.position = Vector3(x_pos, 22.0, z_offset)
-		panel.rotation_degrees = Vector3(0.0, -float(i) * 6.5, 0.0)
-		panel.material_override = wall_mat
-		_calm_wall_root.add_child(panel)
+		var base_mat := StandardMaterial3D.new()
+		base_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		base_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		base_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		base_mat.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_ALWAYS
+		base_mat.proximity_fade_enabled = true
+		base_mat.proximity_fade_distance = 7.5
+		base_mat.albedo_color = cfg["color"]
+		base_mat.emission_enabled = true
+		base_mat.emission = cfg["glow"]
+		base_mat.emission_energy_multiplier = 0.75
 
-	# 3. ROLLING DISSIPATION MIST BILLOWS (Living, breathing oceanic front)
-	var mist_mat := StandardMaterial3D.new()
-	mist_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mist_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mist_mat.albedo_color = Color(0.065, 0.015, 0.11, 0.52)
-	mist_mat.emission_enabled = true
-	mist_mat.emission = Color(0.30, 0.07, 0.38)
-	mist_mat.emission_energy_multiplier = 1.25
+		var lobe_mesh := SphereMesh.new()
+		lobe_mesh.radial_segments = 24
+		lobe_mesh.rings = 12
+		lobe_mesh.radius = 1.0
+		lobe_mesh.height = 2.0
 
-	for j in range(14):
-		var mist := MeshInstance3D.new()
-		var sph := SphereMesh.new()
-		sph.radius = randf_range(11.0, 17.0)
-		sph.height = randf_range(16.0, 24.0)
-		mist.mesh = sph
-		mist.scale = Vector3(2.4, 0.70, 1.2)
-		var x_m := remap(float(j), 0.0, 13.0, -165.0, 165.0)
-		var y_m := randf_range(4.0, 24.0)
-		var z_m := randf_range(-4.0, -12.0)
-		mist.position = Vector3(x_m, y_m, z_m)
-		mist.material_override = mist_mat
-		mist.set_meta("undulate_phase", float(j) * 0.8)
-		mist.set_meta("base_y", y_m)
-		mist.set_meta("base_x", x_m)
-		_calm_wall_root.add_child(mist)
+		var lobe_count: int = cfg["lobe_count"]
+		var s_rad: float = cfg["radius"]
+		for l in range(lobe_count):
+			var lobe := MeshInstance3D.new()
+			lobe.mesh = lobe_mesh
+			lobe.material_override = base_mat
 
-	# 4. VOID ASH & DYING SPARKS (Extinguishing Éther motes)
-	var ash_mesh := BoxMesh.new()
-	ash_mesh.size = Vector3(0.4, 0.4, 0.4)
-	var ash_mat := StandardMaterial3D.new()
-	ash_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	ash_mat.albedo_color = Color(0.65, 0.25, 0.85, 0.85)
-	ash_mat.emission_enabled = true
-	ash_mat.emission = Color(0.75, 0.30, 0.95)
-	ash_mat.emission_energy_multiplier = 1.6
+			var angle := (float(l) / float(lobe_count)) * TAU + randf_range(-0.35, 0.35)
+			var offset_dist := randf_range(s_rad * 0.15, s_rad * 0.40)
+			var lx := cos(angle) * offset_dist
+			var lz := sin(angle) * offset_dist
+			var ly := randf_range(-0.6, 0.6)
 
-	for k in range(32):
-		var ash := MeshInstance3D.new()
-		ash.mesh = ash_mesh
-		ash.position = Vector3(
-			randf_range(-150.0, 150.0),
-			randf_range(-2.0, 25.0),
-			randf_range(-22.0, 12.0)
-		)
-		ash.material_override = ash_mat
-		ash.set_meta("ash_speed", randf_range(3.2, 6.8))
-		_calm_wall_root.add_child(ash)
+			lobe.position = Vector3(lx, ly, lz)
+
+			var r_scale_x := s_rad * randf_range(0.70, 0.95)
+			var r_scale_z := s_rad * randf_range(0.70, 0.95)
+			var r_scale_y := randf_range(1.4, 2.8)
+			lobe.scale = Vector3(r_scale_x, r_scale_y, r_scale_z)
+			lobe.rotation_degrees.y = randf_range(0.0, 360.0)
+
+			lobe.set_meta("rot_speed", randf_range(-0.04, 0.04))
+			lobe.set_meta("pulse_phase", float(l) * 1.3)
+			lobe.set_meta("base_scale", lobe.scale)
+
+			s_root.add_child(lobe)
+			seep_dict["lobes"].append(lobe)
+
+		# Dense dimensional rift core at center
+		var core := MeshInstance3D.new()
+		core.mesh = lobe_mesh
+		var core_mat := StandardMaterial3D.new()
+		core_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		core_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		core_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		core_mat.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_ALWAYS
+		core_mat.proximity_fade_enabled = true
+		core_mat.proximity_fade_distance = 4.0
+		var c_col: Color = cfg["color"]
+		core_mat.albedo_color = Color(c_col.r * 0.7, c_col.g * 0.7, c_col.b * 0.7, 0.55)
+		core_mat.emission_enabled = true
+		var c_glow: Color = cfg["glow"]
+		core_mat.emission = c_glow * 1.2
+		core_mat.emission_energy_multiplier = 0.9
+		core.material_override = core_mat
+		core.scale = Vector3(s_rad * 0.45, 2.0, s_rad * 0.45)
+		core.position = Vector3(0.0, 0.1, 0.0)
+		core.set_meta("rot_speed", randf_range(0.02, 0.05))
+		core.set_meta("pulse_phase", 0.0)
+		core.set_meta("base_scale", core.scale)
+		s_root.add_child(core)
+		seep_dict["lobes"].append(core)
+
+		# Subtle floating dimensional motes
+		for m in range(8):
+			var mote := MeshInstance3D.new()
+			var mm := SphereMesh.new()
+			mm.radius = randf_range(0.5, 1.1)
+			mm.height = mm.radius * 2.0
+			mote.mesh = mm
+			var m_mat := StandardMaterial3D.new()
+			m_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			m_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			m_mat.albedo_color = Color(c_glow.r, c_glow.g, c_glow.b, 0.28)
+			mote.material_override = m_mat
+			var ma := randf_range(0.0, TAU)
+			var md := randf_range(s_rad * 0.2, s_rad * 0.9)
+			mote.position = Vector3(cos(ma) * md, randf_range(0.5, 4.0), sin(ma) * md)
+			mote.set_meta("mote_speed", randf_range(0.6, 1.4))
+			mote.set_meta("base_y", mote.position.y)
+			s_root.add_child(mote)
+
+		_calm_seeps.append(seep_dict)
 
 var _sluice_ring_outer: Node3D = null
 var _sluice_ring_inner: Node3D = null
@@ -1652,22 +1737,25 @@ func _update_scenery(delta: float) -> void:
 	if _sluice_ring_inner != null:
 		_sluice_ring_inner.rotate_z(-delta * 0.35)
 
-	if _calm_wall_root != null:
+	if _calm_root != null:
 		var t := Time.get_ticks_msec() * 0.001
-		for c in _calm_wall_root.get_children():
-			if c.has_meta("undulate_phase"):
-				var phase: float = c.get_meta("undulate_phase")
-				var base_y: float = c.get_meta("base_y")
-				var base_x: float = c.get_meta("base_x")
-				c.position.y = base_y + sin(t * 0.7 + phase) * 2.8
-				c.position.x = base_x + cos(t * 0.5 + phase) * 1.5
-			elif c.has_meta("ash_speed"):
-				var spd: float = c.get_meta("ash_speed")
-				c.position.z -= delta * spd
-				if c.position.z < -24.0:
-					c.position.z = 12.0
-					c.position.x = randf_range(-150.0, 150.0)
-					c.position.y = randf_range(-2.0, 25.0)
+		for seep in _calm_seeps:
+			var s_root: Node3D = seep.get("root_node")
+			if s_root == null or not is_instance_valid(s_root):
+				continue
+			for child in s_root.get_children():
+				if child.has_meta("rot_speed"):
+					var r_spd: float = child.get_meta("rot_speed")
+					child.rotate_y(delta * r_spd)
+				if child.has_meta("pulse_phase") and child.has_meta("base_scale"):
+					var phase: float = child.get_meta("pulse_phase")
+					var b_scale: Vector3 = child.get_meta("base_scale")
+					var pulse := 1.0 + sin(t * 0.6 + phase) * 0.045
+					child.scale = Vector3(b_scale.x * pulse, b_scale.y, b_scale.z * pulse)
+				elif child.has_meta("mote_speed"):
+					var m_spd: float = child.get_meta("mote_speed")
+					var by: float = child.get_meta("base_y")
+					child.position.y = by + sin(t * m_spd) * 1.2
 
 func _update_ether_flow(delta: float) -> void:
 	if _ether_particles == null:
@@ -2159,11 +2247,24 @@ func _update_hud_telemetry() -> void:
 		_weather_panel.queue_redraw()
 
 	if _ace_panel != null and _selected_ship != null and not _selected_ship.is_destroyed():
-		var calm_dist := _selected_ship.global_position.z - _calm_front_z
-		if calm_dist < 0.0:
-			_ace_panel.set_calm_status("⚠ BECALMED IN CALM (-15 SHLD)", true)
+		var check := _is_point_in_calm(_selected_ship.global_position)
+		if check["in_calm"]:
+			_ace_panel.set_calm_status("⚠ BECALMED IN CALM SEEP (-15 SHLD)", true)
 		else:
-			_ace_panel.set_calm_status("CALM FRONT: %.0fm NORTH" % calm_dist, false)
+			var min_dist := 9999.0
+			var nearest_name := ""
+			var p2 := Vector2(_selected_ship.global_position.x, _selected_ship.global_position.z)
+			for seep in _calm_seeps:
+				var c2: Vector2 = seep.get("pos2", Vector2.ZERO)
+				var rad: float = seep.get("radius", 0.0)
+				var edge_dist := maxf(p2.distance_to(c2) - rad, 0.0)
+				if edge_dist < min_dist:
+					min_dist = edge_dist
+					nearest_name = seep.get("name", "Calm Seep")
+			if nearest_name != "":
+				_ace_panel.set_calm_status("CALM SEEP: %.0fm (%s)" % [min_dist, nearest_name], false)
+			else:
+				_ace_panel.set_calm_status("CALM QUIET", false)
 
 func _on_phase_changed(_phase: int) -> void:
 	var in_ace := TurnManager.is_in_ace()
