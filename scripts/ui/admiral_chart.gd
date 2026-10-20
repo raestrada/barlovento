@@ -160,6 +160,10 @@ func _init_sector_terrain() -> void:
 	_sector_types[Vector2i(2, 2)] = "conduit"
 	_sector_types[Vector2i(5, 3)] = "conduit"
 
+	# The encroaching Calm front along northern row 0 (Dead zone hazard: -50% SPD & Shield decay)
+	for x in range(GRID_COLS):
+		_sector_types[Vector2i(x, 0)] = "calm"
+
 func _plan_initial_orders() -> void:
 	for i in range(3):
 		var cur := _p_cells[i]
@@ -597,6 +601,12 @@ func compute_strategic_bonuses() -> Dictionary:
 	var is_flanking := (spread_span >= 4) or (avg_py <= avg_ey + 0.5) or (current_formation == Formation.FLANKING_PINCER)
 	var is_crossing_t := (current_formation == Formation.LINE_OF_BATTLE and wind_cells_held >= 2)
 
+	var calm_hazard_count := 0
+	for i in range(3):
+		var c := _p_targets[i] if not is_animating_turn else _p_cells[i]
+		if _sector_types.get(c, "") == "calm":
+			calm_hazard_count += 1
+
 	return {
 		"has_barlovento": has_barlovento,
 		"enemy_barlovento": enemy_barlovento,
@@ -604,6 +614,7 @@ func compute_strategic_bonuses() -> Dictionary:
 		"wind_cells_held": wind_cells_held,
 		"sluice_held": sluice_held > 0,
 		"conduit_held": conduit_held > 0,
+		"calm_hazard_count": calm_hazard_count,
 		"is_flanking": is_flanking,
 		"is_crossing_t": is_crossing_t,
 		"formation": current_formation,
@@ -677,6 +688,8 @@ func _refresh_ui() -> void:
 
 	if _adv_nodes_lbl != null:
 		var n_txt := ""
+		if b["calm_hazard_count"] > 0:
+			n_txt += "⚠ CALM HAZARD: %d ship(s) target dead zone (-50%% SPD, Shield decay)!\n" % b["calm_hazard_count"]
 		if b["sluice_held"]:
 			n_txt += "⚙ SLUICE REFINERY: DEFENDED (+20 Shield HP Regen)\n"
 		if b["conduit_held"]:
@@ -684,7 +697,7 @@ func _refresh_ui() -> void:
 		if n_txt == "":
 			n_txt = "⚙ STRATEGIC NODES: UNCONTESTED (Approach D5/E5 or C3)"
 		_adv_nodes_lbl.text = n_txt
-		_adv_nodes_lbl.add_theme_color_override("font_color", Color(0.45, 0.95, 0.75))
+		_adv_nodes_lbl.add_theme_color_override("font_color", Color(1.0, 0.45, 0.85) if b["calm_hazard_count"] > 0 else Color(0.45, 0.95, 0.75))
 
 	if _adv_form_lbl != null:
 		match current_formation:
@@ -863,6 +876,9 @@ func _on_strategic_turn_anim_done() -> void:
 		_trigger_3d_engagement()
 	else:
 		strategic_turn += 1
+		if strategic_turn >= 2:
+			for x in range(GRID_COLS):
+				_sector_types[Vector2i(x, 1)] = "calm"
 		_plan_initial_orders()
 		_refresh_ui()
 
@@ -950,6 +966,11 @@ func _draw_naval_chart() -> void:
 				border_col = Color(0.35, 0.95, 0.72, 0.35)
 				icon_txt = "NODE"
 				icon_col = Color(0.40, 1.0, 0.80, 0.80)
+			elif stype == "calm":
+				fill_col = Color(0.12, 0.02, 0.16, 0.45)
+				border_col = Color(0.85, 0.25, 0.95, 0.65)
+				icon_txt = "CALMA"
+				icon_col = Color(0.95, 0.40, 1.0, 0.90)
 
 			# Reachable Quadrants for Selected Ship (subtle highlight)
 			var max_step := 3 if _sector_types.get(cur_sel_cell, "") == "wind_stream" else 2

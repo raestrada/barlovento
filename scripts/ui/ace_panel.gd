@@ -51,6 +51,7 @@ var _enemy_ship_label: Label
 var _enemy_hp_label: Label
 var _target_status_label: Label
 var _telemetry_label: Label
+var _calm_status_label: Label
 
 var _btn_oar_burst: Button
 var _btn_trim_sails: Button
@@ -209,6 +210,11 @@ func _build_ui() -> void:
     _target_status_label = Label.new()
     _target_status_label.add_theme_font_size_override("font_size", 11)
     status_row.add_child(_target_status_label)
+
+    _calm_status_label = Label.new()
+    _calm_status_label.add_theme_font_size_override("font_size", 11)
+    _calm_status_label.add_theme_color_override("font_color", Color(0.85, 0.40, 0.95))
+    status_row.add_child(_calm_status_label)
 
     # Main Chamfered AP & Ability Pill Dock (matches ace-phase.png bottom dock)
     var ap_dock := PanelContainer.new()
@@ -607,4 +613,10 @@ func toggle_weapon_arcs() -> void:
         var col := HudWidgets.COL_CYAN_BRIGHT if Ship.show_weapon_arcs else Color(0.70, 0.85, 0.95, 0.7)
         _arcs_btn.add_theme_color_override("font_color", col)
     toggle_weapon_arcs_pressed.emit()
+
+func set_calm_status(txt: String, is_hazard: bool) -> void:
+    if _calm_status_label != null:
+        _calm_status_label.text = txt
+        var col := Color(1.0, 0.35, 0.45) if is_hazard else Color(0.85, 0.45, 0.95)
+        _calm_status_label.add_theme_color_override("font_color", col)
 

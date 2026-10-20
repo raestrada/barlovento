@@ -48,6 +48,7 @@ var _hud_theme: Theme
 var _ether_particles: Node3D
 var _asteroid_root: Node3D
 var _calm_wall_root: Node3D
+var _calm_front_z: float = -88.0
 var _sluice_station_root: Node3D
 var _is_vector_dragging: bool = false
 
@@ -470,14 +471,68 @@ func _on_ace_fire_moment() -> void:
 func _on_ace_resolve_finished() -> void:
 	_refresh_fleet_panel()
 	_add_combat_log("Tactical round %d resolved. Re-assessing tactical vectors." % (TurnManager.ace_round - 1), Color(0.35, 0.95, 1.0))
+	_advance_calm_wavefront()
+	_apply_calm_hazards()
 	_check_stage_objectives()
 	if not _mission_completed:
 		_update_round_banner()
 		_tick_strategic_barlovento()
 		_save_battle_state(true)
 
+func _advance_calm_wavefront() -> void:
+	# The Calm encroaches deeper into the star sea!
+	_calm_front_z += 4.5
+	if _calm_wall_root != null:
+		var tw := create_tween()
+		tw.tween_property(_calm_wall_root, "position:z", _calm_front_z, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_add_combat_log("🌊 THE CALM ADVANCES: Front reached Z=%.0fm (Outer currents extinguished!)" % _calm_front_z, Color(0.88, 0.45, 0.98))
+	AudioManager.play_sfx("shield", -10.0)
+
+func _apply_calm_hazards() -> void:
+	var any_becalmed := false
+
+	# 1. Player squadron check
+	for p in _player_ships:
+		if p == null or p.is_destroyed():
+			continue
+		if p.global_position.z < _calm_front_z:
+			any_becalmed = true
+			# Engines stall without Éther gradient
+			p.order.target_speed = minf(p.order.target_speed, p.state.max_speed * 0.45)
+			p.state.velocity *= 0.80
+			# Shield decay / hull corrosion
+			if p.shield_hp > 0.0:
+				p.shield_hp = maxf(p.shield_hp - 15.0, 0.0)
+				_spawn_combat_text(p.global_position, "⚠ BECALMED (-15 SHLD)", Color(0.85, 0.40, 0.95))
+			else:
+				p.hp = maxf(p.hp - 10.0, 1.0)
+				_spawn_combat_text(p.global_position, "⚠ BECALMED (-10 HULL)", Color(0.95, 0.35, 0.45))
+			p.refresh_after_load()
+			_add_combat_log("⚠ %s is BECALMED in The Calm! Propulsion stalled & shields decaying!" % p.ship_name, Color(0.95, 0.40, 0.90))
+
+	# 2. Hostile fleet check (tactical reward: pushing hostiles into the Calm)
+	for e in _enemy_ships:
+		if e == null or e.is_destroyed():
+			continue
+		if e.global_position.z < _calm_front_z:
+			any_becalmed = true
+			e.order.target_speed = minf(e.order.target_speed, e.state.max_speed * 0.40)
+			e.state.velocity *= 0.75
+			if e.shield_hp > 0.0:
+				e.shield_hp = maxf(e.shield_hp - 15.0, 0.0)
+				_spawn_combat_text(e.global_position, "⚠ BECALMED (-15 SHLD)", Color(0.85, 0.40, 0.95))
+			else:
+				e.hp = maxf(e.hp - 10.0, 1.0)
+				_spawn_combat_text(e.global_position, "⚠ BECALMED (-10 HULL)", Color(0.95, 0.35, 0.45))
+			e.refresh_after_load()
+			_add_combat_log("💨 Hostile %s is BECALMED inside the Calm! Sails slack & shields eroding!" % e.ship_name, Color(0.85, 0.55, 0.95))
+
+	if any_becalmed:
+		_refresh_fleet_panel()
+
 func _on_admiral_resolve_finished() -> void:
 	_refresh_fleet_panel()
+	_apply_calm_hazards()
 	_add_combat_log("Strategic WEGO movement cycle complete.", Color(0.35, 0.9, 1.0))
 	if _fleets_in_range():
 		_add_combat_log("Combat envelope reached! Transitioning to Ace tactical phase.", Color(1.0, 0.8, 0.3))
@@ -1203,31 +1258,122 @@ func _build_asteroid_field() -> void:
 		cluster.add_child(crystal)
 
 func _build_calm_wavefront() -> void:
-	# Lore Pillar: The encroaching wall of "The Calm" (La Calma) along the northern abyssal boundary
+	# Lore Pillar (§9 of DESIGN.md): "The Calm" (La Calma) — an encroaching cosmological front of vacuum decay
+	# extinguishing the Éther currents across the Star Sea. No more primitive cones!
+	if LoreDB.current_stage_id == "acero_stage_3":
+		_calm_front_z = -68.0
+	else:
+		_calm_front_z = -88.0
+
 	_calm_wall_root = Node3D.new()
 	_calm_wall_root.name = "TheCalmWavefront"
-	_calm_wall_root.position = Vector3(0.0, 0.0, -155.0)
+	_calm_wall_root.position = Vector3(0.0, 0.0, _calm_front_z)
 	add_child(_calm_wall_root)
 
-	var calm_mat := StandardMaterial3D.new()
-	calm_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	calm_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	calm_mat.albedo_color = Color(0.05, 0.02, 0.09, 0.68)
-	calm_mat.emission_enabled = true
-	calm_mat.emission = Color(0.22, 0.06, 0.28)
-	calm_mat.emission_energy_multiplier = 1.2
+	# 1. EVENT HORIZON HAZARD BOUNDARY RIBBON (at the celestial sea plane Y = 0.05)
+	var boundary_line := MeshInstance3D.new()
+	var line_mesh := BoxMesh.new()
+	line_mesh.size = Vector3(360.0, 0.35, 2.2)
+	boundary_line.mesh = line_mesh
+	boundary_line.position = Vector3(0.0, 0.05, 0.0)
+
+	var line_mat := StandardMaterial3D.new()
+	line_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	line_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	line_mat.albedo_color = Color(0.75, 0.18, 0.95, 0.85)
+	line_mat.emission_enabled = true
+	line_mat.emission = Color(0.85, 0.22, 1.0)
+	line_mat.emission_energy_multiplier = 1.9
+	boundary_line.material_override = line_mat
+	_calm_wall_root.add_child(boundary_line)
+
+	# Warning hazard beacons along the event horizon
+	var beacon_mesh := BoxMesh.new()
+	beacon_mesh.size = Vector3(1.2, 2.8, 1.2)
+	var beacon_mat := StandardMaterial3D.new()
+	beacon_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	beacon_mat.albedo_color = Color(1.0, 0.35, 0.85)
+	beacon_mat.emission_enabled = true
+	beacon_mat.emission = Color(1.0, 0.40, 0.95)
+	beacon_mat.emission_energy_multiplier = 2.2
+
+	for b_x in [-160.0, -120.0, -80.0, -40.0, 0.0, 40.0, 80.0, 120.0, 160.0]:
+		var beacon := MeshInstance3D.new()
+		beacon.mesh = beacon_mesh
+		beacon.position = Vector3(b_x, 1.4, 0.0)
+		beacon.rotation_degrees = Vector3(45.0, 45.0, 0.0)
+		beacon.material_override = beacon_mat
+		_calm_wall_root.add_child(beacon)
+
+	# 2. CURVED COSMIC ABYSSAL CURTAIN (The encroaching oceanic void wall)
+	var wall_mat := StandardMaterial3D.new()
+	wall_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	wall_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	wall_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	wall_mat.albedo_color = Color(0.025, 0.008, 0.045, 0.92)
+	wall_mat.emission_enabled = true
+	wall_mat.emission = Color(0.18, 0.03, 0.25)
+	wall_mat.emission_energy_multiplier = 1.35
 
 	for i in range(-5, 6):
-		var pillar := MeshInstance3D.new()
-		var cyl := CylinderMesh.new()
-		cyl.top_radius = 12.0
-		cyl.bottom_radius = 18.0
-		cyl.height = 95.0
-		cyl.radial_segments = 10
-		pillar.mesh = cyl
-		pillar.position = Vector3(float(i) * 26.0, 0.0, absf(float(i)) * 2.5)
-		pillar.material_override = calm_mat
-		_calm_wall_root.add_child(pillar)
+		var panel := MeshInstance3D.new()
+		var qm := QuadMesh.new()
+		qm.size = Vector2(48.0, 75.0)
+		panel.mesh = qm
+		var x_pos := float(i) * 34.0
+		var z_offset := -14.0 - absf(float(i)) * 4.5
+		panel.position = Vector3(x_pos, 22.0, z_offset)
+		panel.rotation_degrees = Vector3(0.0, -float(i) * 6.5, 0.0)
+		panel.material_override = wall_mat
+		_calm_wall_root.add_child(panel)
+
+	# 3. ROLLING DISSIPATION MIST BILLOWS (Living, breathing oceanic front)
+	var mist_mat := StandardMaterial3D.new()
+	mist_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mist_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mist_mat.albedo_color = Color(0.065, 0.015, 0.11, 0.52)
+	mist_mat.emission_enabled = true
+	mist_mat.emission = Color(0.30, 0.07, 0.38)
+	mist_mat.emission_energy_multiplier = 1.25
+
+	for j in range(14):
+		var mist := MeshInstance3D.new()
+		var sph := SphereMesh.new()
+		sph.radius = randf_range(11.0, 17.0)
+		sph.height = randf_range(16.0, 24.0)
+		mist.mesh = sph
+		mist.scale = Vector3(2.4, 0.70, 1.2)
+		var x_m := remap(float(j), 0.0, 13.0, -165.0, 165.0)
+		var y_m := randf_range(4.0, 24.0)
+		var z_m := randf_range(-4.0, -12.0)
+		mist.position = Vector3(x_m, y_m, z_m)
+		mist.material_override = mist_mat
+		mist.set_meta("undulate_phase", float(j) * 0.8)
+		mist.set_meta("base_y", y_m)
+		mist.set_meta("base_x", x_m)
+		_calm_wall_root.add_child(mist)
+
+	# 4. VOID ASH & DYING SPARKS (Extinguishing Éther motes)
+	var ash_mesh := BoxMesh.new()
+	ash_mesh.size = Vector3(0.4, 0.4, 0.4)
+	var ash_mat := StandardMaterial3D.new()
+	ash_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ash_mat.albedo_color = Color(0.65, 0.25, 0.85, 0.85)
+	ash_mat.emission_enabled = true
+	ash_mat.emission = Color(0.75, 0.30, 0.95)
+	ash_mat.emission_energy_multiplier = 1.6
+
+	for k in range(32):
+		var ash := MeshInstance3D.new()
+		ash.mesh = ash_mesh
+		ash.position = Vector3(
+			randf_range(-150.0, 150.0),
+			randf_range(-2.0, 25.0),
+			randf_range(-22.0, 12.0)
+		)
+		ash.material_override = ash_mat
+		ash.set_meta("ash_speed", randf_range(3.2, 6.8))
+		_calm_wall_root.add_child(ash)
 
 var _sluice_ring_outer: Node3D = null
 var _sluice_ring_inner: Node3D = null
@@ -1505,6 +1651,23 @@ func _update_scenery(delta: float) -> void:
 		_sluice_ring_outer.rotate_z(delta * 0.18)
 	if _sluice_ring_inner != null:
 		_sluice_ring_inner.rotate_z(-delta * 0.35)
+
+	if _calm_wall_root != null:
+		var t := Time.get_ticks_msec() * 0.001
+		for c in _calm_wall_root.get_children():
+			if c.has_meta("undulate_phase"):
+				var phase: float = c.get_meta("undulate_phase")
+				var base_y: float = c.get_meta("base_y")
+				var base_x: float = c.get_meta("base_x")
+				c.position.y = base_y + sin(t * 0.7 + phase) * 2.8
+				c.position.x = base_x + cos(t * 0.5 + phase) * 1.5
+			elif c.has_meta("ash_speed"):
+				var spd: float = c.get_meta("ash_speed")
+				c.position.z -= delta * spd
+				if c.position.z < -24.0:
+					c.position.z = 12.0
+					c.position.x = randf_range(-150.0, 150.0)
+					c.position.y = randf_range(-2.0, 25.0)
 
 func _update_ether_flow(delta: float) -> void:
 	if _ether_particles == null:
@@ -1994,6 +2157,13 @@ func _update_hud_telemetry() -> void:
 			_:
 				_weather_panel.active_faction_idx = 2
 		_weather_panel.queue_redraw()
+
+	if _ace_panel != null and _selected_ship != null and not _selected_ship.is_destroyed():
+		var calm_dist := _selected_ship.global_position.z - _calm_front_z
+		if calm_dist < 0.0:
+			_ace_panel.set_calm_status("⚠ BECALMED IN CALM (-15 SHLD)", true)
+		else:
+			_ace_panel.set_calm_status("CALM FRONT: %.0fm NORTH" % calm_dist, false)
 
 func _on_phase_changed(_phase: int) -> void:
 	var in_ace := TurnManager.is_in_ace()
