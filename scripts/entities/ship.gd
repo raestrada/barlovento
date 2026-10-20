@@ -102,7 +102,17 @@ func apply_def(def: ShipDef) -> void:
 
     hp = roundf(def.hp * vet_hp_mult)
     max_hp = hp
-    max_shield_hp = roundf(hp * 0.8)
+    var shield_ratio := 0.50
+    match faction:
+        "vinculados":
+            shield_ratio = 0.85
+        "marea_libre":
+            shield_ratio = 0.40
+        "acero":
+            shield_ratio = 0.50
+        _:
+            shield_ratio = 0.55
+    max_shield_hp = roundf(hp * shield_ratio)
     shield_hp = max_shield_hp
     weapon_range = def.weapon_range
     weapon_damage = roundf(def.weapon_damage * vet_dmg_mult)
@@ -131,22 +141,22 @@ func apply_def(def: ShipDef) -> void:
             armor_stern = 62.0
         "marea_galleon":
             unit_code = "MAREA_GAL_03"
-            armor_bow = 95.0
-            armor_port = 92.0
-            armor_stbd = 92.0
-            armor_stern = 70.0
+            armor_bow = 70.0
+            armor_port = 74.0
+            armor_stbd = 74.0
+            armor_stern = 50.0
         "marea_raider":
             unit_code = "MAREA_RDR_02"
-            armor_bow = 88.0
-            armor_port = 85.0
-            armor_stbd = 85.0
-            armor_stern = 62.0
+            armor_bow = 62.0
+            armor_port = 66.0
+            armor_stbd = 66.0
+            armor_stern = 44.0
         "marea_brigantine":
             unit_code = "MAREA_BRG_04"
-            armor_bow = 82.0
-            armor_port = 80.0
-            armor_stbd = 80.0
-            armor_stern = 58.0
+            armor_bow = 54.0
+            armor_port = 58.0
+            armor_stbd = 58.0
+            armor_stern = 38.0
         "acero_dreadnought":
             unit_code = "ACER_ANS_01"
             armor_bow = 100.0
@@ -225,6 +235,19 @@ func take_directional_damage(amount: float, quadrant: String) -> void:
         visible = false
     else:
         _spawn_hull_hit_smoke(quadrant, amount)
+
+func get_quadrant_armor(quadrant: String) -> float:
+    match quadrant:
+        "BOW":
+            return armor_bow
+        "PORT":
+            return armor_port
+        "STARBOARD":
+            return armor_stbd
+        "STERN":
+            return armor_stern
+        _:
+            return (armor_bow + armor_port + armor_stbd + armor_stern) * 0.25
 
 func _quadrant_local_offset(quadrant: String) -> Vector3:
     var s := body_size

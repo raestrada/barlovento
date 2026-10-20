@@ -389,6 +389,34 @@ func _plan_ai_orders() -> void:
 				enemy.order.target_speed = 0.0
 
 func _plan_ai_tactical_orders() -> void:
+	if _is_tutorial_stage:
+		# TUTORIAL AI: Distribute targets (1v1 duels) so the cadet isn't overwhelmed by 3-on-1 focus fire.
+		for i in range(_enemy_ships.size()):
+			var enemy := _enemy_ships[i]
+			if enemy.is_destroyed():
+				continue
+			var target: Ship = null
+			if i < _player_ships.size() and not _player_ships[i].is_destroyed():
+				target = _player_ships[i]
+			else:
+				target = _nearest_player_ship(enemy)
+			enemy.target_ship = target
+			if target != null:
+				var dist := enemy.state.position.distance_to(target.state.position)
+				var heading := _compute_tactical_heading(enemy, target, 1.8)
+				_set_order_heading(enemy, heading)
+				if enemy.hp < enemy.max_hp * 0.25:
+					enemy.stance = Ship.Stance.EVASIVE
+				else:
+					enemy.stance = Ship.Stance.FIRE
+				if dist > enemy.weapon_range:
+					enemy.order.target_speed = enemy.state.max_speed * 0.55
+				elif dist > 18.0:
+					enemy.order.target_speed = 3.2
+				else:
+					enemy.order.target_speed = 1.0
+		return
+
 	# Focus-fire utility scoring: prioritize highest threat / lowest HP player unit in range
 	var best_focus_target: Ship = null
 	var best_score := -INF
@@ -1818,6 +1846,14 @@ func _build_tactical_grid() -> void:
 	_tactical_grid = TacticalGrid.new()
 	add_child(_tactical_grid)
 
+func _apply_tutorial_handicap(s: Ship, hp_mult: float = 0.65, dmg_mult: float = 0.70) -> void:
+	s.hp = roundf(s.hp * hp_mult)
+	s.max_hp = s.hp
+	s.max_shield_hp = roundf(s.max_shield_hp * hp_mult)
+	s.shield_hp = s.max_shield_hp
+	s.weapon_damage = roundf(s.weapon_damage * dmg_mult)
+	s.set_meta("tutorial_enemy", true)
+
 func _spawn_fleets() -> void:
 	match LoreDB.current_stage_id:
 		"acero_stage_1":
@@ -1827,16 +1863,13 @@ func _spawn_fleets() -> void:
 			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 56.0), Vector3.ZERO, 0))
 
 			var e1 := _spawn("marea_galleon", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.5), 1)
-			e1.hp = roundf(e1.hp * 0.85)
-			e1.max_hp = e1.hp
+			_apply_tutorial_handicap(e1, 0.65, 0.70)
 			_enemy_ships.append(e1)
 			var e2 := _spawn("marea_raider", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 4.0), 1)
-			e2.hp = roundf(e2.hp * 0.85)
-			e2.max_hp = e2.hp
+			_apply_tutorial_handicap(e2, 0.65, 0.70)
 			_enemy_ships.append(e2)
 			var e3 := _spawn("marea_brigantine", Vector3(20.0, 8.0, -54.0), Vector3(0.0, 0.0, 4.5), 1)
-			e3.hp = roundf(e3.hp * 0.85)
-			e3.max_hp = e3.hp
+			_apply_tutorial_handicap(e3, 0.65, 0.70)
 			_enemy_ships.append(e3)
 		"acero_stage_2":
 			# ACT I // STAGE 02: Ambush at the Resonance Spire (Acero vs Vinculados Choir Wing)
@@ -1866,16 +1899,13 @@ func _spawn_fleets() -> void:
 			_player_ships.append(_spawn("marea_brigantine", Vector3(18.0, 7.0, 54.0), Vector3.ZERO, 0))
 
 			var me1 := _spawn("acero_dreadnought", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.0), 1)
-			me1.hp = roundf(me1.hp * 0.85)
-			me1.max_hp = me1.hp
+			_apply_tutorial_handicap(me1, 0.65, 0.70)
 			_enemy_ships.append(me1)
 			var me2 := _spawn("acero_battlecruiser", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1)
-			me2.hp = roundf(me2.hp * 0.85)
-			me2.max_hp = me2.hp
+			_apply_tutorial_handicap(me2, 0.65, 0.70)
 			_enemy_ships.append(me2)
 			var me3 := _spawn("acero_corvette", Vector3(20.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.5), 1)
-			me3.hp = roundf(me3.hp * 0.85)
-			me3.max_hp = me3.hp
+			_apply_tutorial_handicap(me3, 0.65, 0.70)
 			_enemy_ships.append(me3)
 		"vinculados_stage_1":
 			# ACT II // STAGE 01 [TUTORIAL]: Sector Psalm-4 (Vinculados Choir vs Acero Vanguard)
@@ -1884,15 +1914,14 @@ func _spawn_fleets() -> void:
 			_player_ships.append(_spawn("vinculados_nous", Vector3(2.0, 2.0, 54.0), Vector3.ZERO, 0))
 
 			var ve1 := _spawn("acero_dreadnought", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.0), 1)
-			ve1.hp = roundf(ve1.hp * 0.85)
-			ve1.max_hp = ve1.hp
+			_apply_tutorial_handicap(ve1, 0.65, 0.70)
 			_enemy_ships.append(ve1)
 			var ve2 := _spawn("acero_battlecruiser", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1)
-			ve2.hp = roundf(ve2.hp * 0.85)
-			ve2.max_hp = ve2.hp
+			_apply_tutorial_handicap(ve2, 0.65, 0.70)
 			_enemy_ships.append(ve2)
 			var ve3 := _spawn("acero_corvette", Vector3(20.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.5), 1)
-			ve3.hp = roundf(ve3.hp * 0.85)
+			_apply_tutorial_handicap(ve3, 0.65, 0.70)
+			_enemy_ships.append(ve3)
 			ve3.max_hp = ve3.hp
 			_enemy_ships.append(ve3)
 		_:
@@ -2757,34 +2786,39 @@ func _get_tutorial_steps() -> Array[Dictionary]:
 	match LoreDB.current_stage_id:
 		"vinculados_stage_1":
 			faction_title = "VINCULADOS DOCTRINE: HIGH AGILE VECTORS & STERN RAKE"
-			faction_body = "Your mecha frames have unmatched turn rates and burst speed. Slip behind enemy warships to attack their unarmored rear: attacking the aft quadrant scores a STERN RAKE (+40% CRITICAL DAMAGE)! Deploy Barrier to absorb incoming fire."
+			faction_body = "Your mecha frames have unmatched turn rates and heavy resonance barriers. Slip behind enemy warships to attack their unarmored rear: attacking the aft quadrant scores a STERN RAKE (+40% CRITICAL DAMAGE)! Deploy Barrier to absorb incoming fire."
 		"marea_stage_1":
 			faction_title = "FREE TIDE DOCTRINE: SURFING THE ÉTHER & BARLOVENTO"
 			faction_body = "Sail directly along the cyan currents to gain tailwind velocity. Attacking from upwind secures the Weather-Gauge [BARLOVENTO] (+12% Hit accuracy). Align your flanks to unleash devastating Port & Starboard broadsides (+18% DMG)!"
 		_:
 			faction_title = "ACERO DOCTRINE: WALL OF STEEL & BROADSIDES"
-			faction_body = "Your warships boast impenetrable Bow and Flank armor. Angle your prow toward hostiles to deflect salvos, and Cross the T to unleash heavy Port & Starboard broadsides (42°–138°). Keep Flagship CNS Iron Bastion operational!"
+			faction_body = "Your warships boast impenetrable Bow and Flank armor. Angle your prow toward hostiles to deflect salvos, and Cross the T to unleash heavy Port & Starboard broadsides. Keep Flagship CNS Iron Bastion operational!"
 
 	var steps: Array[Dictionary] = [
 		{
-			"header": "PHASE 1: ADMIRAL ORDERS & NEWTONIAN VECTORS",
-			"body": "Click any ship directly (or press [TAB]) to select it. Drag in 3D to set heading, or use [A/D] (yaw) and [W/S] (throttle speed). Ships have inertia and momentum! Once your squadron is positioned, press [SPACE] (RESOLVE) to execute simultaneous WEGO movement.",
-			"tag": "STEP 1/4 • FLEET MOVEMENT"
+			"header": "PHASE 1: STRATEGIC NAVAL CHART (ADMIRAL ORDERS)",
+			"body": "Before visual combat, you command the fleet on the 10x8 Strategic Chart. Click adjacent quadrants to order ship moves. Capture Éther Conduits (⚡ +1 AP / +15% Speed) and ride the Barlovento Stream (» +15% Acc / +12% DMG). When ready, press [ENTER] or close to engage in 3D!",
+			"tag": "STEP 1/5 • STRATEGIC CHART"
 		},
 		{
-			"header": "PHASE 2: ACE PHASE & ACTION POINT (AP) SYSTEM",
-			"body": "When closing to weapon range, tactical Ace mode activates. Each ship has Action Points (AP). Click ability pills (e.g. Broadside, Oar Burst, Shield) to toggle them ON or OFF. Press [Z] (↺ RESET) to refund 100% AP at any time. Press [SPACE] to resolve tactical fire!",
-			"tag": "STEP 2/4 • TACTICAL COMBAT & AP"
+			"header": "PHASE 2: 3D MANEUVERS & NEWTONIAN INERTIA",
+			"body": "Click any ship directly or press [TAB] to select it. Drag or use [A/D] (yaw) and [W/S] (throttle speed). Ships possess real mass and inertia — your heading determines which armor quadrant faces enemy guns!",
+			"tag": "STEP 2/5 • FLEET MOVEMENT"
+		},
+		{
+			"header": "PHASE 3: ACE TACTICAL COMBAT & AP SYSTEM",
+			"body": "When within weapon range, tactical Ace mode activates. Each ship has Action Points (AP). Click ability pills (Broadside, Boost, Shields) at the bottom. Press [Z] to refund AP at any time. Press [SPACE] to resolve the tactical round!",
+			"tag": "STEP 3/5 • TACTICAL COMBAT & AP"
 		},
 		{
 			"header": faction_title,
 			"body": faction_body,
-			"tag": "STEP 3/4 • FACTION SPECIALTY"
+			"tag": "STEP 4/5 • FACTION SPECIALTY"
 		},
 		{
-			"header": "TACTICAL HAZARD: THE ENCROACHING CALM",
-			"body": "Beware the dark violet dimensional fluid pools expanding from the flanks. Entering The Calm stalls propulsion and corrodes shields (-15 SHLD / -10 HULL). Push and herd hostile ships into the fluid to destroy them without firing a shot!",
-			"tag": "STEP 4/4 • STAR SEA HAZARDS"
+			"header": "PHASE 4: THE ENCROACHING CALM (TACTICAL HAZARD)",
+			"body": "Violet dimensional fluid pools are seeping from the perimeter. Entering The Calm drains propulsion and damages shields (-15 SHLD / -10 HULL). Push and herd hostile ships into the fluid to destroy them without firing!",
+			"tag": "STEP 5/5 • STAR SEA HAZARDS"
 		}
 	]
 	return steps
@@ -2853,7 +2887,8 @@ func _build_tutorial_banner() -> void:
 	_tutorial_next_btn.theme = _hud_theme
 	_tutorial_next_btn.custom_minimum_size = Vector2(85, 24)
 	_tutorial_next_btn.pressed.connect(func() -> void:
-		if _tutorial_step >= 3:
+		var max_step := _get_tutorial_steps().size() - 1
+		if _tutorial_step >= max_step:
 			_tutorial_banner.visible = false
 			_add_combat_log("🎓 Tutorial guide dismissed. Press [T] at any time to re-open.", Color(0.4, 0.9, 1.0))
 		else:

@@ -61,6 +61,8 @@ static func hit_chance(shooter: Ship, target: Ship) -> float:
     if not can_hit(shooter, target):
         return 0.0
     var chance := 0.92
+    if shooter.has_meta("tutorial_enemy") and bool(shooter.get_meta("tutorial_enemy")):
+        chance = 0.70  # Forgiving baseline for tutorial training opponents
     if target.is_evading or target.stance == Ship.Stance.EVASIVE:
         chance -= 0.30
     var dist := shooter.state.position.distance_to(target.state.position)
@@ -71,7 +73,7 @@ static func hit_chance(shooter: Ship, target: Ship) -> float:
         chance += 0.12
     if shooter.has_meta("precision_boost") and bool(shooter.get_meta("precision_boost")):
         chance += 0.25
-    return clampf(chance, 0.25, 0.99)
+    return clampf(chance, 0.20, 0.99)
 
 static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
     var quadrant := get_hit_quadrant(shooter, target)
@@ -127,6 +129,11 @@ static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
             dmg *= float(shooter.get_meta("formation_flank_mult"))
         if target.has_meta("formation_armor_mult"):
             dmg /= maxf(float(target.get_meta("formation_armor_mult")), 0.1)
+
+        # Directional Armor mitigation: intact heavy plate absorbs kinetic & thermal impact
+        var armor_val := target.get_quadrant_armor(quadrant)
+        var armor_factor := clampf(1.0 - (armor_val / 280.0), 0.58, 1.0)
+        dmg *= armor_factor
 
         result["damage"] = maxf(roundf(dmg), 4.0)
         target.take_directional_damage(result["damage"], quadrant)
