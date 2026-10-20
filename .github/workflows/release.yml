@@ -1,0 +1,48 @@
+name: Publish Game Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag (e.g. v0.2.0-alpha)'
+        required: false
+        default: 'v0.2.0-alpha'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          name: "BARLOVENTO ${{ github.event.inputs.tag_name || github.ref_name }} (Windows 64-bit)"
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+          body: |
+            ## 🚀 BARLOVENTO Latest Build
+
+            ### ✨ Highlights:
+            - **🎓 Tactical Academy Tutorials Active:** Act I Stage 01 for all three civilizations (Armada of Acero, The Vinculados, and The Free Tide) with step-by-step guidance!
+            - **🗺 10×8 Strategic Naval Chart:** 80 quadrants (A1–J8) with contested Éther Conduits (+1 AP / +15% Speed), Barlovento Wind Streams, Basalt Reefs, and The Calm incursions.
+            - **⚖ Rebalanced Corsair Skirmishers:** Marea Libre timber hulls and broadside ballistics (+18% DMG on flanks, fragile hulls).
+            - **🛡 Directional Armor Absorption:** Active kinetic mitigation across Bow, Flank, and Stern quadrants.
+            - **🤖 Balanced Tutorial AI:** 1v1 duels with forgiving baseline accuracy.
+
+            ### 🎮 Quick Start:
+            1. Download `Barlovento.zip` attached below.
+            2. Extract files into a folder.
+            3. Run `Barlovento.exe`.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

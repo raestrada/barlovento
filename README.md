@@ -9,10 +9,10 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/raestrada/barlovento/releases/latest/download/Barlovento.zip"><img src="https://img.shields.io/badge/Download_Build-Windows_64--bit-0284c7?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Build" /></a>
   <a href="https://raestrada.github.io/barlovento/"><img src="https://img.shields.io/badge/Official_Site-GitHub_Pages-38bdf8?style=for-the-badge&logo=github" alt="Official Site" /></a>
+  <img src="https://img.shields.io/badge/Tutorials-Active_All_Factions-10b981?style=for-the-badge" alt="Tutorials Active" />
   <img src="https://img.shields.io/badge/Engine-Godot_4.7.2_Forward%2B-478cbf?style=for-the-badge&logo=godotengine&logoColor=white" alt="Godot 4.7.2" />
-  <img src="https://img.shields.io/badge/Language-GDScript-355570?style=for-the-badge" alt="GDScript" />
-  <img src="https://img.shields.io/badge/Cinematic-1080p_Full_HD-ef4444?style=for-the-badge" alt="1080p Full HD" />
   <img src="https://img.shields.io/badge/Pipeline-100%25_Agentic_LLM-10b981?style=for-the-badge" alt="100% Agentic" />
 </p>
 
@@ -20,6 +20,12 @@
   <b>Space is not empty. It is an ocean — and its tide is going out.</b><br/>
   <em>A 3D turn-based space strategy game where naval momentum, simultaneous fleet planning, and Gundam-style hero aces collide.</em>
 </p>
+
+> [!IMPORTANT]
+> **🎓 Interactive Tutorials are now LIVE!**
+> The introductory training mission (Act I // Stage 01) is active for all three civilizations—**The Armada of Acero**, **The Vinculados**, and **The Free Tide**—featuring a guided **5-step Tactical Academy guide**, Newtonian maneuvering drills, active directional armor absorption, and rebalanced training duels.
+>
+> 🚀 **[Download Latest Windows Alpha Build (Barlovento.zip)](https://github.com/raestrada/barlovento/releases/latest/download/Barlovento.zip)** • [View GitHub Releases](https://github.com/raestrada/barlovento/releases)
 
 <p align="center">
   <a href="https://raestrada.github.io/barlovento/"><b>Explore the Interactive Web Experience & Watch the Cinematic Prologue &rarr;</b></a>
@@ -32,8 +38,8 @@
 **BARLOVENTO** transposes the tactical weight of age-of-sail naval warfare into the 3D vacuum of the **Star Sea** (*Mar Estelar*). Ships possess true **mass**, **inertia**, **momentum**, and **facing**—there are no magical friction brakes or instantaneous turns. Positioning, firing arcs, and vector drift matter as much as raw firepower.
 
 The battle is fought across **two symbiotic phases**:
-1. **The Admiral Phase (Simultaneous Strategy):** Blind vector planning where both commanders plot course, thrust, formation, and broadside arcs at the same instant.
-2. **The Ace Phase (Turn-Based Tactics):** Ship-by-ship, meter-by-meter dogfighting where players master their momentum alongside a hand-picked squadron of agile hero pilots (*Mobile Suits*).
+1. **The Admiral Phase (Simultaneous Strategy):** Blind vector planning across an 80-quadrant (10×8) tactical chart where commanders contest Éther Conduits, Barlovento Wind Streams, and Basalt Reefs.
+2. **The Ace Phase (Turn-Based Tactics):** Ship-by-ship, meter-by-meter 3D dogfighting where players manage Action Points (AP), trigger broadside volleys, and master directional armor defense alongside a hand-picked squadron of hero aces.
 
 ---
 
@@ -46,35 +52,36 @@ The battle is fought across **two symbiotic phases**:
 
 ---
 
-## The Signature Gameplay Loop
+## Real In-Engine Gameplay & Tactical Theater
 
 <table>
   <tr>
     <td align="center" width="33%">
-      <img src="assets/mockups/admiral-phase.png" alt="The Admiral Phase" width="100%"/><br/>
-      <b>Phase 1 &bull; The Approach</b><br/>
-      <em>Simultaneous fleet vector plotting against the wind.</em>
+      <img src="assets/screenshots/screen_admiral_chart.png" alt="Phase 1: 10×8 Strategic Admiral Chart & Tactical Academy" width="100%"/><br/>
+      <b>Phase 1 &bull; 10×8 Strategic Chart</b><br/>
+      <em>Contested Éther Conduits, Barlovento streams &amp; Tactical Academy tutorial.</em>
     </td>
     <td align="center" width="33%">
-      <img src="assets/mockups/ace-phase.png" alt="The Ace Phase" width="100%"/><br/>
-      <b>Phase 2 &bull; The Engagement</b><br/>
-      <em>Turn-based tactical combat. Fight your own momentum.</em>
+      <img src="assets/screenshots/screen_ace_combat.png" alt="Phase 2: 3D Ace Tactical Combat & AP System" width="100%"/><br/>
+      <b>Phase 2 &bull; 3D Ace Tactical Combat</b><br/>
+      <em>Newtonian inertia, Action Points (AP), and live directional armor widgets.</em>
     </td>
     <td align="center" width="33%">
-      <img src="assets/mockups/roster.png" alt="Hero Ace Roster" width="100%"/><br/>
-      <b>The Squad &bull; Permadeath</b><br/>
-      <em>Develop your hero aces. Lose them forever.</em>
+      <img src="assets/screenshots/screen_main_menu.png" alt="Campaign Roster & Faction Selection" width="100%"/><br/>
+      <b>Campaign &bull; Faction Academy</b><br/>
+      <em>Three asymmetric civilizations with dedicated tutorial stages.</em>
     </td>
   </tr>
 </table>
 
 ### Phase 1 &mdash; The Approach (Admiral Phase)
-Both fleets issue movement and combat orders concurrently. Course, burn percentage, formation lock, and target bearings are locked in simultaneously. Formations clash in a high-speed cinematic pass, establishing the geometry of the battlefield before the first gun is fired.
+Both fleets issue movement and combat orders concurrently across the 10×8 sector grid. Course, burn percentage, formation lock, and target bearings are planned simultaneously. Capture contested Éther Conduits for +1 AP / +15% Speed, surf the Barlovento stream for +15% hit accuracy, or ambush from basalt asteroid reefs before initiating visual combat.
 
 ### Phase 2 &mdash; The Engagement (Ace Phase)
-Combat transitions to turn-based tactical maneuvering on a 3D grid:
+Combat transitions to turn-based tactical maneuvering in full 3D space:
 - **Vector Drift:** Ships carry velocity vectors across turns; changing direction requires dedicated retro-thrust burns.
-- **Directional Defense:** Hull integrity is tracked across Bow, Port, Starboard, and Stern quadrants. Angling sloped prow armor into incoming salvos mitigates catastrophic damage.
+- **Directional Armor Absorption:** Hull integrity is tracked across Bow, Port, Starboard, and Stern quadrants. Angling sloped prow armor absorbs kinetic impacts, while stern rakes deal lethal critical damage.
+- **Action Point Management:** Spend AP each round on tactical abilities: Broadsides (+18% DMG), Oar Bursts, Shield Barriers, and RCS burns.
 - **Mobile Suit Interception:** Aces fly independent vector lines, using vernier thrusters to slip into capital ship blind spots and breach spinal casemates.
 
 ---

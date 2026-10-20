@@ -174,8 +174,78 @@
       font-size: clamp(1.05rem, 2vw, 1.3rem);
       color: var(--text-muted);
       max-width: 820px;
-      margin: 0 auto 2.5rem;
+      margin: 0 auto 1.8rem;
       line-height: 1.7;
+    }
+
+    .tutorial-announcement {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.8rem;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      padding: 0.45rem 1.2rem;
+      border-radius: 9999px;
+      margin-bottom: 1.8rem;
+      font-size: 0.92rem;
+      color: #a7f3d0;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    }
+
+    .announcement-badge {
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #34d399;
+      font-size: 0.82rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1.2rem;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 2.8rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: #03080e !important;
+      font-weight: 700;
+      padding: 0.85rem 1.8rem;
+      border-radius: 9999px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.05rem;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
+      transition: all 0.25s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 35px rgba(56, 189, 248, 0.7);
+    }
+
+    .btn-secondary {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid var(--border-cyan);
+      color: var(--cyan-bright) !important;
+      font-weight: 600;
+      padding: 0.85rem 1.6rem;
+      border-radius: 9999px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      font-size: 1.05rem;
+      transition: all 0.25s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: var(--cyan);
+      transform: translateY(-1px);
     }
 
     /* Cinematic Video Showcase */
@@ -619,6 +689,21 @@
         A war you fight twice, with two different minds. Plot fleet vector courses like an <b>Admiral</b>, then master Newtonian drift and fire arcs turn-by-turn with your squad of <b>Gundam hero aces</b>.
       </p>
 
+      <div class="tutorial-announcement">
+        <span class="announcement-badge">🎓 NEW // TACTICAL ACADEMY</span>
+        <span class="announcement-text">Guided Interactive Tutorials are now active for all 3 civilizations (Acero, Vinculados &amp; Free Tide)!</span>
+      </div>
+
+      <div class="hero-actions">
+        <a class="btn-primary" href="https://github.com/raestrada/barlovento/releases/latest/download/Barlovento.zip">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Download Windows Alpha (.zip)
+        </a>
+        <a class="btn-secondary" href="https://github.com/raestrada/barlovento/releases" target="_blank" rel="noopener">
+          View Releases &amp; Changelogs
+        </a>
+      </div>
+
       <!-- Video Player Showcase -->
       <div id="prologue" class="video-showcase">
         <div class="video-wrapper">
@@ -647,34 +732,34 @@
 
       <div class="dual-phase-grid">
         <article class="phase-card">
-          <img class="phase-media" src="assets/mockups/admiral-phase.png" alt="The Admiral Phase — Approach Vector Plotting" />
+          <img class="phase-media" src="assets/screenshots/screen_admiral_chart.png" alt="Phase 1: 10×8 Strategic Admiral Chart &amp; Tactical Academy" />
           <div class="phase-body">
-            <div class="phase-num">Phase 1 &bull; Simultaneous Strategy</div>
+            <div class="phase-num">Phase 1 &bull; 10×8 Strategic Chart</div>
             <h3 class="phase-name">The Approach (Admiral Phase)</h3>
             <p class="phase-desc">
-              You and your adversary issue fleet maneuvers simultaneously into the blind dark: vector heading, throttle burn, and firing arcs. Both formations collide in a cinematic pass where foresight decides the initial casualty count.
+              Plot fleet waypoints across 80 quadrants (A1–J8). Contest Éther Conduits (⚡ +1 AP / +15% Speed), surf Barlovento streams (» +15% Acc / +12% DMG), and execute tactical formations while following the 5-step Tactical Academy guide.
             </p>
           </div>
         </article>
 
         <article class="phase-card">
-          <img class="phase-media" src="assets/mockups/ace-phase.png" alt="The Ace Phase — Turn-Based Tactical Combat" />
+          <img class="phase-media" src="assets/screenshots/screen_ace_combat.png" alt="Phase 2: 3D Ace Tactical Combat &amp; AP System" />
           <div class="phase-body">
-            <div class="phase-num">Phase 2 &bull; Turn-Based Tactics</div>
+            <div class="phase-num">Phase 2 &bull; 3D Turn-Based Tactics</div>
             <h3 class="phase-name">The Engagement (Ace Phase)</h3>
             <p class="phase-desc">
-              Ship by ship, turn by turn, fight your own mass. Newtonian inertia is unyielding: burn thrusters to alter drift, turn armored prow cheeks into incoming fire, and deploy agile hero mobile suits to slash through enemy capital lines.
+              Master Newtonian inertia and vector drift in a 3D sphere. Allocate Action Points (AP) for broadside salvos, oar bursts, and shields. Mitigate incoming fire with live directional armor integrity across Bow, Flanks, and Stern.
             </p>
           </div>
         </article>
 
         <article class="phase-card">
-          <img class="phase-media" src="assets/mockups/roster.png" alt="Hero Ace Roster" />
+          <img class="phase-media" src="assets/screenshots/screen_main_menu.png" alt="Campaign Roster &amp; Faction Academy" />
           <div class="phase-body">
-            <div class="phase-num">Squad Dynamics &bull; Permadeath</div>
-            <h3 class="phase-name">The Aces of the Void</h3>
+            <div class="phase-num">Civilizations &bull; Permadeath Campaign</div>
+            <h3 class="phase-name">Three Asymmetric Campaigns</h3>
             <p class="phase-desc">
-              Recruit, customize, and command a bespoke strike team of 2–4 ace pilots. Their personalized mechas turn the tide of capital ship engagements—but losing an ace in combat means losing them forever across the campaign.
+              Experience the Star Sea from three unique perspectives. Play guided tutorial stages for The Armada of Acero, The Vinculados, and The Free Tide, developing hero aces with persistent veteran progression.
             </p>
           </div>
         </article>
