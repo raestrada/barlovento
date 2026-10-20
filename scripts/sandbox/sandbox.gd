@@ -211,6 +211,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			_cycle_hostile_target()
 		elif event.is_action_pressed("intercept_target"):
 			_intercept_target()
+		elif event is InputEventKey and event.keycode == KEY_Y:
+			if _ace_panel != null:
+				_ace_panel.toggle_weapon_arcs()
 
 func _apply_mouse_vector_steering(screen_pos: Vector2, play_feedback: bool) -> void:
 	if _selected_ship == null or _selected_ship.is_destroyed():
@@ -1843,6 +1846,9 @@ func _build_hud() -> void:
 	_ace_panel.stop_pressed.connect(func() -> void:
 		if _selected_ship != null:
 			_selected_ship.order.target_speed = 0.0
+	)
+	_ace_panel.toggle_weapon_arcs_pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
 	)
 	layer.add_child(_ace_panel)
 

@@ -22,6 +22,8 @@ const ORDER_ARROW_SCALE := 0.75
 @export var team: int = 0
 @export var selected: bool = false
 
+static var show_weapon_arcs: bool = false
+
 var ship_name: String = "Ship"
 var pilot_name: String = ""
 var ship_id: String = ""
@@ -493,8 +495,10 @@ func _update_order_arrow() -> void:
                 _order_label.text = "VEC %.1f m/s" % order.target_speed
 
 func _update_firing_arc() -> void:
-    if _firing_arc_instance != null:
-        _firing_arc_instance.visible = false
+    if _firing_arc_instance == null:
+        return
+    var planning := not TurnManager.is_resolving()
+    _firing_arc_instance.visible = show_weapon_arcs and selected and planning and not is_destroyed()
 
 func _update_selection_visuals() -> void:
     if _selection_ring != null:
@@ -722,7 +726,7 @@ func _rebuild_firing_arc() -> void:
     _firing_arc_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
     _firing_arc_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
     _firing_arc_material.cull_mode = BaseMaterial3D.CULL_DISABLED
-    _firing_arc_material.albedo_color = Color(0.22, 0.82, 0.98, 0.16) if team == 0 else Color(1.0, 0.42, 0.22, 0.16)
+    _firing_arc_material.albedo_color = Color(0.20, 0.75, 0.95, 0.08) if team == 0 else Color(1.0, 0.45, 0.25, 0.08)
     _firing_arc_instance.material_override = _firing_arc_material
     _firing_arc_instance.visible = false
     add_child(_firing_arc_instance)
@@ -738,9 +742,9 @@ func _rebuild_firing_arc() -> void:
     var line_mat := StandardMaterial3D.new()
     line_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
     line_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-    line_mat.albedo_color = Color(0.35, 0.92, 1.0, 0.72) if team == 0 else Color(1.0, 0.55, 0.3, 0.72)
+    line_mat.albedo_color = Color(0.35, 0.88, 1.0, 0.35) if team == 0 else Color(1.0, 0.55, 0.30, 0.35)
     line_mat.emission_enabled = true
-    line_mat.emission = Color(0.25, 0.85, 1.0) if team == 0 else Color(1.0, 0.4, 0.2)
+    line_mat.emission = (Color(0.20, 0.80, 1.0) if team == 0 else Color(1.0, 0.40, 0.20)) * 0.4
     _firing_arc_lines.material_override = line_mat
     _firing_arc_instance.add_child(_firing_arc_lines)
 

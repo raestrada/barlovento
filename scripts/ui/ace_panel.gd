@@ -15,6 +15,7 @@ signal yaw_right
 signal pitch_up
 signal pitch_down
 signal speed_up
+signal toggle_weapon_arcs_pressed
 signal speed_down
 signal stop_pressed
 
@@ -54,6 +55,7 @@ var _btn_trim_sails: Button
 var _btn_broadside: Button
 var _btn_rcs_burn: Button
 var _btn_resolve: Button
+var _arcs_btn: Button
 
 var _current_ap: int = 7
 var _base_round_ap: int = 7
@@ -163,6 +165,8 @@ func _build_ui() -> void:
     helm_row.add_child(_make_helm_btn("-SPD [S]", func() -> void: speed_down.emit()))
     helm_row.add_child(_make_helm_btn("+SPD [W]", func() -> void: speed_up.emit()))
     helm_row.add_child(_make_helm_btn("TARGET [C]", func() -> void: cycle_target_pressed.emit()))
+    _arcs_btn = _make_helm_btn("🎯 ARCS [Y]: OFF", func() -> void: toggle_weapon_arcs())
+    helm_row.add_child(_arcs_btn)
     helm_row.add_child(_make_helm_btn("🗺 ADMIRAL CHART", func() -> void: exit_pressed.emit()))
 
     # Target Solution & Telemetry Line
@@ -500,3 +504,12 @@ func _make_helm_btn(txt: String, cb: Callable) -> Button:
     b.focus_mode = Control.FOCUS_NONE
     b.pressed.connect(cb)
     return b
+
+func toggle_weapon_arcs() -> void:
+    Ship.show_weapon_arcs = not Ship.show_weapon_arcs
+    if _arcs_btn != null:
+        _arcs_btn.text = "🎯 ARCS [Y]: ON" if Ship.show_weapon_arcs else "🎯 ARCS [Y]: OFF"
+        var col := HudWidgets.COL_CYAN_BRIGHT if Ship.show_weapon_arcs else Color(0.70, 0.85, 0.95, 0.7)
+        _arcs_btn.add_theme_color_override("font_color", col)
+    toggle_weapon_arcs_pressed.emit()
+
