@@ -100,7 +100,7 @@ func _ready() -> void:
 	_build_ether_flow()
 	_build_asteroid_field()
 	_build_calm_wavefront()
-	_build_sluice_station()
+	_build_stage_landmark()
 	_build_tactical_grid()
 	_spawn_fleets()
 	_build_trajectory_preview()
@@ -134,12 +134,13 @@ func _ready() -> void:
 			_add_combat_log("ACT I // STAGE 03: The Calm Threshold — Grand Coalition Fleet ahead!", Color(1.0, 0.45, 0.30))
 			_add_combat_log("Adm. Vane: \"The Calm is behind us. Anchor the Anvil line — Steel Endures!\"", Color(0.4, 0.92, 1.0))
 		"vinculados_stage_1":
-			_add_combat_log("ACT II // STAGE 01 [TUTORIAL]: Resonance Well Psalm-4 — Acero battle group anchored!", Color(0.85, 0.45, 1.0))
-			_add_combat_log("Ace Kaelen-7: \"Harmonic link online. Use high turn rates to slip behind their stern armor!\"", Color(0.4, 0.92, 1.0))
+			_add_combat_log("ACT II // STAGE 01 [TUTORIAL]: Sanctuary Spire Psalm-4 — Imperial extraction incursion!", Color(0.85, 0.45, 1.0))
+			_add_combat_log("Conductor Seraph-2: \"Imperial miners have brought heavy cruisers to drill the sacred Choir well. Protect the Sanctuary Spire!\"", Color(0.65, 0.88, 1.0))
+			_add_combat_log("Ace Kaelen-7: \"Harmonic link online. Our mobile suit wings out-turn their heavy ironclads. Slip into their rear quadrant for critical Stern Rakes!\"", Color(0.4, 0.92, 1.0))
 			_add_combat_log("🎓 TUTORIAL ACTIVE: Follow the guided instructions above. Press [N] for Next Step.", Color(0.35, 1.0, 0.75))
 		"marea_stage_1":
-			_add_combat_log("ACT III // STAGE 01 [TUTORIAL]: Anvil Blockade — Acero ironclads blocking the Sluice lane!", Color(0.45, 0.95, 0.85))
-			_add_combat_log("Capt. Solano: \"Unfurl quantum sails! Catch the cyan tailwind and rake them from Barlovento!\"", Color(1.0, 0.85, 0.35))
+			_add_combat_log("ACT III // STAGE 01 [TUTORIAL]: The Basalt Narrows — Imperial blockade bottling up the Haven!", Color(0.45, 0.95, 0.85))
+			_add_combat_log("Capt. Solano: \"Unfurl the quantum sails, sea dogs! Catch the rapids of El Río del Viento, claim the Weather-Gauge [BARLOVENTO], and sweep their flanks with full broadsides!\"", Color(1.0, 0.85, 0.35))
 			_add_combat_log("🎓 TUTORIAL ACTIVE: Follow the guided instructions above. Press [N] for Next Step.", Color(0.35, 1.0, 0.75))
 		_:
 			_add_combat_log("Tactical link established. Outer Veil // Sector Psalm-4.", Color(0.4, 0.9, 1.0))
@@ -1276,25 +1277,51 @@ func _build_ether_flow() -> void:
 	_ether_particles.name = "EtherFlowField"
 	add_child(_ether_particles)
 
-	var stream_mesh := CylinderMesh.new()
-	stream_mesh.top_radius = 0.03
-	stream_mesh.bottom_radius = 0.14
-	stream_mesh.height = 4.2
+	var is_marea := (LoreDB.current_stage_id == "marea_stage_1")
+	var is_vinc := (LoreDB.current_stage_id in ["vinculados_stage_1", "acero_stage_2"])
 
-	var stream_mat := StandardMaterial3D.new()
-	stream_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	stream_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	stream_mat.albedo_color = Color(0.3, 0.92, 0.98, 0.48)
-	stream_mat.emission_enabled = true
-	stream_mat.emission = Color(0.15, 0.65, 0.78)
-	stream_mesh.material = stream_mat
-
+	var p_count := 110 if is_marea else (70 if is_vinc else 60)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
-	for i in range(60):
+
+	for i in range(p_count):
 		var p := MeshInstance3D.new()
+		var stream_mesh := CylinderMesh.new()
+		stream_mesh.top_radius = 0.04 if is_marea else 0.03
+		stream_mesh.bottom_radius = 0.18 if is_marea else 0.14
+		stream_mesh.height = 5.8 if is_marea else 4.2
+
+		var stream_mat := StandardMaterial3D.new()
+		stream_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		stream_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+
+		if is_marea:
+			# "El Río del Viento" — vibrant electric cyan rushing torrent
+			stream_mat.albedo_color = Color(0.25, 0.96, 1.0, 0.65)
+			stream_mat.emission_enabled = true
+			stream_mat.emission = Color(0.20, 0.85, 1.0)
+		elif is_vinc:
+			# Harmonic dual-hue violet & cyan ethereal drift
+			var is_violet := (i % 2 == 0)
+			stream_mat.albedo_color = Color(0.85, 0.38, 1.0, 0.52) if is_violet else Color(0.30, 0.92, 1.0, 0.52)
+			stream_mat.emission_enabled = true
+			stream_mat.emission = Color(0.70, 0.25, 0.95) if is_violet else Color(0.18, 0.70, 0.85)
+		else:
+			# Industrial Éteron flow
+			stream_mat.albedo_color = Color(0.3, 0.92, 0.98, 0.48)
+			stream_mat.emission_enabled = true
+			stream_mat.emission = Color(0.15, 0.65, 0.78)
+
+		stream_mesh.material = stream_mat
 		p.mesh = stream_mesh
-		var pos := Vector3(rng.randf_range(-140.0, 140.0), rng.randf_range(-25.0, 25.0), rng.randf_range(-140.0, 140.0))
+
+		var pos: Vector3
+		if is_marea:
+			# Concentrated rushing torrent through the canyon gorge (between X: -38 and +38)
+			pos = Vector3(rng.randf_range(-38.0, 38.0), rng.randf_range(-14.0, 14.0), rng.randf_range(-130.0, 130.0))
+		else:
+			pos = Vector3(rng.randf_range(-140.0, 140.0), rng.randf_range(-25.0, 25.0), rng.randf_range(-140.0, 140.0))
+
 		var cur := _ether.current_at(pos)
 		var norm := cur.normalized() if cur.length_squared() > 0.01 else _ether.direction
 		var up := Vector3.UP if absf(norm.dot(Vector3.UP)) < 0.9 else Vector3.RIGHT
@@ -1307,31 +1334,74 @@ func _build_asteroid_field() -> void:
 	_asteroid_root.name = "StarSeaReefs"
 	add_child(_asteroid_root)
 
+	var is_marea := (LoreDB.current_stage_id == "marea_stage_1")
+	var is_vinc := (LoreDB.current_stage_id in ["vinculados_stage_1", "acero_stage_2"])
+
 	var rock_mat := StandardMaterial3D.new()
-	rock_mat.albedo_color = Color(0.14, 0.16, 0.22)
-	rock_mat.metallic = 0.25
-	rock_mat.roughness = 0.82
+	if is_vinc:
+		rock_mat.albedo_color = Color(0.24, 0.26, 0.35)
+		rock_mat.roughness = 0.65
+	elif is_marea:
+		rock_mat.albedo_color = Color(0.12, 0.11, 0.14)
+		rock_mat.roughness = 0.90
+	else:
+		rock_mat.albedo_color = Color(0.14, 0.16, 0.22)
+		rock_mat.metallic = 0.25
+		rock_mat.roughness = 0.82
 
 	var crystal_mat := StandardMaterial3D.new()
-	crystal_mat.albedo_color = Color(0.2, 0.85, 0.95)
-	crystal_mat.emission_enabled = true
-	crystal_mat.emission = Color(0.15, 0.75, 0.92)
-	crystal_mat.emission_energy_multiplier = 2.2
+	if is_vinc:
+		crystal_mat.albedo_color = Color(0.85, 0.40, 1.0)
+		crystal_mat.emission_enabled = true
+		crystal_mat.emission = Color(0.78, 0.30, 0.95)
+		crystal_mat.emission_energy_multiplier = 2.6
+	elif is_marea:
+		crystal_mat.albedo_color = Color(0.98, 0.68, 0.20)
+		crystal_mat.emission_enabled = true
+		crystal_mat.emission = Color(0.95, 0.60, 0.14)
+		crystal_mat.emission_energy_multiplier = 1.8
+	else:
+		crystal_mat.albedo_color = Color(0.2, 0.85, 0.95)
+		crystal_mat.emission_enabled = true
+		crystal_mat.emission = Color(0.15, 0.75, 0.92)
+		crystal_mat.emission_energy_multiplier = 2.2
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 108
-	var reef_positions := [
-		Vector3(-68.0, -8.0, 12.0),
-		Vector3(-56.0, 14.0, -28.0),
-		Vector3(64.0, -6.0, 18.0),
-		Vector3(58.0, 10.0, -24.0),
-		Vector3(-75.0, 4.0, 55.0),
-		Vector3(76.0, -12.0, 48.0),
-		Vector3(-48.0, -16.0, -68.0),
-		Vector3(52.0, 12.0, -72.0),
-		Vector3(0.0, -22.0, 5.0),
-		Vector3(-32.0, 18.0, 4.0),
-	]
+
+	var reef_positions: Array[Vector3] = []
+	if is_marea:
+		# "The Basalt Narrows" — two dense flanking asteroid walls on Port and Starboard
+		# leaving a central 70m canyon channel where El Río del Viento rushes through!
+		for z_step in range(-5, 6):
+			var z_val := float(z_step) * 16.0
+			reef_positions.append(Vector3(-46.0 + rng.randf_range(-6.0, 4.0), rng.randf_range(-12.0, 14.0), z_val))
+			reef_positions.append(Vector3(-62.0 + rng.randf_range(-8.0, 6.0), rng.randf_range(-16.0, 18.0), z_val + 6.0))
+			reef_positions.append(Vector3(46.0 + rng.randf_range(-4.0, 6.0), rng.randf_range(-12.0, 14.0), z_val))
+			reef_positions.append(Vector3(62.0 + rng.randf_range(-6.0, 8.0), rng.randf_range(-16.0, 18.0), z_val - 6.0))
+		# A few tactical mid-canyon obstacles to sail around
+		reef_positions.append(Vector3(-18.0, 8.0, -15.0))
+		reef_positions.append(Vector3(16.0, -6.0, 25.0))
+	elif is_vinc:
+		# Floating Sanctuary Crystal Orbitals encircling the sacred well
+		for a_i in range(12):
+			var ang := float(a_i) * TAU / 12.0
+			var dist := rng.randf_range(52.0, 85.0)
+			reef_positions.append(Vector3(cos(ang) * dist, rng.randf_range(-18.0, 22.0), sin(ang) * dist))
+	else:
+		# Acero standard industrial mining reefs
+		reef_positions = [
+			Vector3(-68.0, -8.0, 12.0),
+			Vector3(-56.0, 14.0, -28.0),
+			Vector3(64.0, -6.0, 18.0),
+			Vector3(58.0, 10.0, -24.0),
+			Vector3(-75.0, 4.0, 55.0),
+			Vector3(76.0, -12.0, 48.0),
+			Vector3(-48.0, -16.0, -68.0),
+			Vector3(52.0, 12.0, -72.0),
+			Vector3(0.0, -22.0, 5.0),
+			Vector3(-32.0, 18.0, 4.0),
+		]
 
 	for base_pos in reef_positions:
 		var cluster := Node3D.new()
@@ -1341,7 +1411,7 @@ func _build_asteroid_field() -> void:
 
 		var main_rock := MeshInstance3D.new()
 		var sphere := SphereMesh.new()
-		var rad := rng.randf_range(2.6, 5.2)
+		var rad := rng.randf_range(2.8, 6.2 if is_marea else 5.2)
 		sphere.radius = rad
 		sphere.height = rad * 1.65
 		sphere.radial_segments = 7
@@ -1538,16 +1608,32 @@ func _build_calm_wavefront() -> void:
 
 		_calm_seeps.append(seep_dict)
 
-var _sluice_ring_outer: Node3D = null
-var _sluice_ring_inner: Node3D = null
+var _stage_landmark_root: Node3D = null
+var _landmark_rotators: Array[Dictionary] = []
 
-func _build_sluice_station() -> void:
+func _register_landmark_rotator(node: Node3D, axis: Vector3, speed: float) -> void:
+	_landmark_rotators.append({"node": node, "axis": axis, "speed": speed})
+
+func _build_stage_landmark() -> void:
+	if _stage_landmark_root != null and is_instance_valid(_stage_landmark_root):
+		_stage_landmark_root.queue_free()
+	_landmark_rotators.clear()
+
+	match LoreDB.current_stage_id:
+		"vinculados_stage_1", "acero_stage_2":
+			_build_vinculados_sanctuary_spire()
+		"marea_stage_1":
+			_build_marea_corsair_haven()
+		_:
+			_build_acero_sluice_station()
+
+func _build_acero_sluice_station() -> void:
 	# Colossal Textured 3D Acero Éteron Sluice-Gate Refinery ("Well-09", matching card_acero.png & acero_stage1_briefing.png)
-	_sluice_station_root = Node3D.new()
-	_sluice_station_root.name = "SluiceStationWell09"
-	_sluice_station_root.position = Vector3(-28.0, -1.0, 4.0)
-	_sluice_station_root.rotation_degrees = Vector3(0.0, 24.0, 0.0)
-	add_child(_sluice_station_root)
+	_stage_landmark_root = Node3D.new()
+	_stage_landmark_root.name = "SluiceStationWell09"
+	_stage_landmark_root.position = Vector3(-28.0, -1.0, 4.0)
+	_stage_landmark_root.rotation_degrees = Vector3(0.0, 24.0, 0.0)
+	add_child(_stage_landmark_root)
 
 	var hull_tex: Texture2D = load("res://assets/ships/acero/acero_hull.png")
 
@@ -1605,16 +1691,16 @@ func _build_sluice_station() -> void:
 	forge_light.light_color = Color(1.0, 0.62, 0.25)
 	forge_light.light_energy = 1.8
 	forge_light.omni_range = 36.0
-	_sluice_station_root.add_child(forge_light)
+	_stage_landmark_root.add_child(forge_light)
 
 	var ring_light := OmniLight3D.new()
 	ring_light.position = Vector3(0.0, 2.0, -14.0)
 	ring_light.light_color = Color(0.35, 0.85, 1.0)
 	ring_light.light_energy = 1.5
 	ring_light.omni_range = 32.0
-	_sluice_station_root.add_child(ring_light)
+	_stage_landmark_root.add_child(ring_light)
 
-	# 1. Central Multi-Tiered Octagonal Blast-Furnace Citadel (like card_acero.png!)
+	# 1. Central Multi-Tiered Octagonal Blast-Furnace Citadel
 	var base_drum := MeshInstance3D.new()
 	var bd_cyl := CylinderMesh.new()
 	bd_cyl.top_radius = 9.2
@@ -1624,7 +1710,7 @@ func _build_sluice_station() -> void:
 	base_drum.mesh = bd_cyl
 	base_drum.position = Vector3(0.0, 0.0, 6.0)
 	base_drum.material_override = armor_tex_mat
-	_sluice_station_root.add_child(base_drum)
+	_stage_landmark_root.add_child(base_drum)
 
 	var upper_citadel := MeshInstance3D.new()
 	var uc_cyl := CylinderMesh.new()
@@ -1635,7 +1721,7 @@ func _build_sluice_station() -> void:
 	upper_citadel.mesh = uc_cyl
 	upper_citadel.position = Vector3(0.0, 6.2, 6.0)
 	upper_citadel.material_override = dark_steel_mat
-	_sluice_station_root.add_child(upper_citadel)
+	_stage_landmark_root.add_child(upper_citadel)
 
 	# Glowing Molten Blast-Furnace Crown & Lower Crucible Vent
 	var crown_furnace := MeshInstance3D.new()
@@ -1647,7 +1733,7 @@ func _build_sluice_station() -> void:
 	crown_furnace.mesh = cf_cyl
 	crown_furnace.position = Vector3(0.0, 9.8, 6.0)
 	crown_furnace.material_override = molten_core_mat
-	_sluice_station_root.add_child(crown_furnace)
+	_stage_landmark_root.add_child(crown_furnace)
 
 	var lower_crucible := MeshInstance3D.new()
 	var lc_cyl := CylinderMesh.new()
@@ -1658,9 +1744,9 @@ func _build_sluice_station() -> void:
 	lower_crucible.mesh = lc_cyl
 	lower_crucible.position = Vector3(0.0, -6.5, 6.0)
 	lower_crucible.material_override = dark_steel_mat
-	_sluice_station_root.add_child(lower_crucible)
+	_stage_landmark_root.add_child(lower_crucible)
 
-	# 6 Towering Industrial Smokestacks & Heat-Sink Towers around the Citadel
+	# 6 Towering Industrial Smokestacks around the Citadel
 	for i in range(6):
 		var ang := float(i) * TAU / 6.0
 		var sx := cos(ang) * 6.2
@@ -1674,7 +1760,7 @@ func _build_sluice_station() -> void:
 		stack.mesh = st_cyl
 		stack.position = Vector3(sx, 8.5 + float(i % 2) * 1.5, sz)
 		stack.material_override = armor_tex_mat
-		_sluice_station_root.add_child(stack)
+		_stage_landmark_root.add_child(stack)
 
 		var stack_glow := MeshInstance3D.new()
 		var sg_cyl := CylinderMesh.new()
@@ -1684,9 +1770,9 @@ func _build_sluice_station() -> void:
 		stack_glow.mesh = sg_cyl
 		stack_glow.position = stack.position + Vector3(0.0, st_cyl.height * 0.5, 0.0)
 		stack_glow.material_override = furnace_amber
-		_sluice_station_root.add_child(stack_glow)
+		_stage_landmark_root.add_child(stack_glow)
 
-	# Port & Starboard Heavy Docking Gantries and Furnace Windows
+	# Port & Starboard Heavy Docking Gantries
 	for side in [-1.0, 1.0]:
 		var wing := MeshInstance3D.new()
 		var w_box := BoxMesh.new()
@@ -1694,7 +1780,7 @@ func _build_sluice_station() -> void:
 		wing.mesh = w_box
 		wing.position = Vector3(float(side) * 11.2, 0.5, 6.0)
 		wing.material_override = armor_tex_mat
-		_sluice_station_root.add_child(wing)
+		_stage_landmark_root.add_child(wing)
 
 		var trim_bar := MeshInstance3D.new()
 		var tb_box := BoxMesh.new()
@@ -1702,7 +1788,7 @@ func _build_sluice_station() -> void:
 		trim_bar.mesh = tb_box
 		trim_bar.position = Vector3(float(side) * 11.2, 2.2, 6.0)
 		trim_bar.material_override = trim_steel
-		_sluice_station_root.add_child(trim_bar)
+		_stage_landmark_root.add_child(trim_bar)
 
 		for w_i in range(3):
 			var win := MeshInstance3D.new()
@@ -1711,9 +1797,9 @@ func _build_sluice_station() -> void:
 			win.mesh = win_box
 			win.position = Vector3(float(side) * (8.5 + float(w_i) * 2.4), 0.5, 6.0)
 			win.material_override = furnace_amber
-			_sluice_station_root.add_child(win)
+			_stage_landmark_root.add_child(win)
 
-	# 2. Axial Sluice Conduit Barrel extending forward (-Z) to the Collector Ring
+	# 2. Axial Sluice Conduit Barrel extending forward (-Z)
 	var conduit := MeshInstance3D.new()
 	var c_cyl := CylinderMesh.new()
 	c_cyl.top_radius = 3.2
@@ -1724,7 +1810,7 @@ func _build_sluice_station() -> void:
 	conduit.position = Vector3(0.0, 1.2, -4.5)
 	conduit.rotation_degrees = Vector3(90.0, 0.0, 0.0)
 	conduit.material_override = dark_steel_mat
-	_sluice_station_root.add_child(conduit)
+	_stage_landmark_root.add_child(conduit)
 
 	for rib_i in range(4):
 		var rib := MeshInstance3D.new()
@@ -1737,12 +1823,13 @@ func _build_sluice_station() -> void:
 		rib.position = Vector3(0.0, 1.2, 1.0 - float(rib_i) * 3.6)
 		rib.rotation_degrees = Vector3(90.0, 0.0, 0.0)
 		rib.material_override = trim_steel
-		_sluice_station_root.add_child(rib)
+		_stage_landmark_root.add_child(rib)
 
-	# 3. Colossal Forward Éteron Collector Ring Assembly (Counter-Rotating Outer & Inner Rings!)
-	_sluice_ring_outer = Node3D.new()
-	_sluice_ring_outer.position = Vector3(0.0, 1.2, -13.5)
-	_sluice_station_root.add_child(_sluice_ring_outer)
+	# 3. Colossal Forward Collector Rings (Outer & Inner Counter-Rotating)
+	var outer_ring_node := Node3D.new()
+	outer_ring_node.position = Vector3(0.0, 1.2, -13.5)
+	_stage_landmark_root.add_child(outer_ring_node)
+	_register_landmark_rotator(outer_ring_node, Vector3.FORWARD, 0.18)
 
 	var main_ring := MeshInstance3D.new()
 	var mr_tor := TorusMesh.new()
@@ -1753,9 +1840,8 @@ func _build_sluice_station() -> void:
 	main_ring.mesh = mr_tor
 	main_ring.rotation_degrees = Vector3(90.0, 0.0, 0.0)
 	main_ring.material_override = armor_tex_mat
-	_sluice_ring_outer.add_child(main_ring)
+	outer_ring_node.add_child(main_ring)
 
-	# 8 Radial Magnetic Clamp Pylons around the Collector Ring (matching card_acero.png!)
 	for c_i in range(8):
 		var c_ang := float(c_i) * TAU / 8.0
 		var pylon := MeshInstance3D.new()
@@ -1765,11 +1851,12 @@ func _build_sluice_station() -> void:
 		pylon.position = Vector3(cos(c_ang) * 9.2, sin(c_ang) * 9.2, 0.0)
 		pylon.rotation = Vector3(0.0, 0.0, c_ang + PI * 0.5)
 		pylon.material_override = trim_steel
-		_sluice_ring_outer.add_child(pylon)
+		outer_ring_node.add_child(pylon)
 
-	_sluice_ring_inner = Node3D.new()
-	_sluice_ring_inner.position = Vector3(0.0, 1.2, -13.5)
-	_sluice_station_root.add_child(_sluice_ring_inner)
+	var inner_ring_node := Node3D.new()
+	inner_ring_node.position = Vector3(0.0, 1.2, -13.5)
+	_stage_landmark_root.add_child(inner_ring_node)
+	_register_landmark_rotator(inner_ring_node, Vector3.FORWARD, -0.35)
 
 	var inner_ring := MeshInstance3D.new()
 	var ir_tor := TorusMesh.new()
@@ -1780,9 +1867,8 @@ func _build_sluice_station() -> void:
 	inner_ring.mesh = ir_tor
 	inner_ring.rotation_degrees = Vector3(90.0, 0.0, 0.0)
 	inner_ring.material_override = furnace_amber
-	_sluice_ring_inner.add_child(inner_ring)
+	inner_ring_node.add_child(inner_ring)
 
-	# Central Siphon Aperture Core & Éther Capture Stream
 	var aperture_core := MeshInstance3D.new()
 	var ac_cyl := CylinderMesh.new()
 	ac_cyl.top_radius = 4.8
@@ -1793,7 +1879,7 @@ func _build_sluice_station() -> void:
 	aperture_core.position = Vector3(0.0, 1.2, -18.0)
 	aperture_core.rotation_degrees = Vector3(90.0, 0.0, 0.0)
 	aperture_core.material_override = sluice_cyan
-	_sluice_station_root.add_child(aperture_core)
+	_stage_landmark_root.add_child(aperture_core)
 
 	var station_lbl := Label3D.new()
 	station_lbl.text = "◆ SLUICE STATION WELL-09\n[ACERO ÉTERON REFINERY]"
@@ -1803,17 +1889,468 @@ func _build_sluice_station() -> void:
 	station_lbl.outline_modulate = Color(0.01, 0.02, 0.05, 0.95)
 	station_lbl.outline_size = 3
 	station_lbl.position = Vector3(0.0, 16.5, 6.0)
-	_sluice_station_root.add_child(station_lbl)
+	_stage_landmark_root.add_child(station_lbl)
+
+func _build_vinculados_sanctuary_spire() -> void:
+	# Colossal Pearlescent Ceramic Resonance Sanctuary Spire ("Psalm-4")
+	_stage_landmark_root = Node3D.new()
+	_stage_landmark_root.name = "SanctuarySpirePsalm4"
+	_stage_landmark_root.position = Vector3(-24.0, -2.0, 6.0)
+	_stage_landmark_root.rotation_degrees = Vector3(0.0, 18.0, 0.0)
+	add_child(_stage_landmark_root)
+
+	var ceramic := StandardMaterial3D.new()
+	ceramic.albedo_texture = load("res://assets/ships/vinculados/vinculados_hull.png")
+	ceramic.albedo_color = Color(1.0, 1.0, 1.0)
+	ceramic.metallic = 0.16
+	ceramic.roughness = 0.22
+	ceramic.rim_enabled = true
+	ceramic.rim = 0.65
+	ceramic.rim_tint = 0.40
+
+	var cobalt_blue := StandardMaterial3D.new()
+	cobalt_blue.albedo_color = Color(0.12, 0.22, 0.46)
+	cobalt_blue.metallic = 0.45
+	cobalt_blue.roughness = 0.35
+
+	var frame_dark := StandardMaterial3D.new()
+	frame_dark.albedo_color = Color(0.12, 0.14, 0.20)
+	frame_dark.metallic = 0.72
+	frame_dark.roughness = 0.36
+
+	var soul_core_mat := ShipModelBuilder._get_soul_core_material()
+
+	var cyan_glow := StandardMaterial3D.new()
+	cyan_glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	cyan_glow.albedo_color = Color(0.30, 0.92, 1.0)
+	cyan_glow.emission_enabled = true
+	cyan_glow.emission = Color(0.25, 0.88, 1.0)
+	cyan_glow.emission_energy_multiplier = 2.4
+
+	var violet_glow := StandardMaterial3D.new()
+	violet_glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	violet_glow.albedo_color = Color(0.85, 0.40, 1.0)
+	violet_glow.emission_enabled = true
+	violet_glow.emission = Color(0.78, 0.32, 0.95)
+	violet_glow.emission_energy_multiplier = 2.2
+
+	# Dedicated Sanctuary Ethereal Lights
+	var core_light := OmniLight3D.new()
+	core_light.position = Vector3(0.0, 18.0, 0.0)
+	core_light.light_color = Color(0.85, 0.35, 1.0)
+	core_light.light_energy = 2.4
+	core_light.omni_range = 45.0
+	_stage_landmark_root.add_child(core_light)
+
+	var crown_light := OmniLight3D.new()
+	crown_light.position = Vector3(0.0, 38.0, 0.0)
+	crown_light.light_color = Color(0.25, 0.90, 1.0)
+	crown_light.light_energy = 1.8
+	crown_light.omni_range = 38.0
+	_stage_landmark_root.add_child(crown_light)
+
+	# 1. Tiered Sanctuary Altar Platform
+	var base_altar := MeshInstance3D.new()
+	var ba_cyl := CylinderMesh.new()
+	ba_cyl.top_radius = 13.5
+	ba_cyl.bottom_radius = 15.5
+	ba_cyl.height = 3.6
+	ba_cyl.radial_segments = 8
+	base_altar.mesh = ba_cyl
+	base_altar.position = Vector3(0.0, 1.8, 0.0)
+	base_altar.material_override = ceramic
+	_stage_landmark_root.add_child(base_altar)
+
+	var inner_deck := MeshInstance3D.new()
+	var id_cyl := CylinderMesh.new()
+	id_cyl.top_radius = 10.0
+	id_cyl.bottom_radius = 11.5
+	id_cyl.height = 2.2
+	id_cyl.radial_segments = 8
+	inner_deck.mesh = id_cyl
+	inner_deck.position = Vector3(0.0, 4.2, 0.0)
+	inner_deck.material_override = cobalt_blue
+	_stage_landmark_root.add_child(inner_deck)
+
+	# 2. Soaring Cathedral Spire (Tapered 44m Tower)
+	var spire_tower := MeshInstance3D.new()
+	var st_cyl := CylinderMesh.new()
+	st_cyl.top_radius = 1.4
+	st_cyl.bottom_radius = 6.8
+	st_cyl.height = 38.0
+	st_cyl.radial_segments = 8
+	spire_tower.mesh = st_cyl
+	spire_tower.position = Vector3(0.0, 24.0, 0.0)
+	spire_tower.material_override = ceramic
+	_stage_landmark_root.add_child(spire_tower)
+
+	var crown_fin := MeshInstance3D.new()
+	var cf_prism := PrismMesh.new()
+	cf_prism.size = Vector3(2.6, 9.5, 2.6)
+	crown_fin.mesh = cf_prism
+	crown_fin.position = Vector3(0.0, 47.5, 0.0)
+	crown_fin.material_override = cobalt_blue
+	_stage_landmark_root.add_child(crown_fin)
+
+	# 4 Flying Cathedral Buttresses around Spire Base
+	for i in range(4):
+		var ang := float(i) * TAU / 4.0
+		var bx := cos(ang) * 9.5
+		var bz := sin(ang) * 9.5
+		var buttress := MeshInstance3D.new()
+		var b_box := BoxMesh.new()
+		b_box.size = Vector3(1.6, 18.0, 3.8)
+		buttress.mesh = b_box
+		buttress.position = Vector3(bx, 12.0, bz)
+		buttress.rotation = Vector3(0.0, -ang + PI * 0.5, 0.22)
+		buttress.material_override = ceramic
+		_stage_landmark_root.add_child(buttress)
+
+	# 3. Colossal Pulsing Magenta Soul Core in Center of Spire
+	var core_ring := MeshInstance3D.new()
+	var cr_tor := TorusMesh.new()
+	cr_tor.inner_radius = 4.8
+	cr_tor.outer_radius = 5.8
+	core_ring.mesh = cr_tor
+	core_ring.position = Vector3(0.0, 18.0, 0.0)
+	core_ring.material_override = frame_dark
+	_stage_landmark_root.add_child(core_ring)
+
+	var soul_sphere := MeshInstance3D.new()
+	var ss_mesh := SphereMesh.new()
+	ss_mesh.radius = 4.0
+	ss_mesh.height = 8.0
+	soul_sphere.mesh = ss_mesh
+	soul_sphere.position = Vector3(0.0, 18.0, 0.0)
+	soul_sphere.material_override = soul_core_mat
+	_stage_landmark_root.add_child(soul_sphere)
+
+	# 4. Three Concentric Levitating Harmonic Tuning Rings (Rotating on Y at different elevations & speeds)
+	# Ring 1 (Lower, wide):
+	var r1_node := Node3D.new()
+	r1_node.position = Vector3(0.0, 12.0, 0.0)
+	_stage_landmark_root.add_child(r1_node)
+	_register_landmark_rotator(r1_node, Vector3.UP, 0.14)
+
+	var ring1 := MeshInstance3D.new()
+	var r1_tor := TorusMesh.new()
+	r1_tor.inner_radius = 12.8
+	r1_tor.outer_radius = 14.8
+	ring1.mesh = r1_tor
+	ring1.material_override = ceramic
+	r1_node.add_child(ring1)
+
+	for c_i in range(8):
+		var c_ang := float(c_i) * TAU / 8.0
+		var glyph := MeshInstance3D.new()
+		var g_box := BoxMesh.new()
+		g_box.size = Vector3(0.8, 0.4, 1.8)
+		glyph.mesh = g_box
+		glyph.position = Vector3(cos(c_ang) * 13.8, 0.0, sin(c_ang) * 13.8)
+		glyph.material_override = cyan_glow
+		r1_node.add_child(glyph)
+
+	# Ring 2 (Mid, inclined 22 deg):
+	var r2_node := Node3D.new()
+	r2_node.position = Vector3(0.0, 26.0, 0.0)
+	r2_node.rotation_degrees = Vector3(22.0, 0.0, 0.0)
+	_stage_landmark_root.add_child(r2_node)
+	_register_landmark_rotator(r2_node, Vector3.UP, -0.22)
+
+	var ring2 := MeshInstance3D.new()
+	var r2_tor := TorusMesh.new()
+	r2_tor.inner_radius = 8.6
+	r2_tor.outer_radius = 10.4
+	ring2.mesh = r2_tor
+	ring2.material_override = cobalt_blue
+	r2_node.add_child(ring2)
+
+	for v_i in range(6):
+		var v_ang := float(v_i) * TAU / 6.0
+		var v_node := MeshInstance3D.new()
+		var v_box := BoxMesh.new()
+		v_box.size = Vector3(0.6, 0.5, 1.5)
+		v_node.mesh = v_box
+		v_node.position = Vector3(cos(v_ang) * 9.5, 0.0, sin(v_ang) * 9.5)
+		v_node.material_override = violet_glow
+		r2_node.add_child(v_node)
+
+	# Ring 3 (Upper, inclined -18 deg):
+	var r3_node := Node3D.new()
+	r3_node.position = Vector3(0.0, 36.0, 0.0)
+	r3_node.rotation_degrees = Vector3(-18.0, 0.0, 0.0)
+	_stage_landmark_root.add_child(r3_node)
+	_register_landmark_rotator(r3_node, Vector3.UP, 0.32)
+
+	var ring3 := MeshInstance3D.new()
+	var r3_tor := TorusMesh.new()
+	r3_tor.inner_radius = 5.2
+	r3_tor.outer_radius = 6.8
+	ring3.mesh = r3_tor
+	ring3.material_override = cyan_glow
+	r3_node.add_child(ring3)
+
+	# 5. Four Levitating Monoliths with Vertical Cyan Beacons
+	for m_i in range(4):
+		var m_ang := float(m_i) * TAU / 4.0 + PI * 0.25
+		var mx := cos(m_ang) * 23.0
+		var mz := sin(m_ang) * 23.0
+		var obelisk := MeshInstance3D.new()
+		var o_box := BoxMesh.new()
+		o_box.size = Vector3(1.6, 9.0, 1.6)
+		obelisk.mesh = o_box
+		obelisk.position = Vector3(mx, 6.0, mz)
+		obelisk.material_override = ceramic
+		_stage_landmark_root.add_child(obelisk)
+
+		var beacon := MeshInstance3D.new()
+		var b_cyl := CylinderMesh.new()
+		b_cyl.top_radius = 0.12
+		b_cyl.bottom_radius = 0.12
+		b_cyl.height = 35.0
+		beacon.mesh = b_cyl
+		beacon.position = Vector3(mx, 22.0, mz)
+		beacon.material_override = cyan_glow
+		_stage_landmark_root.add_child(beacon)
+
+	var station_lbl := Label3D.new()
+	station_lbl.text = "✧ SANCTUARY SPIRE PSALM-4\n[VINCULADOS MONASTIC CRADLE]"
+	station_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	station_lbl.font_size = 14
+	station_lbl.modulate = Color(0.85, 0.45, 1.0)
+	station_lbl.outline_modulate = Color(0.02, 0.01, 0.05, 0.95)
+	station_lbl.outline_size = 3
+	station_lbl.position = Vector3(0.0, 52.0, 0.0)
+	_stage_landmark_root.add_child(station_lbl)
+
+func _build_marea_corsair_haven() -> void:
+	# Sprawling Void-Pirate Haven carved into a colossal hollowed Basalt Asteroid Reef
+	_stage_landmark_root = Node3D.new()
+	_stage_landmark_root.name = "CorsairHavenBarlovento"
+	_stage_landmark_root.position = Vector3(-26.0, 0.0, 4.0)
+	_stage_landmark_root.rotation_degrees = Vector3(0.0, 20.0, 0.0)
+	add_child(_stage_landmark_root)
+
+	var timber_mat := StandardMaterial3D.new()
+	timber_mat.albedo_texture = load("res://assets/ships/marea-libre/marea_hull.png")
+	timber_mat.albedo_color = Color(1.15, 1.08, 1.0)
+	timber_mat.metallic = 0.10
+	timber_mat.roughness = 0.58
+
+	var dark_timber := StandardMaterial3D.new()
+	dark_timber.albedo_color = Color(0.20, 0.13, 0.08)
+	dark_timber.metallic = 0.15
+	dark_timber.roughness = 0.60
+
+	var brass_mat := StandardMaterial3D.new()
+	brass_mat.albedo_color = Color(0.84, 0.66, 0.28)
+	brass_mat.metallic = 0.75
+	brass_mat.roughness = 0.28
+
+	var basalt_mat := StandardMaterial3D.new()
+	basalt_mat.albedo_color = Color(0.12, 0.13, 0.16)
+	basalt_mat.metallic = 0.15
+	basalt_mat.roughness = 0.88
+
+	var amber_lantern := StandardMaterial3D.new()
+	amber_lantern.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	amber_lantern.albedo_color = Color(1.0, 0.68, 0.18)
+	amber_lantern.emission_enabled = true
+	amber_lantern.emission = Color(0.98, 0.62, 0.12)
+	amber_lantern.emission_energy_multiplier = 2.4
+
+	var glass_dome := StandardMaterial3D.new()
+	glass_dome.albedo_color = Color(0.95, 0.68, 0.28, 0.45)
+	glass_dome.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glass_dome.cull_mode = BaseMaterial3D.CULL_DISABLED
+	glass_dome.emission_enabled = true
+	glass_dome.emission = Color(0.92, 0.56, 0.18)
+	glass_dome.emission_energy_multiplier = 0.75
+
+	var sail_mat := ShipModelBuilder._get_quantum_sail_material()
+
+	# Dedicated Haven Illumination Lights (Warm Tavern Glow + Azure River Refraction)
+	var tavern_light := OmniLight3D.new()
+	tavern_light.position = Vector3(0.0, 12.0, 2.0)
+	tavern_light.light_color = Color(1.0, 0.68, 0.25)
+	tavern_light.light_energy = 2.2
+	tavern_light.omni_range = 42.0
+	_stage_landmark_root.add_child(tavern_light)
+
+	var river_light := OmniLight3D.new()
+	river_light.position = Vector3(12.0, -2.0, 8.0)
+	river_light.light_color = Color(0.20, 0.85, 1.0)
+	river_light.light_energy = 1.6
+	river_light.omni_range = 35.0
+	_stage_landmark_root.add_child(river_light)
+
+	# 1. Colossal Hollowed Basalt Asteroid Megareef Base
+	var asteroid_base := MeshInstance3D.new()
+	var ab_sphere := SphereMesh.new()
+	ab_sphere.radius = 16.0
+	ab_sphere.height = 24.0
+	ab_sphere.radial_segments = 16
+	ab_sphere.rings = 10
+	asteroid_base.mesh = ab_sphere
+	asteroid_base.scale = Vector3(1.4, 0.85, 1.15)
+	asteroid_base.material_override = basalt_mat
+	_stage_landmark_root.add_child(asteroid_base)
+
+	# 2. Pressurized Timber-and-Brass Harbormaster Cupola / Void Tavern
+	var cupola := MeshInstance3D.new()
+	var cp_cyl := CylinderMesh.new()
+	cp_cyl.top_radius = 6.2
+	cp_cyl.bottom_radius = 7.5
+	cp_cyl.height = 4.8
+	cp_cyl.radial_segments = 8
+	cupola.mesh = cp_cyl
+	cupola.position = Vector3(0.0, 10.5, -2.0)
+	cupola.material_override = timber_mat
+	_stage_landmark_root.add_child(cupola)
+
+	var cupola_dome := MeshInstance3D.new()
+	var cd_sphere := SphereMesh.new()
+	cd_sphere.radius = 4.8
+	cd_sphere.height = 5.2
+	cupola_dome.mesh = cd_sphere
+	cupola_dome.position = Vector3(0.0, 13.5, -2.0)
+	cupola_dome.material_override = glass_dome
+	_stage_landmark_root.add_child(cupola_dome)
+
+	# 3. Cantilevered Mooring Piers jutting out toward El Río del Viento
+	for p_i in [-1.0, 0.0, 1.0]:
+		var pier := MeshInstance3D.new()
+		var p_box := BoxMesh.new()
+		p_box.size = Vector3(3.4, 0.8, 16.0)
+		pier.mesh = p_box
+		pier.position = Vector3(float(p_i) * 6.5, 4.0, 11.0)
+		pier.material_override = dark_timber
+		_stage_landmark_root.add_child(pier)
+
+		# Pier brass bollards & support struts
+		var bollard := MeshInstance3D.new()
+		var bl_cyl := CylinderMesh.new()
+		bl_cyl.top_radius = 0.25
+		bl_cyl.bottom_radius = 0.35
+		bl_cyl.height = 1.4
+		bollard.mesh = bl_cyl
+		bollard.position = Vector3(float(p_i) * 6.5, 4.8, 18.2)
+		bollard.material_override = brass_mat
+		_stage_landmark_root.add_child(bollard)
+
+		# Amber cabin lantern at pier tip
+		var lantern := MeshInstance3D.new()
+		var l_sphere := SphereMesh.new()
+		l_sphere.radius = 0.45
+		l_sphere.height = 0.9
+		lantern.mesh = l_sphere
+		lantern.position = Vector3(float(p_i) * 6.5, 5.8, 18.2)
+		lantern.material_override = amber_lantern
+		_stage_landmark_root.add_child(lantern)
+
+	# 4. Docked Yardarms with Billowing Quantum Sails (Corsair Dockyard)
+	for side in [-1.0, 1.0]:
+		var yardarm := MeshInstance3D.new()
+		var y_cyl := CylinderMesh.new()
+		y_cyl.top_radius = 0.22
+		y_cyl.bottom_radius = 0.32
+		y_cyl.height = 18.0
+		yardarm.mesh = y_cyl
+		yardarm.position = Vector3(float(side) * 12.0, 14.0, 6.0)
+		yardarm.rotation_degrees = Vector3(0.0, 0.0, 90.0)
+		yardarm.material_override = brass_mat
+		_stage_landmark_root.add_child(yardarm)
+
+		# Billowing translucent quantum sail suspended below yardarm
+		var sail := MeshInstance3D.new()
+		var s_quad := QuadMesh.new()
+		s_quad.size = Vector2(16.0, 8.5)
+		sail.mesh = s_quad
+		sail.position = Vector3(float(side) * 12.0, 9.8, 6.0)
+		sail.material_override = sail_mat
+		_stage_landmark_root.add_child(sail)
+
+	# 5. Grand Rotating Brass Armillary Astrolabe (Tracking the Star Sea Currents)
+	var astrolabe_root := Node3D.new()
+	astrolabe_root.position = Vector3(2.5, 17.5, -3.5)
+	_stage_landmark_root.add_child(astrolabe_root)
+	_register_landmark_rotator(astrolabe_root, Vector3(0.2, 1.0, 0.1).normalized(), 0.16)
+
+	# Astrolabe brass gimbals
+	var astro_axis := MeshInstance3D.new()
+	var a_cyl := CylinderMesh.new()
+	a_cyl.top_radius = 0.18
+	a_cyl.bottom_radius = 0.18
+	a_cyl.height = 9.8
+	astro_axis.mesh = a_cyl
+	astro_axis.material_override = brass_mat
+	astrolabe_root.add_child(astro_axis)
+
+	var ring_configs: Array[Dictionary] = [
+		{"r_in": 4.0, "r_out": 4.6, "rot": Vector3(0.0, 0.0, 0.0)},
+		{"r_in": 3.0, "r_out": 3.5, "rot": Vector3(45.0, 0.0, 30.0)},
+		{"r_in": 2.0, "r_out": 2.4, "rot": Vector3(-45.0, 30.0, 0.0)},
+	]
+	for rc in ring_configs:
+		var a_ring := MeshInstance3D.new()
+		var ar_tor := TorusMesh.new()
+		ar_tor.inner_radius = rc["r_in"]
+		ar_tor.outer_radius = rc["r_out"]
+		a_ring.mesh = ar_tor
+		a_ring.rotation_degrees = rc["rot"]
+		a_ring.material_override = brass_mat
+		astrolabe_root.add_child(a_ring)
+
+	var chrono_core := MeshInstance3D.new()
+	var cc_sphere := SphereMesh.new()
+	cc_sphere.radius = 1.2
+	cc_sphere.height = 2.4
+	chrono_core.mesh = cc_sphere
+	chrono_core.material_override = amber_lantern
+	astrolabe_root.add_child(chrono_core)
+
+	var station_lbl := Label3D.new()
+	station_lbl.text = "⚓ CORSAIR FREE HAVEN\n[MAREA LIBRE ASTROLABE REEF]"
+	station_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	station_lbl.font_size = 14
+	station_lbl.modulate = Color(1.0, 0.85, 0.35)
+	station_lbl.outline_modulate = Color(0.02, 0.01, 0.04, 0.95)
+	station_lbl.outline_size = 3
+	station_lbl.position = Vector3(0.0, 24.5, 0.0)
+	_stage_landmark_root.add_child(station_lbl)
 
 func _update_scenery(delta: float) -> void:
 	if _asteroid_root != null:
 		for cluster in _asteroid_root.get_children():
 			if cluster is Node3D:
 				cluster.rotate_y(delta * 0.06)
-	if _sluice_ring_outer != null:
-		_sluice_ring_outer.rotate_z(delta * 0.18)
-	if _sluice_ring_inner != null:
-		_sluice_ring_inner.rotate_z(-delta * 0.35)
+
+	for rot in _landmark_rotators:
+		var n: Node3D = rot.get("node")
+		if n != null and is_instance_valid(n):
+			var axis: Vector3 = rot.get("axis", Vector3.UP)
+			var spd: float = rot.get("speed", 0.2)
+			n.rotate(axis, spd * delta)
+
+	if _calm_root != null:
+		var t := Time.get_ticks_msec() * 0.001
+		for seep in _calm_seeps:
+			var s_root: Node3D = seep.get("root_node")
+			if s_root == null or not is_instance_valid(s_root):
+				continue
+			for child in s_root.get_children():
+				if child.has_meta("rot_speed"):
+					var r_spd: float = child.get_meta("rot_speed")
+					child.rotate_y(delta * r_spd)
+				if child.has_meta("pulse_phase") and child.has_meta("base_scale"):
+					var phase: float = child.get_meta("pulse_phase")
+					var b_scale: Vector3 = child.get_meta("base_scale")
+					var pulse: float = 1.0 + sin(t * 1.5 + phase) * 0.08
+					child.scale = Vector3(b_scale.x * pulse, b_scale.y, b_scale.z * pulse)
+				if child.has_meta("mote_speed") and child.has_meta("base_y"):
+					var m_spd: float = child.get_meta("mote_speed")
+					var base_y: float = child.get_meta("base_y")
+					child.position.y = base_y + sin(t * m_spd) * 0.6
 
 	if _calm_root != null:
 		var t := Time.get_ticks_msec() * 0.001
@@ -1871,15 +2408,12 @@ func _spawn_fleets() -> void:
 			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 2.0, 54.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 56.0), Vector3.ZERO, 0))
 
-			var e1 := _spawn("marea_galleon", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.5), 1)
+			var e1 := _spawn("marea_raider", Vector3(-6.0, 4.0, -55.0), Vector3(0.0, 0.0, 4.0), 1)
 			_apply_tutorial_handicap(e1, 0.65, 0.70)
 			_enemy_ships.append(e1)
-			var e2 := _spawn("marea_raider", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 4.0), 1)
+			var e2 := _spawn("marea_brigantine", Vector3(12.0, 6.0, -52.0), Vector3(0.0, 0.0, 4.5), 1)
 			_apply_tutorial_handicap(e2, 0.65, 0.70)
 			_enemy_ships.append(e2)
-			var e3 := _spawn("marea_brigantine", Vector3(20.0, 8.0, -54.0), Vector3(0.0, 0.0, 4.5), 1)
-			_apply_tutorial_handicap(e3, 0.65, 0.70)
-			_enemy_ships.append(e3)
 		"acero_stage_2":
 			# ACT I // STAGE 02: Ambush at the Resonance Spire (Acero vs Vinculados Choir Wing)
 			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 4.0, 55.0), Vector3.ZERO, 0))
@@ -1902,44 +2436,34 @@ func _spawn_fleets() -> void:
 			_enemy_ships.append(_spawn("marea_raider", Vector3(6.0, 3.0, -56.0), Vector3(0.0, 0.0, 4.4), 1))
 			_enemy_ships.append(_spawn("marea_brigantine", Vector3(20.0, 8.0, -54.0), Vector3(0.0, 0.0, 4.8), 1))
 		"marea_stage_1":
-			# ACT III // STAGE 01 [TUTORIAL]: Anvil Blockade (Free Tide Corsairs vs Acero Blockade)
+			# ACT III // STAGE 01 [TUTORIAL]: The Basalt Narrows (Free Tide Corsairs vs Acero Blockade Picket)
 			_player_ships.append(_spawn("marea_galleon", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("marea_raider", Vector3(6.0, 2.0, 56.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("marea_brigantine", Vector3(18.0, 7.0, 54.0), Vector3.ZERO, 0))
 
-			var me1 := _spawn("acero_dreadnought", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.0), 1)
+			var me1 := _spawn("acero_battlecruiser", Vector3(-4.0, 4.0, -56.0), Vector3(0.0, 0.0, 3.0), 1)
 			_apply_tutorial_handicap(me1, 0.65, 0.70)
 			_enemy_ships.append(me1)
-			var me2 := _spawn("acero_battlecruiser", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1)
+			var me2 := _spawn("acero_corvette", Vector3(14.0, 5.0, -52.0), Vector3(0.0, 0.0, 3.5), 1)
 			_apply_tutorial_handicap(me2, 0.65, 0.70)
 			_enemy_ships.append(me2)
-			var me3 := _spawn("acero_corvette", Vector3(20.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.5), 1)
-			_apply_tutorial_handicap(me3, 0.65, 0.70)
-			_enemy_ships.append(me3)
 		"vinculados_stage_1":
-			# ACT II // STAGE 01 [TUTORIAL]: Sector Psalm-4 (Vinculados Choir vs Acero Vanguard)
+			# ACT II // STAGE 01 [TUTORIAL]: Sanctuary Spire Psalm-4 (Vinculados Choir vs Acero Extraction Force)
 			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 2.0, 58.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("vinculados_suit", Vector3(-14.0, 6.0, 52.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("vinculados_anima", Vector3(14.0, -2.0, 50.0), Vector3.ZERO, 0))
 
-			var ve1 := _spawn("acero_dreadnought", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.0), 1)
+			var ve1 := _spawn("acero_battlecruiser", Vector3(-4.0, 4.0, -56.0), Vector3(0.0, 0.0, 3.0), 1)
 			_apply_tutorial_handicap(ve1, 0.65, 0.70)
 			_enemy_ships.append(ve1)
-			var ve2 := _spawn("acero_battlecruiser", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1)
+			var ve2 := _spawn("acero_corvette", Vector3(14.0, 5.0, -52.0), Vector3(0.0, 0.0, 3.5), 1)
 			_apply_tutorial_handicap(ve2, 0.65, 0.70)
 			_enemy_ships.append(ve2)
-			var ve3 := _spawn("acero_corvette", Vector3(20.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.5), 1)
-			_apply_tutorial_handicap(ve3, 0.65, 0.70)
-			_enemy_ships.append(ve3)
 		_:
 			# Fallback Sandbox
 			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 2.0, 58.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("vinculados_suit", Vector3(-14.0, 6.0, 52.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("vinculados_anima", Vector3(14.0, -2.0, 50.0), Vector3.ZERO, 0))
-
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_corvette", Vector3(20.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.5), 1))
 
 			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.0), 1))
 			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
@@ -2155,9 +2679,9 @@ func _build_hud() -> void:
 		"acero_stage_3":
 			_stage_title_label.text = "ACT I // STAGE 03: THE CALM THRESHOLD"
 		"vinculados_stage_1":
-			_stage_title_label.text = "ACT II // STAGE 01 [TUTORIAL]: RESONANCE WELL"
+			_stage_title_label.text = "ACT II // STAGE 01 [TUTORIAL]: SANCTUARY SPIRE PSALM-4"
 		"marea_stage_1":
-			_stage_title_label.text = "ACT III // STAGE 01 [TUTORIAL]: ANVIL BLOCKADE"
+			_stage_title_label.text = "ACT III // STAGE 01 [TUTORIAL]: THE BASALT NARROWS"
 		_:
 			_stage_title_label.text = "TACTICAL ENGAGEMENT // STAR SEA"
 	_stage_title_label.add_theme_font_size_override("font_size", 10)
@@ -2165,7 +2689,7 @@ func _build_hud() -> void:
 	cmd_vbox.add_child(_stage_title_label)
 
 	_objective_label = Label.new()
-	_objective_label.text = "[0/3 RAIDERS NEUTRALIZED]"
+	_objective_label.text = "[TACTICAL OBJECTIVE: ENGAGE HOSTILE FORCES]"
 	_objective_label.add_theme_font_size_override("font_size", 10)
 	_objective_label.add_theme_color_override("font_color", HudWidgets.COL_CYAN_BRIGHT)
 	cmd_vbox.add_child(_objective_label)
@@ -2487,9 +3011,9 @@ func _show_mission_victory() -> void:
 	if LoreDB.current_stage_id == "acero_stage_1":
 		_add_combat_log("TUTORIAL COMPLETE: SLUICE STATION WELL-09 SECURED! STEEL ENDURES!", Color(0.3, 1.0, 0.6))
 	elif LoreDB.current_stage_id == "vinculados_stage_1":
-		_add_combat_log("TUTORIAL COMPLETE: RESONANCE DOCTRINE MASTERED!", Color(0.3, 1.0, 0.6))
+		_add_combat_log("TUTORIAL COMPLETE: SANCTUARY SPIRE PSALM-4 DEFENDED!", Color(0.3, 1.0, 0.6))
 	elif LoreDB.current_stage_id == "marea_stage_1":
-		_add_combat_log("TUTORIAL COMPLETE: ÉTHER SAILING & BROADSIDES MASTERED!", Color(0.3, 1.0, 0.6))
+		_add_combat_log("TUTORIAL COMPLETE: THE BASALT NARROWS CLEARED!", Color(0.3, 1.0, 0.6))
 	elif LoreDB.current_stage_id == "acero_stage_2":
 		_add_combat_log("STAGE 02 COMPLETE: RESONANCE SPIRE SECURED!", Color(0.3, 1.0, 0.6))
 	elif LoreDB.current_stage_id == "acero_stage_3":
@@ -2566,9 +3090,9 @@ func _build_victory_overlay(layer: CanvasLayer) -> void:
 		"acero_stage_3":
 			_victory_sub_label.text = "The Calm Threshold Held // Act I Campaign Complete\nAgainst the encroaching Calm, Admiral Vane's veteran squadron broke the coalition vanguard and anchored the Sluice Wall."
 		"vinculados_stage_1":
-			_victory_sub_label.text = "Sector Psalm-4 Secured // The Vinculados\nYou have mastered high-agility vector maneuvers, neural barrier defense, and devastating stern rakes against heavily armored capital hulls!"
+			_victory_sub_label.text = "Sanctuary Spire Psalm-4 Defended // The Vinculados\nYou have mastered high-agility vector maneuvers, neural barrier defense, and focused resonance beam tactics alongside the Carrier Cradle."
 		"marea_stage_1":
-			_victory_sub_label.text = "Anvil Blockade Broken // The Free Tide\nYou have harnessed the Éther currents, claimed the Barlovento weather gauge, and shattered the enemy line with broadside barrages!"
+			_victory_sub_label.text = "The Basalt Narrows Cleared // The Free Tide\nYou have navigated the treacherous asteroid gorge, harnessed the Éther rush of El Río del Viento, and shattered the Acero picket line!"
 		_:
 			_victory_sub_label.text = "Sector Psalm-4 // Resonance Well Secured\nThe hostile strike group has been repelled. Your squadron holds control of the local Éther currents."
 	_victory_sub_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

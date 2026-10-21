@@ -15,306 +15,460 @@ static var _ring_shader: Shader = null
 static var _ribbon_shader: Shader = null
 
 func setup_environment(include_diorama_fleets: bool = false) -> WorldEnvironment:
-    var sun := DirectionalLight3D.new()
-    sun.name = "KeyStarLight"
-    sun.rotation_degrees = Vector3(-38.0, -35.0, 0.0)
-    sun.light_energy = 1.65
-    sun.light_color = Color(1.0, 0.96, 0.90)
-    add_child(sun)
+	var stage := LoreDB.current_stage_id if not include_diorama_fleets else ""
 
-    var rim_light := DirectionalLight3D.new()
-    rim_light.name = "EtherRimLight"
-    rim_light.rotation_degrees = Vector3(42.0, 145.0, 0.0)
-    rim_light.light_energy = 0.88
-    rim_light.light_color = Color(0.45, 0.78, 0.96)
-    add_child(rim_light)
+	var sun := DirectionalLight3D.new()
+	sun.name = "KeyStarLight"
+	sun.rotation_degrees = Vector3(-38.0, -35.0, 0.0)
 
-    var zenith_fill := DirectionalLight3D.new()
-    zenith_fill.name = "ZenithHullFillLight"
-    zenith_fill.rotation_degrees = Vector3(-72.0, 110.0, 0.0)
-    zenith_fill.light_energy = 0.75
-    zenith_fill.light_color = Color(0.80, 0.86, 0.95)
-    add_child(zenith_fill)
+	var rim_light := DirectionalLight3D.new()
+	rim_light.name = "EtherRimLight"
+	rim_light.rotation_degrees = Vector3(42.0, 145.0, 0.0)
 
-    var world := WorldEnvironment.new()
-    var env := Environment.new()
-    env.background_mode = Environment.BG_SKY
-    var sky := Sky.new()
-    sky.sky_material = _create_star_sea_sky_material()
-    sky.radiance_size = Sky.RADIANCE_SIZE_256
-    env.sky = sky
-    env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-    env.ambient_light_color = Color(0.32, 0.42, 0.56)
-    env.ambient_light_sky_contribution = 0.52
-    env.ambient_light_energy = 1.40
-    env.tonemap_mode = Environment.TONE_MAPPER_ACES
-    env.tonemap_exposure = 1.04
-    env.adjustment_enabled = true
-    env.adjustment_saturation = 0.86
-    env.adjustment_contrast = 1.05
-    env.glow_enabled = true
-    env.glow_intensity = 0.35
-    env.glow_bloom = 0.05
-    env.glow_hdr_threshold = 1.35
-    env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
-    world.environment = env
-    add_child(world)
+	var zenith_fill := DirectionalLight3D.new()
+	zenith_fill.name = "ZenithHullFillLight"
+	zenith_fill.rotation_degrees = Vector3(-72.0, 110.0, 0.0)
 
-    _build_celestial_planetoid()
-    _build_volumetric_ether_ribbons()
-    _build_star_dust_multimesh()
+	var env := Environment.new()
 
-    if include_diorama_fleets:
-        _build_menu_diorama_fleets()
+	if stage == "vinculados_stage_1":
+		sun.light_energy = 1.55
+		sun.light_color = Color(0.92, 0.95, 1.05)
+		rim_light.light_energy = 1.15
+		rim_light.light_color = Color(0.68, 0.38, 0.98) # Violet/cyan neural resonance
+		zenith_fill.light_energy = 0.85
+		zenith_fill.light_color = Color(0.45, 0.75, 0.95)
+		env.ambient_light_color = Color(0.28, 0.32, 0.55)
+		env.ambient_light_energy = 1.45
+	elif stage == "marea_stage_1":
+		sun.light_energy = 1.95
+		sun.light_color = Color(1.08, 0.92, 0.72) # Radiant golden solar flare
+		rim_light.light_energy = 1.10
+		rim_light.light_color = Color(0.25, 0.90, 1.0) # Rushing turquoise Éther current
+		zenith_fill.light_energy = 0.80
+		zenith_fill.light_color = Color(0.95, 0.82, 0.65)
+		env.ambient_light_color = Color(0.36, 0.42, 0.46)
+		env.ambient_light_energy = 1.50
+	else:
+		sun.light_energy = 1.65
+		sun.light_color = Color(1.0, 0.96, 0.90)
+		rim_light.light_energy = 0.88
+		rim_light.light_color = Color(0.45, 0.78, 0.96)
+		zenith_fill.light_energy = 0.75
+		zenith_fill.light_color = Color(0.80, 0.86, 0.95)
+		env.ambient_light_color = Color(0.32, 0.42, 0.56)
+		env.ambient_light_energy = 1.40
 
-    return world
+	add_child(sun)
+	add_child(rim_light)
+	add_child(zenith_fill)
+
+	var world := WorldEnvironment.new()
+	env.background_mode = Environment.BG_SKY
+	var sky := Sky.new()
+	sky.sky_material = _create_star_sea_sky_material()
+	sky.radiance_size = Sky.RADIANCE_SIZE_256
+	env.sky = sky
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	env.ambient_light_sky_contribution = 0.52
+	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	env.tonemap_exposure = 1.04
+	env.adjustment_enabled = true
+	env.adjustment_saturation = 0.86
+	env.adjustment_contrast = 1.05
+	env.glow_enabled = true
+	env.glow_intensity = 0.35
+	env.glow_bloom = 0.05
+	env.glow_hdr_threshold = 1.35
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
+	world.environment = env
+	add_child(world)
+
+	_build_celestial_planetoid()
+	_build_volumetric_ether_ribbons()
+	_build_star_dust_multimesh()
+
+	if include_diorama_fleets:
+		_build_menu_diorama_fleets()
+
+	return world
 
 func _process(delta: float) -> void:
-    _time += delta
-    if _planet_node != null:
-        _planet_node.rotate_y(delta * 0.025)
-    if _planet_ring != null:
-        _planet_ring.rotate_y(-delta * 0.015)
-    if _moon_pivot != null:
-        _moon_pivot.rotate_y(delta * 0.08)
+	_time += delta
+	if _planet_node != null:
+		_planet_node.rotate_y(delta * 0.025)
+	if _planet_ring != null:
+		_planet_ring.rotate_y(-delta * 0.015)
+	if _moon_pivot != null:
+		_moon_pivot.rotate_y(delta * 0.08)
 
-    for fac_key in _diorama_ships.keys():
-        var group: Node3D = _diorama_ships[fac_key]
-        if group != null:
-            var phase := float(fac_key.hash() % 100) * 0.1
-            group.position.y = sin(_time * 1.1 + phase) * 0.45
-            group.rotation.z = sin(_time * 0.8 + phase) * 0.04
+	for fac_key in _diorama_ships.keys():
+		var group: Node3D = _diorama_ships[fac_key]
+		if group != null:
+			var phase := float(fac_key.hash() % 100) * 0.1
+			group.position.y = sin(_time * 1.1 + phase) * 0.45
+			group.rotation.z = sin(_time * 0.8 + phase) * 0.04
 
 func get_faction_focus_transform(faction_id: String, t: float) -> Dictionary:
-    match faction_id:
-        "acero":
-            var center := Vector3(-22.0, 2.0, 0.0)
-            var cam_pos := center + Vector3(cos(t * 0.18) * 14.0 + 6.0, 4.5 + sin(t * 0.25) * 1.2, 16.0)
-            var look_t := center + Vector3(0.0, 0.5, -2.0)
-            return {"cam_pos": cam_pos, "look_at": look_t, "look_target": look_t}
-        "vinculados":
-            var center := Vector3(0.0, 3.0, -14.0)
-            var cam_pos := center + Vector3(sin(t * 0.22) * 11.0, 2.8 + cos(t * 0.3) * 1.0, 12.0)
-            var look_t := center + Vector3(0.0, 0.6, 0.0)
-            return {"cam_pos": cam_pos, "look_at": look_t, "look_target": look_t}
-        "marea_libre":
-            var center := Vector3(22.0, 1.5, 2.0)
-            var cam_pos := center + Vector3(-12.0 + cos(t * 0.16) * 8.0, 4.2 + sin(t * 0.2) * 1.1, 15.0)
-            var look_t := center + Vector3(0.0, 1.5, -1.0)
-            return {"cam_pos": cam_pos, "look_at": look_t, "look_target": look_t}
-        _:
-            var cam_pos := Vector3(sin(t * 0.10) * 26.0, 11.0 + sin(t * 0.15) * 2.5, 32.0 + cos(t * 0.10) * 8.0)
-            var look_target := Vector3(sin(t * 0.08) * 8.0, 2.0, -8.0)
-            return {"cam_pos": cam_pos, "look_at": look_target, "look_target": look_target}
+	match faction_id:
+		"acero":
+			var center := Vector3(-22.0, 2.0, 0.0)
+			var cam_pos := center + Vector3(cos(t * 0.18) * 14.0 + 6.0, 4.5 + sin(t * 0.25) * 1.2, 16.0)
+			var look_t := center + Vector3(0.0, 0.5, -2.0)
+			return {"cam_pos": cam_pos, "look_at": look_t, "look_target": look_t}
+		"vinculados":
+			var center := Vector3(0.0, 3.0, -14.0)
+			var cam_pos := center + Vector3(sin(t * 0.22) * 11.0, 2.8 + cos(t * 0.3) * 1.0, 12.0)
+			var look_t := center + Vector3(0.0, 0.6, 0.0)
+			return {"cam_pos": cam_pos, "look_at": look_t, "look_target": look_t}
+		"marea_libre":
+			var center := Vector3(22.0, 1.5, 2.0)
+			var cam_pos := center + Vector3(-12.0 + cos(t * 0.16) * 8.0, 4.2 + sin(t * 0.2) * 1.1, 15.0)
+			var look_t := center + Vector3(0.0, 1.5, -1.0)
+			return {"cam_pos": cam_pos, "look_at": look_t, "look_target": look_t}
+		_:
+			var cam_pos := Vector3(sin(t * 0.10) * 26.0, 11.0 + sin(t * 0.15) * 2.5, 32.0 + cos(t * 0.10) * 8.0)
+			var look_target := Vector3(sin(t * 0.08) * 8.0, 2.0, -8.0)
+			return {"cam_pos": cam_pos, "look_at": look_target, "look_target": look_target}
 
 func _build_celestial_planetoid() -> void:
-    # Distant Forge-World "Anvil" with molten tectonic forge-rings & cyan atmospheric rim
-    var planet_root := Node3D.new()
-    planet_root.name = "ForgeWorldAnvil"
-    planet_root.position = Vector3(-95.0, 34.0, -185.0)
-    add_child(planet_root)
+	if LoreDB.current_stage_id == "vinculados_stage_1":
+		_build_salmo_planetoid()
+	elif LoreDB.current_stage_id == "marea_stage_1":
+		_build_sol_dorado()
+	else:
+		_build_anvil_planetoid()
 
-    _planet_node = MeshInstance3D.new()
-    var sphere := SphereMesh.new()
-    sphere.radius = 28.0
-    sphere.height = 56.0
-    sphere.radial_segments = 48
-    sphere.rings = 24
-    (_planet_node as MeshInstance3D).mesh = sphere
-    (_planet_node as MeshInstance3D).material_override = _create_planet_material()
-    planet_root.add_child(_planet_node)
+func _build_anvil_planetoid() -> void:
+	# Distant Forge-World "Anvil" with molten tectonic forge-rings & cyan atmospheric rim
+	var planet_root := Node3D.new()
+	planet_root.name = "ForgeWorldAnvil"
+	planet_root.position = Vector3(-95.0, 34.0, -185.0)
+	add_child(planet_root)
 
-    # Tilted Planetary Orbital Ring / Sluice Ring
-    _planet_ring = MeshInstance3D.new()
-    var torus := TorusMesh.new()
-    torus.inner_radius = 36.0
-    torus.outer_radius = 52.0
-    torus.rings = 48
-    torus.ring_segments = 12
-    _planet_ring.mesh = torus
-    _planet_ring.scale = Vector3(1.0, 0.05, 1.0)
-    _planet_ring.rotation_degrees = Vector3(24.0, -15.0, 18.0)
-    _planet_ring.material_override = _create_ring_material()
-    planet_root.add_child(_planet_ring)
+	_planet_node = MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 28.0
+	sphere.height = 56.0
+	sphere.radial_segments = 48
+	sphere.rings = 24
+	(_planet_node as MeshInstance3D).mesh = sphere
+	(_planet_node as MeshInstance3D).material_override = _create_planet_material()
+	planet_root.add_child(_planet_node)
 
-    # Orbiting shattered moon
-    _moon_pivot = Node3D.new()
-    _moon_pivot.rotation_degrees = Vector3(12.0, 0.0, -16.0)
-    planet_root.add_child(_moon_pivot)
+	# Tilted Planetary Orbital Ring / Sluice Ring
+	_planet_ring = MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 36.0
+	torus.outer_radius = 52.0
+	torus.rings = 48
+	torus.ring_segments = 12
+	_planet_ring.mesh = torus
+	_planet_ring.scale = Vector3(1.0, 0.05, 1.0)
+	_planet_ring.rotation_degrees = Vector3(24.0, -15.0, 18.0)
+	_planet_ring.material_override = _create_ring_material()
+	planet_root.add_child(_planet_ring)
 
-    var moon := MeshInstance3D.new()
-    var m_sphere := SphereMesh.new()
-    m_sphere.radius = 4.2
-    m_sphere.height = 8.4
-    m_sphere.radial_segments = 24
-    m_sphere.rings = 12
-    moon.mesh = m_sphere
-    moon.position = Vector3(64.0, 0.0, 0.0)
-    var m_mat := StandardMaterial3D.new()
-    m_mat.albedo_color = Color(0.22, 0.26, 0.34)
-    m_mat.roughness = 0.85
-    m_mat.emission_enabled = true
-    m_mat.emission = Color(0.12, 0.55, 0.75)
-    m_mat.emission_energy_multiplier = 0.45
-    moon.material_override = m_mat
-    _moon_pivot.add_child(moon)
+	# Orbiting shattered moon
+	_moon_pivot = Node3D.new()
+	_moon_pivot.rotation_degrees = Vector3(12.0, 0.0, -16.0)
+	planet_root.add_child(_moon_pivot)
+
+	var moon := MeshInstance3D.new()
+	var m_sphere := SphereMesh.new()
+	m_sphere.radius = 4.2
+	m_sphere.height = 8.4
+	m_sphere.radial_segments = 24
+	m_sphere.rings = 12
+	moon.mesh = m_sphere
+	moon.position = Vector3(64.0, 0.0, 0.0)
+	var m_mat := StandardMaterial3D.new()
+	m_mat.albedo_color = Color(0.22, 0.26, 0.34)
+	m_mat.roughness = 0.85
+	m_mat.emission_enabled = true
+	m_mat.emission = Color(0.12, 0.55, 0.75)
+	m_mat.emission_energy_multiplier = 0.45
+	moon.material_override = m_mat
+	_moon_pivot.add_child(moon)
+
+func _build_salmo_planetoid() -> void:
+	# Distant Sanctuary Moon "El Salmo" // Ethereal pearl-white world with harmonic resonance rings
+	var salmo_root := Node3D.new()
+	salmo_root.name = "SanctuaryMoonSalmo"
+	salmo_root.position = Vector3(-80.0, 38.0, -175.0)
+	add_child(salmo_root)
+
+	_planet_node = MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 25.0
+	sphere.height = 50.0
+	sphere.radial_segments = 48
+	sphere.rings = 24
+	(_planet_node as MeshInstance3D).mesh = sphere
+	var s_mat := StandardMaterial3D.new()
+	s_mat.albedo_color = Color(0.88, 0.92, 0.98)
+	s_mat.roughness = 0.35
+	s_mat.metallic = 0.15
+	s_mat.emission_enabled = true
+	s_mat.emission = Color(0.35, 0.65, 0.98)
+	s_mat.emission_energy_multiplier = 0.65
+	s_mat.rim_enabled = true
+	s_mat.rim = 0.85
+	s_mat.rim_tint = 0.7
+	(_planet_node as MeshInstance3D).material_override = s_mat
+	salmo_root.add_child(_planet_node)
+
+	# Primary Harmonic Aura Ring
+	_planet_ring = MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 34.0
+	torus.outer_radius = 48.0
+	torus.rings = 48
+	torus.ring_segments = 12
+	_planet_ring.mesh = torus
+	_planet_ring.scale = Vector3(1.0, 0.03, 1.0)
+	_planet_ring.rotation_degrees = Vector3(18.0, 32.0, -12.0)
+	var r_mat := StandardMaterial3D.new()
+	r_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	r_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	r_mat.albedo_color = Color(0.65, 0.45, 0.95, 0.38)
+	_planet_ring.material_override = r_mat
+	salmo_root.add_child(_planet_ring)
+
+	# Orbiting Resonance Satellite Shards
+	_moon_pivot = Node3D.new()
+	_moon_pivot.rotation_degrees = Vector3(-15.0, 0.0, 22.0)
+	salmo_root.add_child(_moon_pivot)
+
+	for i in range(3):
+		var shard := MeshInstance3D.new()
+		var prism := PrismMesh.new()
+		prism.size = Vector3(2.5, 6.0, 2.5)
+		shard.mesh = prism
+		var angle := float(i) * (TAU / 3.0)
+		shard.position = Vector3(cos(angle) * 56.0, sin(angle) * 8.0, sin(angle) * 56.0)
+		shard.rotation_degrees = Vector3(30.0 * float(i), 45.0, 15.0)
+		var shard_mat := StandardMaterial3D.new()
+		shard_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		shard_mat.albedo_color = Color(0.40, 0.90, 1.0)
+		shard.material_override = shard_mat
+		_moon_pivot.add_child(shard)
+
+func _build_sol_dorado() -> void:
+	# Distant Golden Stellar Corona "Sol Dorado" // Blazing star illuminating the Basalt Narrows
+	var sun_root := Node3D.new()
+	sun_root.name = "SolDorado"
+	sun_root.position = Vector3(88.0, 46.0, -170.0)
+	add_child(sun_root)
+
+	_planet_node = MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 32.0
+	sphere.height = 64.0
+	sphere.radial_segments = 48
+	sphere.rings = 24
+	(_planet_node as MeshInstance3D).mesh = sphere
+	var sun_mat := StandardMaterial3D.new()
+	sun_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	sun_mat.albedo_color = Color(1.15, 0.88, 0.42)
+	(_planet_node as MeshInstance3D).material_override = sun_mat
+	sun_root.add_child(_planet_node)
+
+	# Outer Golden Coronal Disc
+	_planet_ring = MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 42.0
+	torus.outer_radius = 62.0
+	torus.rings = 48
+	torus.ring_segments = 12
+	_planet_ring.mesh = torus
+	_planet_ring.scale = Vector3(1.0, 0.04, 1.0)
+	_planet_ring.rotation_degrees = Vector3(-28.0, 45.0, 10.0)
+	var ring_mat := StandardMaterial3D.new()
+	ring_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ring_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ring_mat.albedo_color = Color(1.0, 0.72, 0.25, 0.42)
+	_planet_ring.material_override = ring_mat
+	sun_root.add_child(_planet_ring)
+
+	# Orbiting Basalt Asteroid Belt Ring around Sol Dorado
+	_moon_pivot = Node3D.new()
+	_moon_pivot.rotation_degrees = Vector3(35.0, 15.0, -20.0)
+	sun_root.add_child(_moon_pivot)
+
+	for i in range(5):
+		var rock := MeshInstance3D.new()
+		var box := BoxMesh.new()
+		box.size = Vector3(3.2, 3.2, 3.2)
+		rock.mesh = box
+		var angle := float(i) * (TAU / 5.0) + 0.3
+		rock.position = Vector3(cos(angle) * 78.0, sin(angle) * 12.0, sin(angle) * 78.0)
+		var r_mat := StandardMaterial3D.new()
+		r_mat.albedo_color = Color(0.20, 0.16, 0.12)
+		r_mat.roughness = 0.95
+		rock.material_override = r_mat
+		_moon_pivot.add_child(rock)
 
 func _build_volumetric_ether_ribbons() -> void:
-    # 3 undulating 3D rivers of luminous cyan Éther flowing across the sector
-    var configs := [
-        {"pos": Vector3(0.0, -6.5, -10.0), "rot": Vector3(0.0, -22.0, 0.0), "w": 18.0, "len": 260.0},
-        {"pos": Vector3(-35.0, -11.0, -30.0), "rot": Vector3(4.0, -18.0, -6.0), "w": 12.0, "len": 240.0},
-        {"pos": Vector3(38.0, -4.0, -25.0), "rot": Vector3(-3.0, -26.0, 5.0), "w": 14.0, "len": 240.0},
-    ]
-    var mat := _create_ribbon_material()
-    for cfg in configs:
-        var mi := MeshInstance3D.new()
-        mi.mesh = _create_ribbon_mesh(cfg["w"], cfg["len"], 48, 8)
-        mi.position = cfg["pos"]
-        mi.rotation_degrees = cfg["rot"]
-        mi.material_override = mat
-        add_child(mi)
-        _ether_ribbons.append(mi)
+	# Undulating 3D rivers of luminous cyan Éther flowing across the sector
+	var configs := [
+		{"pos": Vector3(0.0, -6.5, -10.0), "rot": Vector3(0.0, -22.0, 0.0), "w": 18.0, "len": 260.0},
+		{"pos": Vector3(-35.0, -11.0, -30.0), "rot": Vector3(4.0, -18.0, -6.0), "w": 12.0, "len": 240.0},
+		{"pos": Vector3(38.0, -4.0, -25.0), "rot": Vector3(-3.0, -26.0, 5.0), "w": 14.0, "len": 240.0},
+	]
+	if LoreDB.current_stage_id == "marea_stage_1":
+		# High-velocity "El Río del Viento" running straight through the Basalt Narrows canyon
+		configs.append({"pos": Vector3(0.0, -2.0, 0.0), "rot": Vector3(0.0, 0.0, 0.0), "w": 26.0, "len": 320.0})
+
+	var mat := _create_ribbon_material()
+	for cfg in configs:
+		var mi := MeshInstance3D.new()
+		mi.mesh = _create_ribbon_mesh(cfg["w"], cfg["len"], 48, 8)
+		mi.position = cfg["pos"]
+		mi.rotation_degrees = cfg["rot"]
+		mi.material_override = mat
+		add_child(mi)
+		_ether_ribbons.append(mi)
 
 func _create_ribbon_mesh(width: float, length: float, segs_z: int, segs_x: int) -> ArrayMesh:
-    var verts := PackedVector3Array()
-    var uvs := PackedVector2Array()
-    var indices := PackedInt32Array()
+	var verts := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var indices := PackedInt32Array()
 
-    for iz in range(segs_z + 1):
-        var v := float(iz) / float(segs_z)
-        var z := (v - 0.5) * length
-        var curve_x := sin(v * PI * 2.0) * 14.0
-        for ix in range(segs_x + 1):
-            var u := float(ix) / float(segs_x)
-            var x := (u - 0.5) * width + curve_x
-            verts.append(Vector3(x, 0.0, z))
-            uvs.append(Vector2(u, v))
+	for iz in range(segs_z + 1):
+		var v := float(iz) / float(segs_z)
+		var z := (v - 0.5) * length
+		var curve_x := sin(v * PI * 2.0) * 14.0
+		for ix in range(segs_x + 1):
+			var u := float(ix) / float(segs_x)
+			var x := (u - 0.5) * width + curve_x
+			verts.append(Vector3(x, 0.0, z))
+			uvs.append(Vector2(u, v))
 
-    var stride := segs_x + 1
-    for iz in range(segs_z):
-        for ix in range(segs_x):
-            var i0 := iz * stride + ix
-            var i1 := i0 + 1
-            var i2 := (iz + 1) * stride + ix
-            var i3 := i2 + 1
-            indices.append(i0)
-            indices.append(i2)
-            indices.append(i1)
-            indices.append(i1)
-            indices.append(i2)
-            indices.append(i3)
+	var stride := segs_x + 1
+	for iz in range(segs_z):
+		for ix in range(segs_x):
+			var i0 := iz * stride + ix
+			var i1 := i0 + 1
+			var i2 := (iz + 1) * stride + ix
+			var i3 := i2 + 1
+			indices.append(i0)
+			indices.append(i2)
+			indices.append(i1)
+			indices.append(i1)
+			indices.append(i2)
+			indices.append(i3)
 
-    var arr := []
-    arr.resize(Mesh.ARRAY_MAX)
-    arr[Mesh.ARRAY_VERTEX] = verts
-    arr[Mesh.ARRAY_TEX_UV] = uvs
-    arr[Mesh.ARRAY_INDEX] = indices
-    var mesh := ArrayMesh.new()
-    mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
-    return mesh
+	var arr := []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = verts
+	arr[Mesh.ARRAY_TEX_UV] = uvs
+	arr[Mesh.ARRAY_INDEX] = indices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	return mesh
 
 func _build_star_dust_multimesh() -> void:
-    _dust_motes = MultiMeshInstance3D.new()
-    var mm := MultiMesh.new()
-    mm.transform_format = MultiMesh.TRANSFORM_3D
-    mm.use_colors = true
+	_dust_motes = MultiMeshInstance3D.new()
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
 
-    var quad := SphereMesh.new()
-    quad.radius = 0.16
-    quad.height = 0.32
-    quad.radial_segments = 6
-    quad.rings = 4
-    var mat := StandardMaterial3D.new()
-    mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-    mat.vertex_color_use_as_albedo = true
-    mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-    mat.emission_enabled = true
-    mat.emission = Color(0.35, 0.90, 1.0)
-    mat.emission_energy_multiplier = 2.5
-    quad.material = mat
+	var quad := SphereMesh.new()
+	quad.radius = 0.16
+	quad.height = 0.32
+	quad.radial_segments = 6
+	quad.rings = 4
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.vertex_color_use_as_albedo = true
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.emission_enabled = true
+	mat.emission = Color(0.35, 0.90, 1.0)
+	mat.emission_energy_multiplier = 2.5
+	quad.material = mat
 
-    mm.mesh = quad
-    mm.instance_count = 180
+	mm.mesh = quad
+	mm.instance_count = 180
 
-    var rng := RandomNumberGenerator.new()
-    rng.seed = 777
-    for i in range(mm.instance_count):
-        var pos := Vector3(
-            rng.randf_range(-110.0, 110.0),
-            rng.randf_range(-28.0, 35.0),
-            rng.randf_range(-110.0, 60.0)
-        )
-        var sc := rng.randf_range(0.5, 2.2)
-        var basis := Basis().scaled(Vector3(sc, sc, sc))
-        mm.set_instance_transform(i, Transform3D(basis, pos))
-        var is_warm := rng.randf() < 0.25
-        var col := Color(1.0, 0.68, 0.28, 0.75) if is_warm else Color(0.32, 0.92, 1.0, 0.75)
-        mm.set_instance_color(i, col)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 777
+	for i in range(mm.instance_count):
+		var pos := Vector3(
+			rng.randf_range(-110.0, 110.0),
+			rng.randf_range(-28.0, 35.0),
+			rng.randf_range(-110.0, 60.0)
+		)
+		var sc := rng.randf_range(0.5, 2.2)
+		var basis := Basis().scaled(Vector3(sc, sc, sc))
+		mm.set_instance_transform(i, Transform3D(basis, pos))
+		var is_warm := rng.randf() < 0.25
+		var col := Color(1.0, 0.68, 0.28, 0.75) if is_warm else Color(0.32, 0.92, 1.0, 0.75)
+		mm.set_instance_color(i, col)
 
-    _dust_motes.multimesh = mm
-    add_child(_dust_motes)
+	_dust_motes.multimesh = mm
+	add_child(_dust_motes)
 
 func _build_menu_diorama_fleets() -> void:
-    # 1. Armada of Acero Formation (Left-Center)
-    var acero_group := Node3D.new()
-    acero_group.name = "DioramaAcero"
-    acero_group.position = Vector3(-22.0, 2.0, 0.0)
-    acero_group.rotation_degrees = Vector3(0.0, -25.0, 0.0)
-    add_child(acero_group)
-    _diorama_ships["acero"] = acero_group
+	# 1. Armada of Acero Formation (Left-Center)
+	var acero_group := Node3D.new()
+	acero_group.name = "DioramaAcero"
+	acero_group.position = Vector3(-22.0, 2.0, 0.0)
+	acero_group.rotation_degrees = Vector3(0.0, -25.0, 0.0)
+	add_child(acero_group)
+	_diorama_ships["acero"] = acero_group
 
-    _spawn_diorama_hull("acero_dreadnought", acero_group, Vector3.ZERO)
-    _spawn_diorama_hull("acero_battlecruiser", acero_group, Vector3(-6.5, -1.5, 5.5))
-    _spawn_diorama_hull("acero_corvette", acero_group, Vector3(6.0, 1.8, 4.0))
+	_spawn_diorama_hull("acero_dreadnought", acero_group, Vector3.ZERO)
+	_spawn_diorama_hull("acero_battlecruiser", acero_group, Vector3(-6.5, -1.5, 5.5))
+	_spawn_diorama_hull("acero_corvette", acero_group, Vector3(6.0, 1.8, 4.0))
 
-    # 2. The Vinculados Choir Wing (Center-Forward)
-    var vinc_group := Node3D.new()
-    vinc_group.name = "DioramaVinculados"
-    vinc_group.position = Vector3(0.0, 3.0, -14.0)
-    vinc_group.rotation_degrees = Vector3(0.0, 10.0, 0.0)
-    add_child(vinc_group)
-    _diorama_ships["vinculados"] = vinc_group
+	# 2. The Vinculados Choir Wing (Center-Forward)
+	var vinc_group := Node3D.new()
+	vinc_group.name = "DioramaVinculados"
+	vinc_group.position = Vector3(0.0, 3.0, -14.0)
+	vinc_group.rotation_degrees = Vector3(0.0, 10.0, 0.0)
+	add_child(vinc_group)
+	_diorama_ships["vinculados"] = vinc_group
 
-    _spawn_diorama_hull("vinculados_cradle", vinc_group, Vector3.ZERO)
-    _spawn_diorama_hull("vinculados_suit", vinc_group, Vector3(-5.8, 1.8, 2.5))
-    _spawn_diorama_hull("vinculados_anima", vinc_group, Vector3(5.8, -1.2, 2.8))
+	_spawn_diorama_hull("vinculados_cradle", vinc_group, Vector3.ZERO)
+	_spawn_diorama_hull("vinculados_suit", vinc_group, Vector3(-5.8, 1.8, 2.5))
+	_spawn_diorama_hull("vinculados_anima", vinc_group, Vector3(5.8, -1.2, 2.8))
 
-    # 3. The Free Tide Corsair Squadron (Right-Center)
-    var marea_group := Node3D.new()
-    marea_group.name = "DioramaMarea"
-    marea_group.position = Vector3(22.0, 1.5, 2.0)
-    marea_group.rotation_degrees = Vector3(0.0, 28.0, 0.0)
-    add_child(marea_group)
-    _diorama_ships["marea_libre"] = marea_group
+	# 3. The Free Tide Corsair Squadron (Right-Center)
+	var marea_group := Node3D.new()
+	marea_group.name = "DioramaMarea"
+	marea_group.position = Vector3(22.0, 1.5, 2.0)
+	marea_group.rotation_degrees = Vector3(0.0, 28.0, 0.0)
+	add_child(marea_group)
+	_diorama_ships["marea_libre"] = marea_group
 
-    _spawn_diorama_hull("marea_galleon", marea_group, Vector3.ZERO)
-    _spawn_diorama_hull("marea_raider", marea_group, Vector3(6.5, -1.2, 5.0))
+	_spawn_diorama_hull("marea_galleon", marea_group, Vector3.ZERO)
+	_spawn_diorama_hull("marea_raider", marea_group, Vector3(6.5, -1.2, 5.0))
 
 func _spawn_diorama_hull(ship_id: String, parent: Node3D, local_pos: Vector3) -> void:
-    var def := LoreDB.get_ship(ship_id)
-    if def == null:
-        return
-    var dummy := Ship.new()
-    dummy.ship_id = def.id
-    dummy.faction = def.faction
-    dummy.body_size = def.body_size
-    dummy.ship_color = def.color
+	var def := LoreDB.get_ship(ship_id)
+	if def == null:
+		return
+	var dummy := Ship.new()
+	dummy.ship_id = def.id
+	dummy.faction = def.faction
+	dummy.body_size = def.body_size
+	dummy.ship_color = def.color
 
-    var model_holder := Node3D.new()
-    model_holder.position = local_pos
-    parent.add_child(model_holder)
+	var model_holder := Node3D.new()
+	model_holder.position = local_pos
+	parent.add_child(model_holder)
 
-    var thrusters: Array[Node3D] = []
-    ShipModelBuilder.build(dummy, model_holder, thrusters)
-    for t in thrusters:
-        t.visible = true
-    dummy.free()
+	var thrusters: Array[Node3D] = []
+	ShipModelBuilder.build(dummy, model_holder, thrusters)
+	for t in thrusters:
+		t.visible = true
+	dummy.free()
 
 static func _create_star_sea_sky_material() -> ShaderMaterial:
-    if _sky_shader == null:
-        _sky_shader = Shader.new()
-        _sky_shader.code = """
+	if _sky_shader == null:
+		_sky_shader = Shader.new()
+		_sky_shader.code = """
 shader_type sky;
 
 float hash(vec3 p) {
@@ -396,14 +550,14 @@ void sky() {
     COLOR = col;
 }
 """
-    var sm := ShaderMaterial.new()
-    sm.shader = _sky_shader
-    return sm
+	var sm := ShaderMaterial.new()
+	sm.shader = _sky_shader
+	return sm
 
 static func _create_planet_material() -> ShaderMaterial:
-    if _planet_shader == null:
-        _planet_shader = Shader.new()
-        _planet_shader.code = """
+	if _planet_shader == null:
+		_planet_shader = Shader.new()
+		_planet_shader.code = """
 shader_type spatial;
 
 float hash(vec3 p) {
@@ -445,14 +599,14 @@ void fragment() {
     EMISSION = ember_glow + atmo;
 }
 """
-    var sm := ShaderMaterial.new()
-    sm.shader = _planet_shader
-    return sm
+	var sm := ShaderMaterial.new()
+	sm.shader = _planet_shader
+	return sm
 
 static func _create_ring_material() -> ShaderMaterial:
-    if _ring_shader == null:
-        _ring_shader = Shader.new()
-        _ring_shader.code = """
+	if _ring_shader == null:
+		_ring_shader = Shader.new()
+		_ring_shader.code = """
 shader_type spatial;
 render_mode blend_mix, cull_disabled, unshaded;
 
@@ -464,14 +618,14 @@ void fragment() {
     ALPHA = clamp(bands * 0.28 + fine * 0.14, 0.04, 0.42);
 }
 """
-    var sm := ShaderMaterial.new()
-    sm.shader = _ring_shader
-    return sm
+	var sm := ShaderMaterial.new()
+	sm.shader = _ring_shader
+	return sm
 
 static func _create_ribbon_material() -> ShaderMaterial:
-    if _ribbon_shader == null:
-        _ribbon_shader = Shader.new()
-        _ribbon_shader.code = """
+	if _ribbon_shader == null:
+		_ribbon_shader = Shader.new()
+		_ribbon_shader.code = """
 shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, unshaded;
 
@@ -490,6 +644,6 @@ void fragment() {
     ALPHA = edge_fade * end_fade * (0.06 + filament * 0.18);
 }
 """
-    var sm := ShaderMaterial.new()
-    sm.shader = _ribbon_shader
-    return sm
+	var sm := ShaderMaterial.new()
+	sm.shader = _ribbon_shader
+	return sm

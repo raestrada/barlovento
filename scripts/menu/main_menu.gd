@@ -775,22 +775,22 @@ func _select_faction_and_open_briefing(fac_id: String) -> void:
         "vinculados":
             LoreDB.current_stage_id = "vinculados_stage_1"
             var v_btn := Button.new()
-            v_btn.text = "STAGE 01 [TUTORIAL]: PSALM-4"
-            v_btn.custom_minimum_size = Vector2(210, 32)
+            v_btn.text = "STAGE 01 [TUTORIAL]: SANCTUARY SPIRE"
+            v_btn.custom_minimum_size = Vector2(230, 32)
             v_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
             _stage_selector_row.add_child(v_btn)
 
-            _briefing_title_lbl.text = "ACT II // STAGE 01 [TUTORIAL]: RESONANCE WELL PSALM-4"
-            _briefing_sub_lbl.text = "FACTION: THE VINCULADOS // CHOIR DRILL & STERN RAKE TUTORIAL"
+            _briefing_title_lbl.text = "ACT II // STAGE 01 [TUTORIAL]: DEFENSE OF SANCTUARY SPIRE PSALM-4"
+            _briefing_sub_lbl.text = "FACTION: THE VINCULADOS // HARMONIC DEFENSE & STERN RAKE TUTORIAL"
             _briefing_art_rect.texture = load("res://assets/factions/card_vinculados.png")
             _commander_portrait_rect.texture = load("res://assets/heroes/ace_kaelen.png")
             _commander_name_lbl.text = "ACE PILOT KAELEN-7"
             _commander_role_lbl.text = "Lead Resonance Choir // Eidolon Ace Platoon"
-            _commander_quote_lbl.text = "\"Welcome to the Choir Wing, pilot. In this tactical training drill, learn how to synchronize your neural frame with the Éther. Our agile mobile suit platoons and the Cradle Carrier Ark operate in concert. Our high turn rates allow us to out-pivot slow Acero warships. Slip into their rear quadrant for critical Stern Rakes and strike before the Calm advances.\""
-            _objectives_lbl.text = """◆ TUTORIAL DRILL 1 (MECHA MOBILITY): High turn rate, fast vectors, and neural barrier usage.
-◆ TUTORIAL DRILL 2 (CRITICAL DOCTRINE): Slip behind enemy dreadnoughts for devastating STERN RAKE (+40% CRITICAL DMG).
-◆ PRIMARY OBJECTIVE: Neutralize the 3 Acero warships (CNS Iron Bastion, CNS Hammer of Anvil, CNS Vanguard-03) occupying Sector Psalm-4.
-◆ SECONDARY OBJECTIVE: Keep the Cradle Carrier Ark (Sanktuario Albor) operational."""
+            _commander_quote_lbl.text = "\"Welcome to the Choir Wing, pilot. The Acero extraction force is encroaching upon Sanctuary Spire Psalm-4 to harvest its sacred harmonic crystals. Synchronize your neural frame with the Éther: our mobile suit platoons dance around their clumsy broadsides. Shield the Carrier Cradle, out-pivot their bulk, and strike their unarmored thrusters with critical Stern Rakes!\""
+            _objectives_lbl.text = """◆ TUTORIAL DRILL 1 (SANCTUARY DEFENSE): Protect the levitating resonance crystals of Sanctuary Spire Psalm-4.
+◆ TUTORIAL DRILL 2 (MECHA MOBILITY & STERN RAKE): Use agile vector turns to slip behind Acero hulls (+40% critical damage).
+◆ PRIMARY OBJECTIVE: Intercept and neutralize the Acero strike force (CNS Hammer of Anvil, CNS Vanguard-03).
+◆ SECONDARY OBJECTIVE: Keep the Carrier Ark (Sanktuario Albor) operational."""
             _add_squadron_row("vinculados_cradle", "Sanktuario Albor", "Cradle-Class Carrier Ark • Conductor Seraph-2", "HP 250 | SPD 19 m/s | Spinal Resonance Mega-Beam & PD Lasers")
             _add_squadron_row("vinculados_suit", "Eidolon Ace Wing", "Eidolon Mobile Suit Platoon • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Trio Formation, Beam Carbine & Shield")
             _add_squadron_row("vinculados_anima", "Anima-01 Interceptor Wing", "Anima Strike Platoon • Ace Mirei-4", "HP 115 | SPD 36 m/s | High-Speed Echelon Trio & Flank Intercept")
@@ -800,21 +800,22 @@ func _select_faction_and_open_briefing(fac_id: String) -> void:
         "marea_libre":
             LoreDB.current_stage_id = "marea_stage_1"
             var m_btn := Button.new()
-            m_btn.text = "STAGE 01 [TUTORIAL]: ANVIL BLOCKADE"
-            m_btn.custom_minimum_size = Vector2(230, 32)
+            m_btn.text = "STAGE 01 [TUTORIAL]: THE BASALT NARROWS"
+            m_btn.custom_minimum_size = Vector2(250, 32)
             m_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
             _stage_selector_row.add_child(m_btn)
 
-            _briefing_title_lbl.text = "ACT III // STAGE 01 [TUTORIAL]: BREAKING THE ANVIL BLOCKADE"
-            _briefing_sub_lbl.text = "FACTION: THE FREE TIDE // CORSAIR DRILL & BARLOVENTO TUTORIAL"
+            _briefing_title_lbl.text = "ACT III // STAGE 01 [TUTORIAL]: RUNNING THE BASALT NARROWS"
+            _briefing_sub_lbl.text = "FACTION: THE FREE TIDE // CANYON GORGE RUN & BARLOVENTO TUTORIAL"
             _briefing_art_rect.texture = load("res://assets/factions/card_marea.png")
             _commander_portrait_rect.texture = load("res://assets/heroes/ace_solano.png")
             _commander_name_lbl.text = "CAPTAIN SOLANO"
             _commander_role_lbl.text = "Corsair Flagship // Viento Rojo"
-            _commander_quote_lbl.text = "\"Listen up, sea dogs! Time to learn how real sailors fight in the Star Sea. Unfurl the quantum sails, ride the cyan Éther current to claim the Weather-Gauge [BARLOVENTO], and sweep their flanks with port and starboard broadside volleys!\""
-            _objectives_lbl.text = """◆ TUTORIAL DRILL 1 (THE ÉTHER SEA): Sail along the cyan currents to gain tailwind speed boosts.
-◆ TUTORIAL DRILL 2 (WEATHER-GAUGE [BARLOVENTO]): Attack from upwind for +12% Hit accuracy, unleashing +18% port/starboard broadside barrages.
-◆ PRIMARY OBJECTIVE: Break the 3-ship Acero blockade flotilla guarding the Sluice lane.
+            _commander_quote_lbl.text = "\"Listen up, sea dogs! We're navigating the Basalt Narrows—a treacherous asteroid gorge where Acero pickets try to box us in. Ride the raging cyan rush of El Río del Viento, claim the Weather-Gauge [BARLOVENTO], and smash their blockade with crushing broadside volleys!\""
+            _objectives_lbl.text = """◆ TUTORIAL DRILL 1 (THE BASALT NARROWS): Navigate the dense canyon gorge; don't collide with basalt spires.
+◆ TUTORIAL DRILL 2 (EL RÍO DEL VIENTO): Catch the high-velocity Éther stream for massive forward speed boosts.
+◆ TUTORIAL DRILL 3 (WEATHER-GAUGE [BARLOVENTO]): Attack from upwind for +12% Hit accuracy, unleashing +18% port/starboard broadsides.
+◆ PRIMARY OBJECTIVE: Break through the Acero blockade picket (CNS Hammer of Anvil, CNS Vanguard-03) and secure the Corsair Haven.
 ◆ SECONDARY OBJECTIVE: Keep Corsair Flagship Viento Rojo afloat."""
             _add_squadron_row("marea_galleon", "Viento Rojo", "Corsair Void-Galleon • Capt. Solano", "HP 300 | RNG 50m | Quantum Sails & Broadsides")
             _add_squadron_row("marea_raider", "La Descarada", "Corsair Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
