@@ -7,8 +7,8 @@ signal ship_selected_on_chart(ship_index: int)
 signal open_roster_requested
 signal return_menu_requested
 
-const GRID_COLS := 10
-const GRID_ROWS := 8
+var grid_cols: int = 10
+var grid_rows: int = 8
 const MAX_STRATEGIC_TURNS := 6
 
 enum Formation { LINE_OF_BATTLE, SPEARHEAD_WEDGE, FLANKING_PINCER }
@@ -66,6 +66,7 @@ var _anim_t: float = 0.0
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_configure_stage_grid()
 	_init_sector_terrain()
 	_build_ui()
 	_plan_initial_orders()
@@ -76,9 +77,46 @@ func _process(delta: float) -> void:
 	if _board_canvas != null and visible:
 		_board_canvas.queue_redraw()
 
+func _configure_stage_grid() -> void:
+	match LoreDB.current_stage_id:
+		"acero_stage_3":
+			grid_cols = 12
+			grid_rows = 9
+		"vinculados_stage_2":
+			grid_cols = 8
+			grid_rows = 10
+		"vinculados_stage_3":
+			grid_cols = 12
+			grid_rows = 8
+		"marea_stage_1":
+			grid_cols = 8
+			grid_rows = 10
+		"marea_stage_2":
+			grid_cols = 10
+			grid_rows = 8
+		"marea_stage_3":
+			grid_cols = 12
+			grid_rows = 10
+		_:
+			grid_cols = 10
+			grid_rows = 8
+
+	match LoreDB.selected_faction:
+		"vinculados":
+			commander_name = "ACE PILOT KAELEN-7"
+			commander_portrait = load("res://assets/heroes/ace_kaelen.png")
+		"marea_libre":
+			commander_name = "CAPTAIN SOLANO"
+			commander_portrait = load("res://assets/heroes/ace_solano.png")
+		_:
+			commander_name = "FLEET ADMIRAL VANE"
+			commander_portrait = load("res://assets/heroes/ace_vane.png")
+
 func sync_from_3d_ships(p_ships: Array[Ship], e_ships: Array[Ship], ether_field: EtherField) -> void:
 	player_ships = p_ships
 	enemy_ships = e_ships
+	_configure_stage_grid()
+	_init_sector_terrain()
 	if ether_field != null:
 		var d3 := ether_field.direction
 		var w2 := Vector2(d3.x, d3.z)
@@ -105,14 +143,26 @@ func set_selected_unit(idx: int) -> void:
 		_refresh_ui()
 
 func _world_to_cell(pos: Vector3, _is_player: bool, _idx: int) -> Vector2i:
-	var cx := clampi(roundi(remap(pos.x, -58.0, 58.0, 0.0, float(GRID_COLS - 1))), 0, GRID_COLS - 1)
-	var cy := clampi(roundi(remap(pos.z, -58.0, 58.0, 0.0, float(GRID_ROWS - 1))), 0, GRID_ROWS - 1)
+	var cx := clampi(roundi(remap(pos.x, -58.0, 58.0, 0.0, float(grid_cols - 1))), 0, grid_cols - 1)
+	var cy := clampi(roundi(remap(pos.z, -58.0, 58.0, 0.0, float(grid_rows - 1))), 0, grid_rows - 1)
 	return Vector2i(cx, cy)
 
 func _cell_to_world(cell: Vector2i, facing: Vector2, is_player: bool, idx: int) -> Dictionary:
-	var wx := remap(float(cell.x), 0.0, float(GRID_COLS - 1), -58.0, 58.0)
-	var wz := remap(float(cell.y), 0.0, float(GRID_ROWS - 1), -58.0, 58.0)
+	var wx := remap(float(cell.x), 0.0, float(grid_cols - 1), -58.0, 58.0)
+	var wz := remap(float(cell.y), 0.0, float(grid_rows - 1), -58.0, 58.0)
 	var wy := 5.0 if idx == 0 else (2.0 if idx == 1 else 7.5)
+
+	# Elevation differentiation per tactical scenario
+	if LoreDB.current_stage_id == "vinculados_stage_2":
+		# High vertical chasm: player deploys on upper crystal ledge, enemies in lower trench
+		if is_player:
+			wy = 14.0 if idx == 0 else (16.0 if idx == 1 else 12.0)
+		else:
+			wy = -10.0 if idx == 0 else (-8.0 if idx == 1 else -12.0)
+	elif LoreDB.current_stage_id == "acero_stage_2":
+		# Hostile mobile suits patrol higher altitude layer
+		if not is_player:
+			wy = 9.0 if idx == 0 else (12.0 if idx == 1 else 8.0)
 
 	if is_player:
 		match current_formation:
@@ -142,39 +192,152 @@ func _cell_to_world(cell: Vector2i, facing: Vector2, is_player: bool, idx: int) 
 
 func _init_sector_terrain() -> void:
 	_sector_types.clear()
-	# Upwind Ether Stream corridor (diagonal wind stream across rows 2 to 5)
-	for p in [
-		Vector2i(1, 1), Vector2i(2, 2), Vector2i(3, 2),
-		Vector2i(4, 3), Vector2i(5, 3),
-		Vector2i(4, 4), Vector2i(5, 4),
-		Vector2i(6, 5), Vector2i(7, 5), Vector2i(8, 6)
-	]:
-		_sector_types[p] = "wind_stream"
+	match LoreDB.current_stage_id:
+		"acero_stage_1":
+			# Sluice Well-09 Anchor, lateral ore reefs, diagonal Éther stream
+			for p in [Vector2i(1, 1), Vector2i(2, 2), Vector2i(3, 2), Vector2i(4, 3), Vector2i(5, 3), Vector2i(4, 4), Vector2i(5, 4), Vector2i(6, 5), Vector2i(7, 5), Vector2i(8, 6)]:
+				_sector_types[p] = "wind_stream"
+			for y in range(2, 6):
+				_sector_types[Vector2i(0, y)] = "reef"
+				_sector_types[Vector2i(1, y)] = "reef"
+				_sector_types[Vector2i(8, y)] = "reef"
+				_sector_types[Vector2i(9, y)] = "reef"
+			_sector_types[Vector2i(4, 6)] = "sluice"
+			_sector_types[Vector2i(5, 6)] = "sluice"
+			_sector_types[Vector2i(2, 4)] = "conduit"
+			_sector_types[Vector2i(7, 3)] = "conduit"
 
-	# Basalt Asteroid Reefs along flank lanes (grants Flank Cover & Ambush)
-	for y in range(2, 6):
-		_sector_types[Vector2i(0, y)] = "reef"
-		_sector_types[Vector2i(1, y)] = "reef"
-		_sector_types[Vector2i(8, y)] = "reef"
-		_sector_types[Vector2i(9, y)] = "reef"
+		"acero_stage_2":
+			# Ambush at Resonance Spire: central Sanctuary Spire node, crystal reefs, violent crosswind
+			for x in range(1, 9):
+				_sector_types[Vector2i(x, 3)] = "wind_stream"
+				_sector_types[Vector2i(x, 4)] = "wind_stream"
+			_sector_types[Vector2i(4, 3)] = "spire"
+			_sector_types[Vector2i(5, 3)] = "spire"
+			for y in range(1, 7):
+				_sector_types[Vector2i(0, y)] = "reef"
+				_sector_types[Vector2i(9, y)] = "reef"
+			_sector_types[Vector2i(2, 2)] = "conduit"
+			_sector_types[Vector2i(7, 5)] = "conduit"
 
-	# Sluice Station Well-09 Anchor & Defense Node (Rows 6 & 7, Cols 4 & 5)
-	_sector_types[Vector2i(4, 6)] = "sluice"
-	_sector_types[Vector2i(5, 6)] = "sluice"
+		"acero_stage_3":
+			# Bastion of the Calm Threshold: 12x9 Grand Chart!
+			# Top rows 0 and 1 are encroaching Calm dead-zone
+			for x in range(grid_cols):
+				_sector_types[Vector2i(x, 0)] = "calm"
+				_sector_types[Vector2i(x, 1)] = "calm"
+			# Strong defensive Sluice Wall at rows 6-7
+			_sector_types[Vector2i(5, 7)] = "sluice"
+			_sector_types[Vector2i(6, 7)] = "sluice"
+			_sector_types[Vector2i(4, 7)] = "sluice"
+			_sector_types[Vector2i(7, 7)] = "sluice"
+			# Wind stream crossing through center
+			for p in [Vector2i(2, 3), Vector2i(3, 3), Vector2i(4, 4), Vector2i(5, 4), Vector2i(6, 4), Vector2i(7, 5), Vector2i(8, 5), Vector2i(9, 6)]:
+				_sector_types[p] = "wind_stream"
+			_sector_types[Vector2i(2, 5)] = "conduit"
+			_sector_types[Vector2i(9, 4)] = "conduit"
 
-	# Éther Conduit Relays (Strategic capture nodes for AP & speed boost)
-	_sector_types[Vector2i(2, 4)] = "conduit" # West Relay
-	_sector_types[Vector2i(7, 3)] = "conduit" # East Relay
-	_sector_types[Vector2i(4, 3)] = "conduit" # Central Contested Node
+		"vinculados_stage_1":
+			# Sanctuary Spire Psalm-4: central Spire, 4 levitating resonance crystal beacons, harmonic stream
+			_sector_types[Vector2i(4, 4)] = "spire"
+			_sector_types[Vector2i(5, 4)] = "spire"
+			_sector_types[Vector2i(2, 2)] = "conduit"
+			_sector_types[Vector2i(7, 2)] = "conduit"
+			_sector_types[Vector2i(2, 6)] = "conduit"
+			_sector_types[Vector2i(7, 6)] = "conduit"
+			for p in [Vector2i(3, 3), Vector2i(4, 3), Vector2i(5, 5), Vector2i(6, 5)]:
+				_sector_types[p] = "wind_stream"
 
-	# The Calm Dimensional Seeps (Hazard incursion pools along northern rim & rifts)
-	for p in [
-		Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1), # Northwest Abyssal Rift
-		Vector2i(8, 0), Vector2i(9, 0), Vector2i(8, 1), Vector2i(9, 1), # Northeast Void Incursion
-		Vector2i(4, 0), Vector2i(5, 0),                                 # Deep North Breach
-		Vector2i(0, 5), Vector2i(9, 5)                                  # Flank Incursions
-	]:
-		_sector_types[p] = "calm"
+		"vinculados_stage_2":
+			# Crystalline Chasm: 8x10 Narrow Deep Trench!
+			# Flank columns A-B (0-1) and G-H (6-7) are impassable crystal canyon walls
+			for y in range(grid_rows):
+				_sector_types[Vector2i(0, y)] = "reef"
+				_sector_types[Vector2i(1, y)] = "reef"
+				_sector_types[Vector2i(6, y)] = "reef"
+				_sector_types[Vector2i(7, y)] = "reef"
+			# Central columns D-E (3-4) are Vertical Lift Corridors
+			for y in range(1, grid_rows - 1):
+				_sector_types[Vector2i(3, y)] = "wind_stream"
+				_sector_types[Vector2i(4, y)] = "wind_stream"
+			_sector_types[Vector2i(3, 4)] = "spire"
+			_sector_types[Vector2i(4, 5)] = "conduit"
+
+		"vinculados_stage_3":
+			# Transcendence at the Calm Abyss: 12x8 Grand Arena!
+			# Northern rows 0-1 are Calm Void
+			for x in range(grid_cols):
+				_sector_types[Vector2i(x, 0)] = "calm"
+			# Center is the Ancient Genesis Ring Nexus (60m 3-axis ring, +2 AP)
+			_sector_types[Vector2i(5, 3)] = "ring"
+			_sector_types[Vector2i(6, 3)] = "ring"
+			_sector_types[Vector2i(5, 4)] = "ring"
+			_sector_types[Vector2i(6, 4)] = "ring"
+			# Swirling harmonic streams feeding into the ring
+			for p in [Vector2i(1, 2), Vector2i(2, 3), Vector2i(3, 3), Vector2i(8, 4), Vector2i(9, 4), Vector2i(10, 5)]:
+				_sector_types[p] = "wind_stream"
+			_sector_types[Vector2i(2, 5)] = "conduit"
+			_sector_types[Vector2i(9, 2)] = "conduit"
+
+		"marea_stage_1":
+			# The Basalt Narrows: 8x10 Canyon Gorge!
+			# Dense basalt canyon walls on cols 0-1 and 6-7
+			for y in range(grid_rows):
+				_sector_types[Vector2i(0, y)] = "reef"
+				_sector_types[Vector2i(1, y)] = "reef"
+				_sector_types[Vector2i(6, y)] = "reef"
+				_sector_types[Vector2i(7, y)] = "reef"
+			# El Río del Viento roaring straight down the center (cols 3-4)
+			for y in range(grid_rows):
+				_sector_types[Vector2i(3, y)] = "wind_stream"
+				_sector_types[Vector2i(4, y)] = "wind_stream"
+			_sector_types[Vector2i(3, 8)] = "sluice"
+
+		"marea_stage_2":
+			# Raid on Foundry Sluice-Gates: 10x8 industrial ore refinery labyrinth
+			_sector_types[Vector2i(4, 3)] = "sluice"
+			_sector_types[Vector2i(5, 3)] = "sluice"
+			_sector_types[Vector2i(4, 4)] = "sluice"
+			_sector_types[Vector2i(5, 4)] = "sluice"
+			# Twin turbine exhaust jet streams giving massive lateral burst speed
+			for x in range(1, 9):
+				_sector_types[Vector2i(x, 2)] = "wind_stream"
+				_sector_types[Vector2i(x, 5)] = "wind_stream"
+			for y in range(2, 6):
+				_sector_types[Vector2i(0, y)] = "reef"
+				_sector_types[Vector2i(9, y)] = "reef"
+			_sector_types[Vector2i(2, 4)] = "conduit"
+			_sector_types[Vector2i(7, 3)] = "conduit"
+
+		"marea_stage_3":
+			# The Open Star Sea: 12x10 Colossal Oceanic Chart! (120 quadrants)
+			# Central Maelstrom Vortex at cols 5-6, rows 4-5
+			_sector_types[Vector2i(5, 4)] = "maelstrom"
+			_sector_types[Vector2i(6, 4)] = "maelstrom"
+			_sector_types[Vector2i(5, 5)] = "maelstrom"
+			_sector_types[Vector2i(6, 5)] = "maelstrom"
+			# 3 Converging high-speed wind currents
+			for p in [Vector2i(1, 1), Vector2i(2, 2), Vector2i(3, 3), Vector2i(4, 4)]:
+				_sector_types[p] = "wind_stream"
+			for p in [Vector2i(10, 1), Vector2i(9, 2), Vector2i(8, 3), Vector2i(7, 4)]:
+				_sector_types[p] = "wind_stream"
+			for y in range(6, 10):
+				_sector_types[Vector2i(5, y)] = "wind_stream"
+				_sector_types[Vector2i(6, y)] = "wind_stream"
+			# 3 Navigational Beacon Buoys
+			_sector_types[Vector2i(2, 7)] = "conduit"
+			_sector_types[Vector2i(9, 7)] = "conduit"
+			_sector_types[Vector2i(5, 1)] = "conduit"
+
+		_:
+			# Fallback default
+			for p in [Vector2i(1, 1), Vector2i(2, 2), Vector2i(3, 2), Vector2i(4, 3), Vector2i(5, 3), Vector2i(4, 4), Vector2i(5, 4), Vector2i(6, 5), Vector2i(7, 5), Vector2i(8, 6)]:
+				_sector_types[p] = "wind_stream"
+			for y in range(2, 6):
+				_sector_types[Vector2i(0, y)] = "reef"
+				_sector_types[Vector2i(9, y)] = "reef"
+			_sector_types[Vector2i(4, 6)] = "sluice"
+			_sector_types[Vector2i(2, 4)] = "conduit"
 
 func _plan_initial_orders() -> void:
 	for i in range(3):
@@ -185,7 +348,7 @@ func _plan_initial_orders() -> void:
 			if i == 1:
 				next_x = maxi(cur.x - 1, 0)
 			elif i == 2:
-				next_x = mini(cur.x + 1, GRID_COLS - 1)
+				next_x = mini(cur.x + 1, grid_cols - 1)
 		_p_targets[i] = Vector2i(next_x, next_y)
 		var dv := Vector2(_p_targets[i] - cur)
 		if dv.length_squared() > 0.01:
@@ -202,7 +365,7 @@ func _plan_ai_chart_orders() -> void:
 		var best_score := -INF
 		for ox in range(-1, 2):
 			for oy in range(-1, 2):
-				var cand := Vector2i(clampi(cur.x + ox, 0, GRID_COLS - 1), clampi(cur.y + oy, 0, GRID_ROWS - 1))
+				var cand := Vector2i(clampi(cur.x + ox, 0, grid_cols - 1), clampi(cur.y + oy, 0, grid_rows - 1))
 				if claimed.has(cand):
 					continue
 				var score := 0.0
@@ -567,19 +730,19 @@ func _apply_formation_preset_to_targets() -> void:
 	match current_formation:
 		Formation.LINE_OF_BATTLE:
 			var target_row := maxi(center_c.y - 1, 0)
-			_p_targets[0] = Vector2i(clampi(center_c.x, 1, GRID_COLS - 2), target_row)
-			_p_targets[1] = Vector2i(clampi(_p_targets[0].x - 1, 0, GRID_COLS - 1), target_row)
-			_p_targets[2] = Vector2i(clampi(_p_targets[0].x + 1, 0, GRID_COLS - 1), target_row)
+			_p_targets[0] = Vector2i(clampi(center_c.x, 1, grid_cols - 2), target_row)
+			_p_targets[1] = Vector2i(clampi(_p_targets[0].x - 1, 0, grid_cols - 1), target_row)
+			_p_targets[2] = Vector2i(clampi(_p_targets[0].x + 1, 0, grid_cols - 1), target_row)
 		Formation.SPEARHEAD_WEDGE:
 			var lead_row := maxi(center_c.y - 2, 0)
-			_p_targets[0] = Vector2i(clampi(center_c.x, 1, GRID_COLS - 2), lead_row)
-			_p_targets[1] = Vector2i(clampi(_p_targets[0].x - 1, 0, GRID_COLS - 1), mini(lead_row + 1, GRID_ROWS - 1))
-			_p_targets[2] = Vector2i(clampi(_p_targets[0].x + 1, 0, GRID_COLS - 1), mini(lead_row + 1, GRID_ROWS - 1))
+			_p_targets[0] = Vector2i(clampi(center_c.x, 1, grid_cols - 2), lead_row)
+			_p_targets[1] = Vector2i(clampi(_p_targets[0].x - 1, 0, grid_cols - 1), mini(lead_row + 1, grid_rows - 1))
+			_p_targets[2] = Vector2i(clampi(_p_targets[0].x + 1, 0, grid_cols - 1), mini(lead_row + 1, grid_rows - 1))
 		Formation.FLANKING_PINCER:
 			var pincer_row := maxi(center_c.y - 1, 0)
-			_p_targets[0] = Vector2i(clampi(center_c.x, 2, GRID_COLS - 3), pincer_row)
-			_p_targets[1] = Vector2i(clampi(_p_targets[0].x - 2, 0, GRID_COLS - 1), maxi(pincer_row - 1, 0))
-			_p_targets[2] = Vector2i(clampi(_p_targets[0].x + 2, 0, GRID_COLS - 1), maxi(pincer_row - 1, 0))
+			_p_targets[0] = Vector2i(clampi(center_c.x, 2, grid_cols - 3), pincer_row)
+			_p_targets[1] = Vector2i(clampi(_p_targets[0].x - 2, 0, grid_cols - 1), maxi(pincer_row - 1, 0))
+			_p_targets[2] = Vector2i(clampi(_p_targets[0].x + 2, 0, grid_cols - 1), maxi(pincer_row - 1, 0))
 
 	for i in range(3):
 		var dv := Vector2(_p_targets[i] - _p_cells[i])
@@ -784,14 +947,14 @@ func _get_board_rect() -> Rect2:
 
 func _cell_rect(c: Vector2i) -> Rect2:
 	var br := _get_board_rect()
-	var cw := br.size.x / float(GRID_COLS)
-	var ch := br.size.y / float(GRID_ROWS)
+	var cw := br.size.x / float(grid_cols)
+	var ch := br.size.y / float(grid_rows)
 	return Rect2(br.position + Vector2(float(c.x) * cw, float(c.y) * ch), Vector2(cw, ch))
 
 func _cell_center(pos_grid: Vector2) -> Vector2:
 	var br := _get_board_rect()
-	var cw := br.size.x / float(GRID_COLS)
-	var ch := br.size.y / float(GRID_ROWS)
+	var cw := br.size.x / float(grid_cols)
+	var ch := br.size.y / float(grid_rows)
 	return br.position + Vector2((pos_grid.x + 0.5) * cw, (pos_grid.y + 0.5) * ch)
 
 func _on_board_gui_input(event: InputEvent) -> void:
@@ -802,11 +965,11 @@ func _on_board_gui_input(event: InputEvent) -> void:
 		var br := _get_board_rect()
 		if not br.has_point(mpos):
 			return
-		var cw := br.size.x / float(GRID_COLS)
-		var ch := br.size.y / float(GRID_ROWS)
+		var cw := br.size.x / float(grid_cols)
+		var ch := br.size.y / float(grid_rows)
 		var clicked_cell := Vector2i(
-			clampi(int((mpos.x - br.position.x) / cw), 0, GRID_COLS - 1),
-			clampi(int((mpos.y - br.position.y) / ch), 0, GRID_ROWS - 1)
+			clampi(int((mpos.x - br.position.x) / cw), 0, grid_cols - 1),
+			clampi(int((mpos.y - br.position.y) / ch), 0, grid_rows - 1)
 		)
 
 		# 1. DIRECT SHIP SELECTION:
@@ -864,16 +1027,16 @@ func _on_board_gui_input(event: InputEvent) -> void:
 		var is_wedge := (current_formation == Formation.SPEARHEAD_WEDGE)
 		var max_step := 2 if (in_stream or is_wedge) else 1
 		var clamped_target := Vector2i(
-			clampi(cur.x + clampi(delta_c.x, -max_step, max_step), 0, GRID_COLS - 1),
-			clampi(cur.y + clampi(delta_c.y, -max_step, max_step), 0, GRID_ROWS - 1)
+			clampi(cur.x + clampi(delta_c.x, -max_step, max_step), 0, grid_cols - 1),
+			clampi(cur.y + clampi(delta_c.y, -max_step, max_step), 0, grid_rows - 1)
 		)
 
 		if move_whole_fleet:
 			var step := clamped_target - cur
 			for i in range(3):
 				var t := Vector2i(
-					clampi(_p_cells[i].x + step.x, 0, GRID_COLS - 1),
-					clampi(_p_cells[i].y + step.y, 0, GRID_ROWS - 1)
+					clampi(_p_cells[i].x + step.x, 0, grid_cols - 1),
+					clampi(_p_cells[i].y + step.y, 0, grid_rows - 1)
 				)
 				_p_targets[i] = t
 				var dv := Vector2(t - _p_cells[i])
@@ -995,15 +1158,15 @@ func _draw_naval_chart() -> void:
 	var c := _board_canvas
 	var font := ThemeDB.fallback_font
 	var br := _get_board_rect()
-	var cw := br.size.x / float(GRID_COLS)
-	var ch := br.size.y / float(GRID_ROWS)
+	var cw := br.size.x / float(grid_cols)
+	var ch := br.size.y / float(grid_rows)
 
 	var cur_sel_cell := _p_cells[selected_unit_idx]
 
-	# 1. Draw 10x8 Strategic Quadrants (Clean, unsaturated, non-intrusive)
-	var cols_lbl := ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
-	for gx in range(GRID_COLS):
-		for gy in range(GRID_ROWS):
+	# 1. Draw Strategic Quadrants (Clean, unsaturated, non-intrusive)
+	var cols_lbl := ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"]
+	for gx in range(grid_cols):
+		for gy in range(grid_rows):
 			var cell := Vector2i(gx, gy)
 			var r := _cell_rect(cell).grow(-2.0)
 			var stype: String = _sector_types.get(cell, "open")
@@ -1033,6 +1196,21 @@ func _draw_naval_chart() -> void:
 				border_col = Color(0.35, 0.95, 0.72, 0.35)
 				icon_txt = "NODE"
 				icon_col = Color(0.40, 1.0, 0.80, 0.80)
+			elif stype == "spire":
+				fill_col = Color(0.12, 0.08, 0.22, 0.25)
+				border_col = Color(0.75, 0.45, 1.0, 0.45)
+				icon_txt = "SPIRE"
+				icon_col = Color(0.85, 0.55, 1.0, 0.90)
+			elif stype == "ring":
+				fill_col = Color(0.08, 0.16, 0.28, 0.35)
+				border_col = Color(0.35, 0.95, 1.0, 0.55)
+				icon_txt = "GENESIS"
+				icon_col = Color(0.45, 1.0, 0.90, 0.95)
+			elif stype == "maelstrom":
+				fill_col = Color(0.05, 0.20, 0.30, 0.30)
+				border_col = Color(0.20, 0.90, 1.0, 0.50)
+				icon_txt = "VORTEX"
+				icon_col = Color(0.30, 1.0, 0.95, 0.95)
 			elif stype == "calm":
 				fill_col = Color(0.12, 0.02, 0.16, 0.45)
 				border_col = Color(0.85, 0.25, 0.95, 0.65)

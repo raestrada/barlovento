@@ -138,10 +138,22 @@ func _ready() -> void:
 			_add_combat_log("Conductor Seraph-2: \"Imperial miners have brought heavy cruisers to drill the sacred Choir well. Protect the Sanctuary Spire!\"", Color(0.65, 0.88, 1.0))
 			_add_combat_log("Ace Kaelen-7: \"Harmonic link online. Our mobile suit wings out-turn their heavy ironclads. Slip into their rear quadrant for critical Stern Rakes!\"", Color(0.4, 0.92, 1.0))
 			_add_combat_log("🎓 TUTORIAL ACTIVE: Follow the guided instructions above. Press [N] for Next Step.", Color(0.35, 1.0, 0.75))
+		"vinculados_stage_2":
+			_add_combat_log("ACT II // STAGE 02: The Crystal Chasm — Acero armored column descending into the trench!", Color(0.85, 0.45, 1.0))
+			_add_combat_log("Conductor Seraph-2: \"We hold the upper celestial heights. Dive from altitude and strike their vulnerable topside deck armor!\"", Color(0.65, 0.88, 1.0))
+		"vinculados_stage_3":
+			_add_combat_log("ACT II // STAGE 03: Genesis Ring // Transcendence Threshold — Desperate enemy assault!", Color(0.95, 0.40, 1.0))
+			_add_combat_log("Conductor Seraph-2: \"The Nous frame awakens! Protect the Genesis Ring until the resonance harmonizes!\"", Color(0.4, 0.92, 1.0))
 		"marea_stage_1":
 			_add_combat_log("ACT III // STAGE 01 [TUTORIAL]: The Basalt Narrows — Imperial blockade bottling up the Haven!", Color(0.45, 0.95, 0.85))
 			_add_combat_log("Capt. Solano: \"Unfurl the quantum sails, sea dogs! Catch the rapids of El Río del Viento, claim the Weather-Gauge [BARLOVENTO], and sweep their flanks with full broadsides!\"", Color(1.0, 0.85, 0.35))
 			_add_combat_log("🎓 TUTORIAL ACTIVE: Follow the guided instructions above. Press [N] for Next Step.", Color(0.35, 1.0, 0.75))
+		"marea_stage_2":
+			_add_combat_log("ACT III // STAGE 02: Raid on Foundry Vulcan-3 — Imperial ore bastions ripe for the taking!", Color(1.0, 0.75, 0.25))
+			_add_combat_log("Capt. Solano: \"Slip behind the smelter platforms! Use their own defense towers as cover and pillage the ether reserves!\"", Color(1.0, 0.85, 0.35))
+		"marea_stage_3":
+			_add_combat_log("ACT III // STAGE 03: The Maelstrom of Barlovento — The Great Grand Sol Corona vortex!", Color(0.35, 0.95, 1.0))
+			_add_combat_log("Capt. Solano: \"The wind howls like the birth of creation! All hands to the sails! Ride the Maelstrom and break their dreadnoughts!\"", Color(1.0, 0.85, 0.35))
 		_:
 			_add_combat_log("Tactical link established. Outer Veil // Sector Psalm-4.", Color(0.4, 0.9, 1.0))
 			_add_combat_log("Tip: Hold [SHIFT + Left-Click/Drag] on the 3D plane to aim vector & speed.", Color(1.0, 0.85, 0.3))
@@ -1628,10 +1640,24 @@ func _build_stage_landmark() -> void:
 	_landmark_rotators.clear()
 
 	match LoreDB.current_stage_id:
-		"vinculados_stage_1", "acero_stage_2":
+		"acero_stage_1":
+			_build_acero_sluice_station()
+		"acero_stage_2":
 			_build_vinculados_sanctuary_spire()
+		"acero_stage_3":
+			_build_acero_calm_bastion()
+		"vinculados_stage_1":
+			_build_vinculados_sanctuary_spire()
+		"vinculados_stage_2":
+			_build_vinculados_crystal_chasm()
+		"vinculados_stage_3":
+			_build_vinculados_genesis_ring()
 		"marea_stage_1":
 			_build_marea_corsair_haven()
+		"marea_stage_2":
+			_build_marea_foundry_complex()
+		"marea_stage_3":
+			_build_marea_wind_maelstrom()
 		_:
 			_build_acero_sluice_station()
 
@@ -2327,6 +2353,469 @@ func _build_marea_corsair_haven() -> void:
 	station_lbl.position = Vector3(0.0, 24.5, 0.0)
 	_stage_landmark_root.add_child(station_lbl)
 
+func _build_acero_calm_bastion() -> void:
+	# Colossal Acero Forward Defense Bastion ("Bastion-7") facing the Calm wavefront
+	_stage_landmark_root = Node3D.new()
+	_stage_landmark_root.name = "CalmThresholdBastion"
+	_stage_landmark_root.position = Vector3(-28.0, 0.0, 8.0)
+	_stage_landmark_root.rotation_degrees = Vector3(0.0, 30.0, 0.0)
+	add_child(_stage_landmark_root)
+
+	var hull_tex: Texture2D = load("res://assets/ships/acero/acero_hull.png")
+
+	var armor_mat := StandardMaterial3D.new()
+	armor_mat.albedo_texture = hull_tex
+	armor_mat.albedo_color = Color(1.5, 1.55, 1.65)
+	armor_mat.uv1_scale = Vector3(4.0, 4.0, 1.0)
+	armor_mat.metallic = 0.55
+	armor_mat.roughness = 0.38
+	armor_mat.rim_enabled = true
+	armor_mat.rim = 0.5
+
+	var dark_steel := StandardMaterial3D.new()
+	dark_steel.albedo_texture = hull_tex
+	dark_steel.albedo_color = Color(1.1, 1.15, 1.25)
+	dark_steel.uv1_scale = Vector3(5.0, 5.0, 1.0)
+	dark_steel.metallic = 0.65
+	dark_steel.roughness = 0.30
+
+	var furnace_amber := StandardMaterial3D.new()
+	furnace_amber.albedo_color = Color(1.0, 0.55, 0.15)
+	furnace_amber.emission_enabled = true
+	furnace_amber.emission = Color(1.0, 0.50, 0.12)
+	furnace_amber.emission_energy_multiplier = 2.0
+
+	var warning_red := StandardMaterial3D.new()
+	warning_red.albedo_color = Color(1.0, 0.18, 0.12)
+	warning_red.emission_enabled = true
+	warning_red.emission = Color(1.0, 0.15, 0.10)
+	warning_red.emission_energy_multiplier = 2.5
+
+	var forge_light := OmniLight3D.new()
+	forge_light.position = Vector3(0.0, 6.0, 4.0)
+	forge_light.light_color = Color(1.0, 0.58, 0.22)
+	forge_light.light_energy = 2.0
+	forge_light.omni_range = 38.0
+	_stage_landmark_root.add_child(forge_light)
+
+	var beacon_light := OmniLight3D.new()
+	beacon_light.position = Vector3(0.0, 12.0, 0.0)
+	beacon_light.light_color = Color(1.0, 0.25, 0.20)
+	beacon_light.light_energy = 1.8
+	beacon_light.omni_range = 30.0
+	_stage_landmark_root.add_child(beacon_light)
+
+	var hub := MeshInstance3D.new()
+	var hub_cyl := CylinderMesh.new()
+	hub_cyl.top_radius = 8.5
+	hub_cyl.bottom_radius = 10.0
+	hub_cyl.height = 7.0
+	hub_cyl.radial_segments = 6
+	hub.mesh = hub_cyl
+	hub.material_override = armor_mat
+	_stage_landmark_root.add_child(hub)
+
+	var barbette := MeshInstance3D.new()
+	var b_cyl := CylinderMesh.new()
+	b_cyl.top_radius = 5.5
+	b_cyl.bottom_radius = 7.0
+	b_cyl.height = 4.5
+	b_cyl.radial_segments = 6
+	barbette.mesh = b_cyl
+	barbette.position = Vector3(0.0, 5.5, 0.0)
+	barbette.material_override = dark_steel
+	_stage_landmark_root.add_child(barbette)
+
+	var dish_root := Node3D.new()
+	dish_root.position = Vector3(0.0, 8.5, 0.0)
+	_stage_landmark_root.add_child(dish_root)
+	_register_landmark_rotator(dish_root, Vector3.UP, 0.35)
+
+	var dish := MeshInstance3D.new()
+	var d_cyl := CylinderMesh.new()
+	d_cyl.top_radius = 4.2
+	d_cyl.bottom_radius = 0.5
+	d_cyl.height = 1.5
+	d_cyl.radial_segments = 12
+	dish.mesh = d_cyl
+	dish.rotation_degrees = Vector3(45.0, 0.0, 0.0)
+	dish.material_override = armor_mat
+	dish_root.add_child(dish)
+
+	for i in 4:
+		var ang: float = float(i) * (PI * 0.5) + (PI * 0.25)
+		var turret := MeshInstance3D.new()
+		var t_box := BoxMesh.new()
+	t_box.size = Vector3(1.6, 1.4, 6.0)
+		turret.mesh = t_box
+		turret.position = Vector3(cos(ang) * 7.5, 1.0, sin(ang) * 7.5)
+		turret.look_at(_stage_landmark_root.global_position + Vector3(cos(ang) * 20.0, 1.0, sin(ang) * 20.0))
+		turret.material_override = dark_steel
+		_stage_landmark_root.add_child(turret)
+
+		var glow_tip := MeshInstance3D.new()
+		var gt_sph := SphereMesh.new()
+	gt_sph.radius = 0.45
+	gt_sph.height = 0.9
+		glow_tip.mesh = gt_sph
+		glow_tip.position = Vector3(0.0, 0.0, -3.1)
+		glow_tip.material_override = warning_red
+		turret.add_child(glow_tip)
+
+	var station_lbl := Label3D.new()
+	station_lbl.text = "⚓ FORWARD BASTION-7\n[THE CALM THRESHOLD FORTRESS]"
+	station_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	station_lbl.font_size = 14
+	station_lbl.modulate = Color(1.0, 0.65, 0.25)
+	station_lbl.outline_modulate = Color(0.02, 0.01, 0.04, 0.95)
+	station_lbl.outline_size = 3
+	station_lbl.position = Vector3(0.0, 13.0, 0.0)
+	_stage_landmark_root.add_child(station_lbl)
+
+func _build_vinculados_crystal_chasm() -> void:
+	# Colossal Twin Crystal Monoliths & Levitating Resonance Ring
+	_stage_landmark_root = Node3D.new()
+	_stage_landmark_root.name = "VinculadosCrystalChasm"
+	_stage_landmark_root.position = Vector3(-25.0, 0.0, 5.0)
+	_stage_landmark_root.rotation_degrees = Vector3(0.0, 20.0, 0.0)
+	add_child(_stage_landmark_root)
+
+	var ceramic := StandardMaterial3D.new()
+	ceramic.albedo_texture = load("res://assets/ships/vinculados/vinculados_hull.png")
+	ceramic.albedo_color = Color(1.0, 1.0, 1.0)
+	ceramic.metallic = 0.15
+	ceramic.roughness = 0.20
+	ceramic.rim_enabled = true
+	ceramic.rim = 0.6
+
+	var crystal_mat := StandardMaterial3D.new()
+	crystal_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	crystal_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	crystal_mat.albedo_color = Color(0.85, 0.35, 1.0, 0.75)
+	crystal_mat.emission_enabled = true
+	crystal_mat.emission = Color(0.80, 0.30, 0.95)
+	crystal_mat.emission_energy_multiplier = 2.0
+
+	var cyan_mat := StandardMaterial3D.new()
+	cyan_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	cyan_mat.albedo_color = Color(0.30, 0.90, 1.0)
+	cyan_mat.emission_enabled = true
+	cyan_mat.emission = Color(0.25, 0.85, 1.0)
+	cyan_mat.emission_energy_multiplier = 2.2
+
+	var chasm_light := OmniLight3D.new()
+	chasm_light.position = Vector3(0.0, 2.0, 0.0)
+	chasm_light.light_color = Color(0.85, 0.45, 1.0)
+	chasm_light.light_energy = 2.4
+	chasm_light.omni_range = 42.0
+	_stage_landmark_root.add_child(chasm_light)
+
+	var cyan_light := OmniLight3D.new()
+	cyan_light.position = Vector3(0.0, -12.0, 0.0)
+	cyan_light.light_color = Color(0.35, 0.88, 1.0)
+	cyan_light.light_energy = 2.0
+	cyan_light.omni_range = 38.0
+	_stage_landmark_root.add_child(cyan_light)
+
+	for offset_x in [-8.0, 8.0]:
+		var spire := MeshInstance3D.new()
+		var sp_cyl := CylinderMesh.new()
+		sp_cyl.top_radius = 1.0
+		sp_cyl.bottom_radius = 3.8
+		sp_cyl.height = 36.0
+		sp_cyl.radial_segments = 6
+		spire.mesh = sp_cyl
+		spire.position = Vector3(offset_x, 0.0, 0.0)
+		spire.material_override = ceramic
+		_stage_landmark_root.add_child(spire)
+
+		var tip := MeshInstance3D.new()
+		var tip_mesh := PrismMesh.new()
+		tip_mesh.size = Vector3(2.2, 8.0, 2.2)
+		tip.mesh = tip_mesh
+		tip.position = Vector3(offset_x, 22.0, 0.0)
+		tip.material_override = crystal_mat
+		_stage_landmark_root.add_child(tip)
+
+	var halo_root := Node3D.new()
+	halo_root.position = Vector3(0.0, 4.0, 0.0)
+	_stage_landmark_root.add_child(halo_root)
+	_register_landmark_rotator(halo_root, Vector3(0.2, 1.0, 0.1).normalized(), 0.3)
+
+	var halo := MeshInstance3D.new()
+	var h_tor := TorusMesh.new()
+	h_tor.inner_radius = 5.5
+	h_tor.outer_radius = 6.2
+	halo.mesh = h_tor
+	halo.material_override = cyan_mat
+	halo_root.add_child(halo)
+
+	var core := MeshInstance3D.new()
+	var c_sph := SphereMesh.new()
+	c_sph.radius = 2.4
+	c_sph.height = 4.8
+	core.mesh = c_sph
+	core.position = Vector3(0.0, 4.0, 0.0)
+	core.material_override = crystal_mat
+	_stage_landmark_root.add_child(core)
+
+	var station_lbl := Label3D.new()
+	station_lbl.text = "✦ THE CRYSTAL CHASM\n[SECTOR PSALM-12 DEEP TRENCH]"
+	station_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	station_lbl.font_size = 14
+	station_lbl.modulate = Color(0.85, 0.50, 1.0)
+	station_lbl.outline_modulate = Color(0.02, 0.01, 0.04, 0.95)
+	station_lbl.outline_size = 3
+	station_lbl.position = Vector3(0.0, 26.0, 0.0)
+	_stage_landmark_root.add_child(station_lbl)
+
+func _build_vinculados_genesis_ring() -> void:
+	# Colossal Dual-Gimbal Genesis Resonance Ring & Soul Core
+	_stage_landmark_root = Node3D.new()
+	_stage_landmark_root.name = "VinculadosGenesisRing"
+	_stage_landmark_root.position = Vector3(-28.0, 4.0, 5.0)
+	add_child(_stage_landmark_root)
+
+	var ceramic := StandardMaterial3D.new()
+	ceramic.albedo_texture = load("res://assets/ships/vinculados/vinculados_hull.png")
+	ceramic.albedo_color = Color(1.0, 1.0, 1.0)
+	ceramic.metallic = 0.15
+	ceramic.roughness = 0.22
+	ceramic.rim_enabled = true
+	ceramic.rim = 0.7
+
+	var soul_mat := ShipModelBuilder._get_soul_core_material()
+
+	var cyan_mat := StandardMaterial3D.new()
+	cyan_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	cyan_mat.albedo_color = Color(0.35, 0.92, 1.0)
+	cyan_mat.emission_enabled = true
+	cyan_mat.emission = Color(0.30, 0.90, 1.0)
+	cyan_mat.emission_energy_multiplier = 2.5
+
+	var genesis_light := OmniLight3D.new()
+	genesis_light.position = Vector3.ZERO
+	genesis_light.light_color = Color(0.65, 0.45, 1.0)
+	genesis_light.light_energy = 2.8
+	genesis_light.omni_range = 50.0
+	_stage_landmark_root.add_child(genesis_light)
+
+	var outer_root := Node3D.new()
+	_stage_landmark_root.add_child(outer_root)
+	_register_landmark_rotator(outer_root, Vector3.UP, 0.15)
+
+	var outer_ring := MeshInstance3D.new()
+	var o_tor := TorusMesh.new()
+	o_tor.inner_radius = 14.5
+	o_tor.outer_radius = 16.5
+	outer_ring.mesh = o_tor
+	outer_ring.material_override = ceramic
+	outer_root.add_child(outer_ring)
+
+	var inner_root := Node3D.new()
+	_stage_landmark_root.add_child(inner_root)
+	_register_landmark_rotator(inner_root, Vector3(0.6, 0.8, 0.0).normalized(), -0.25)
+
+	var inner_ring := MeshInstance3D.new()
+	var i_tor := TorusMesh.new()
+	i_tor.inner_radius = 10.0
+	i_tor.outer_radius = 11.8
+	inner_ring.mesh = i_tor
+	inner_ring.material_override = cyan_mat
+	inner_root.add_child(inner_ring)
+
+	var core := MeshInstance3D.new()
+	var c_sph := SphereMesh.new()
+	c_sph.radius = 4.2
+	c_sph.height = 8.4
+	core.mesh = c_sph
+	core.material_override = soul_mat
+	_stage_landmark_root.add_child(core)
+
+	for i in 4:
+		var ang: float = float(i) * (PI * 0.5)
+		var pylon := MeshInstance3D.new()
+		var p_box := BoxMesh.new()
+	p_box.size = Vector3(1.2, 0.8, 8.0)
+		pylon.mesh = p_box
+		pylon.position = Vector3(cos(ang) * 12.0, 0.0, sin(ang) * 12.0)
+		pylon.look_at(_stage_landmark_root.global_position)
+		pylon.material_override = ceramic
+		outer_root.add_child(pylon)
+
+	var station_lbl := Label3D.new()
+	station_lbl.text = "✦ THE GENESIS RING\n[TRANSCENDENCE THRESHOLD GATE]"
+	station_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	station_lbl.font_size = 14
+	station_lbl.modulate = Color(0.75, 0.88, 1.0)
+	station_lbl.outline_modulate = Color(0.02, 0.01, 0.04, 0.95)
+	station_lbl.outline_size = 3
+	station_lbl.position = Vector3(0.0, 20.0, 0.0)
+	_stage_landmark_root.add_child(station_lbl)
+
+func _build_marea_foundry_complex() -> void:
+	# Heavy Industrial Smelter Platform Vulcan-3 being raided
+	_stage_landmark_root = Node3D.new()
+	_stage_landmark_root.name = "FoundryVulcan3"
+	_stage_landmark_root.position = Vector3(-26.0, 2.0, 6.0)
+	_stage_landmark_root.rotation_degrees = Vector3(0.0, 15.0, 0.0)
+	add_child(_stage_landmark_root)
+
+	var iron_mat := StandardMaterial3D.new()
+	iron_mat.albedo_color = Color(0.18, 0.20, 0.24)
+	iron_mat.metallic = 0.65
+	iron_mat.roughness = 0.40
+
+	var molten_mat := StandardMaterial3D.new()
+	molten_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	molten_mat.albedo_color = Color(1.0, 0.45, 0.10)
+	molten_mat.emission_enabled = true
+	molten_mat.emission = Color(1.0, 0.42, 0.08)
+	molten_mat.emission_energy_multiplier = 2.2
+
+	var brass_mat := StandardMaterial3D.new()
+	brass_mat.albedo_color = Color(0.85, 0.65, 0.25)
+	brass_mat.metallic = 0.75
+	brass_mat.roughness = 0.25
+
+	var forge_light := OmniLight3D.new()
+	forge_light.position = Vector3(0.0, 5.0, 0.0)
+	forge_light.light_color = Color(1.0, 0.52, 0.15)
+	forge_light.light_energy = 2.5
+	forge_light.omni_range = 40.0
+	_stage_landmark_root.add_child(forge_light)
+
+	var cauldron := MeshInstance3D.new()
+	var c_cyl := CylinderMesh.new()
+	c_cyl.top_radius = 8.0
+	c_cyl.bottom_radius = 6.0
+	c_cyl.height = 6.5
+	c_cyl.radial_segments = 12
+	cauldron.mesh = c_cyl
+	cauldron.material_override = iron_mat
+	_stage_landmark_root.add_child(cauldron)
+
+	var pool := MeshInstance3D.new()
+	var p_cyl := CylinderMesh.new()
+	p_cyl.top_radius = 7.2
+	p_cyl.bottom_radius = 7.2
+	p_cyl.height = 0.5
+	pool.mesh = p_cyl
+	pool.position = Vector3(0.0, 3.2, 0.0)
+	pool.material_override = molten_mat
+	_stage_landmark_root.add_child(pool)
+
+	var crane_root := Node3D.new()
+	crane_root.position = Vector3(0.0, 4.0, 0.0)
+	_stage_landmark_root.add_child(crane_root)
+	_register_landmark_rotator(crane_root, Vector3.UP, 0.25)
+
+	var arm := MeshInstance3D.new()
+	var a_box := BoxMesh.new()
+	a_box.size = Vector3(1.2, 1.2, 16.0)
+	arm.mesh = a_box
+	arm.position = Vector3(0.0, 4.0, 6.0)
+	arm.material_override = brass_mat
+	crane_root.add_child(arm)
+
+	for offset_x in [-10.0, 10.0]:
+		var silo := MeshInstance3D.new()
+		var s_cyl := CylinderMesh.new()
+	s_cyl.top_radius = 3.2
+	s_cyl.bottom_radius = 3.2
+	s_cyl.height = 9.0
+	s_cyl.radial_segments = 8
+	silo.mesh = s_cyl
+	silo.position = Vector3(offset_x, 1.0, 0.0)
+	silo.material_override = iron_mat
+	_stage_landmark_root.add_child(silo)
+
+	var station_lbl := Label3D.new()
+	station_lbl.text = "⚙ SMELTER REFINERY VULCAN-3\n[IMPERIAL ORE FOUNDRY]"
+	station_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	station_lbl.font_size = 14
+	station_lbl.modulate = Color(1.0, 0.72, 0.25)
+	station_lbl.outline_modulate = Color(0.02, 0.01, 0.04, 0.95)
+	station_lbl.outline_size = 3
+	station_lbl.position = Vector3(0.0, 14.0, 0.0)
+	_stage_landmark_root.add_child(station_lbl)
+
+func _build_marea_wind_maelstrom() -> void:
+	# Colossal Astrolabe Eye of the Maelstrom Collector Spire
+	_stage_landmark_root = Node3D.new()
+	_stage_landmark_root.name = "MaelstromEyeSpire"
+	_stage_landmark_root.position = Vector3(-28.0, 0.0, 4.0)
+	add_child(_stage_landmark_root)
+
+	var brass_mat := StandardMaterial3D.new()
+	brass_mat.albedo_color = Color(0.88, 0.68, 0.26)
+	brass_mat.metallic = 0.78
+	brass_mat.roughness = 0.24
+
+	var ether_cyan := StandardMaterial3D.new()
+	ether_cyan.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ether_cyan.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ether_cyan.albedo_color = Color(0.20, 0.88, 1.0, 0.80)
+	ether_cyan.emission_enabled = true
+	ether_cyan.emission = Color(0.18, 0.85, 1.0)
+	ether_cyan.emission_energy_multiplier = 2.4
+
+	var storm_light := OmniLight3D.new()
+	storm_light.position = Vector3(0.0, 6.0, 0.0)
+	storm_light.light_color = Color(0.35, 0.90, 1.0)
+	storm_light.light_energy = 3.0
+	storm_light.omni_range = 48.0
+	_stage_landmark_root.add_child(storm_light)
+
+	var mast := MeshInstance3D.new()
+	var m_cyl := CylinderMesh.new()
+	m_cyl.top_radius = 1.2
+	m_cyl.bottom_radius = 2.8
+	m_cyl.height = 32.0
+	m_cyl.radial_segments = 8
+	mast.mesh = m_cyl
+	mast.material_override = brass_mat
+	_stage_landmark_root.add_child(mast)
+
+	var turbine_root := Node3D.new()
+	turbine_root.position = Vector3(0.0, 4.0, 0.0)
+	_stage_landmark_root.add_child(turbine_root)
+	_register_landmark_rotator(turbine_root, Vector3.UP, 0.75)
+
+	for i in 6:
+		var ang: float = float(i) * (PI / 3.0)
+		var fin := MeshInstance3D.new()
+		var f_box := BoxMesh.new()
+	f_box.size = Vector3(0.4, 6.0, 11.0)
+		fin.mesh = f_box
+		fin.position = Vector3(cos(ang) * 6.0, 0.0, sin(ang) * 6.0)
+		fin.rotation = Vector3(0.0, -ang + 0.35, 0.2)
+		fin.material_override = ether_cyan
+		turbine_root.add_child(fin)
+
+	var ring_root := Node3D.new()
+	ring_root.position = Vector3(0.0, 12.0, 0.0)
+	_stage_landmark_root.add_child(ring_root)
+	_register_landmark_rotator(ring_root, Vector3(0.8, 0.5, 0.3).normalized(), -0.45)
+
+	var ring := MeshInstance3D.new()
+	var r_tor := TorusMesh.new()
+	r_tor.inner_radius = 7.5
+	r_tor.outer_radius = 8.5
+	ring.mesh = r_tor
+	ring.material_override = brass_mat
+	ring_root.add_child(ring)
+
+	var station_lbl := Label3D.new()
+	station_lbl.text = "⚡ EYE OF THE MAELSTROM\n[BARLOVENTO OCEANIC CONVERGENCE]"
+	station_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	station_lbl.font_size = 14
+	station_lbl.modulate = Color(0.45, 0.95, 1.0)
+	station_lbl.outline_modulate = Color(0.02, 0.01, 0.04, 0.95)
+	station_lbl.outline_size = 3
+	station_lbl.position = Vector3(0.0, 20.0, 0.0)
+	_stage_landmark_root.add_child(station_lbl)
+
 func _update_scenery(delta: float) -> void:
 	if _asteroid_root != null:
 		for cluster in _asteroid_root.get_children():
@@ -2467,6 +2956,52 @@ func _spawn_fleets() -> void:
 			var ve2 := _spawn("acero_corvette", Vector3(14.0, 5.0, -52.0), Vector3(0.0, 0.0, 3.5), 1)
 			_apply_tutorial_handicap(ve2, 0.65, 0.70)
 			_enemy_ships.append(ve2)
+		"vinculados_stage_2":
+			# ACT II // STAGE 02: The Crystal Chasm (Vinculados diving from upper altitude into Acero column)
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 14.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_suit", Vector3(-12.0, 16.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(12.0, 12.0, 48.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, -8.0, -55.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(10.0, -6.0, -50.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(-18.0, -4.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+		"vinculados_stage_3":
+			# ACT II // STAGE 03: Genesis Ring // Transcendence (Nous Ace frame + Carrier defending ring)
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 4.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-10.0, 8.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_suit", Vector3(10.0, 6.0, 54.0), Vector3.ZERO, 0))
+
+			var acero_flag := _spawn("acero_dreadnought", Vector3(0.0, 5.0, -58.0), Vector3(0.0, 0.0, 3.0), 1)
+			acero_flag.hp = roundf(acero_flag.hp * 1.25)
+			acero_flag.max_hp = acero_flag.hp
+			_enemy_ships.append(acero_flag)
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-16.0, 3.0, -52.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(16.0, 7.0, -54.0), Vector3(0.0, 0.0, 3.8), 1))
+		"marea_stage_2":
+			# ACT III // STAGE 02: Raid on Foundry Vulcan-3 (Free Tide corsairs raiding Acero industrial outpost)
+			_player_ships.append(_spawn("marea_galleon", Vector3(-8.0, 4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(6.0, 8.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(18.0, 2.0, 50.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-8.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(12.0, 3.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(-20.0, 7.0, -48.0), Vector3(0.0, 0.0, 4.0), 1))
+		"marea_stage_3":
+			# ACT III // STAGE 03: The Maelstrom of Barlovento (Free Tide Grand Armada in storm convergence)
+			var pg := _spawn("marea_galleon", Vector3(0.0, 6.0, 62.0), Vector3.ZERO, 0)
+			pg.hp = roundf(pg.hp * 1.20)
+			pg.max_hp = pg.hp
+			_player_ships.append(pg)
+			_player_ships.append(_spawn("marea_brigantine", Vector3(-14.0, 3.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(14.0, 9.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(24.0, 2.0, 50.0), Vector3.ZERO, 0))
+
+			var boss_acero := _spawn("acero_dreadnought", Vector3(0.0, 4.0, -60.0), Vector3(0.0, 0.0, 3.5), 1)
+			boss_acero.hp = roundf(boss_acero.hp * 1.30)
+			boss_acero.max_hp = boss_acero.hp
+			_enemy_ships.append(boss_acero)
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-18.0, 7.0, -54.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(18.0, 10.0, -50.0), Vector3(0.0, 0.0, 4.8), 1))
 		_:
 			# Fallback Sandbox
 			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 2.0, 58.0), Vector3.ZERO, 0))
@@ -2688,8 +3223,16 @@ func _build_hud() -> void:
 			_stage_title_label.text = "ACT I // STAGE 03: THE CALM THRESHOLD"
 		"vinculados_stage_1":
 			_stage_title_label.text = "ACT II // STAGE 01 [TUTORIAL]: SANCTUARY SPIRE PSALM-4"
+		"vinculados_stage_2":
+			_stage_title_label.text = "ACT II // STAGE 02: THE CRYSTAL CHASM"
+		"vinculados_stage_3":
+			_stage_title_label.text = "ACT II // STAGE 03: GENESIS RING // TRANSCENDENCE"
 		"marea_stage_1":
 			_stage_title_label.text = "ACT III // STAGE 01 [TUTORIAL]: THE BASALT NARROWS"
+		"marea_stage_2":
+			_stage_title_label.text = "ACT III // STAGE 02: RAID ON FOUNDRY VULCAN-3"
+		"marea_stage_3":
+			_stage_title_label.text = "ACT III // STAGE 03: THE MAELSTROM OF BARLOVENTO"
 		_:
 			_stage_title_label.text = "TACTICAL ENGAGEMENT // STAR SEA"
 	_stage_title_label.add_theme_font_size_override("font_size", 10)
@@ -2994,6 +3537,14 @@ func _get_next_stage_id() -> String:
 			return "acero_stage_2"
 		"acero_stage_2":
 			return "acero_stage_3"
+		"vinculados_stage_1":
+			return "vinculados_stage_2"
+		"vinculados_stage_2":
+			return "vinculados_stage_3"
+		"marea_stage_1":
+			return "marea_stage_2"
+		"marea_stage_2":
+			return "marea_stage_3"
 		_:
 			return ""
 
@@ -3032,10 +3583,21 @@ func _show_mission_victory() -> void:
 	var next_id := _get_next_stage_id()
 	if _victory_next_btn != null:
 		_victory_next_btn.visible = (next_id != "")
-		if next_id == "acero_stage_2":
-			_victory_next_btn.text = "▶ DEPLOY STAGE 02: RESONANCE SPIRE"
-		elif next_id == "acero_stage_3":
-			_victory_next_btn.text = "▶ DEPLOY STAGE 03: CALM THRESHOLD"
+		match next_id:
+			"acero_stage_2":
+				_victory_next_btn.text = "▶ DEPLOY STAGE 02: RESONANCE SPIRE"
+			"acero_stage_3":
+				_victory_next_btn.text = "▶ DEPLOY STAGE 03: CALM THRESHOLD"
+			"vinculados_stage_2":
+				_victory_next_btn.text = "▶ DEPLOY STAGE 02: CRYSTAL CHASM"
+			"vinculados_stage_3":
+				_victory_next_btn.text = "▶ DEPLOY STAGE 03: GENESIS RING"
+			"marea_stage_2":
+				_victory_next_btn.text = "▶ DEPLOY STAGE 02: FOUNDRY VULCAN-3"
+			"marea_stage_3":
+				_victory_next_btn.text = "▶ DEPLOY STAGE 03: THE MAELSTROM"
+			_:
+				_victory_next_btn.text = "▶ DEPLOY NEXT STAGE"
 
 	if _victory_overlay != null:
 		_victory_overlay.visible = true

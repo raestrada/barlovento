@@ -31,33 +31,79 @@ func setup_environment(include_diorama_fleets: bool = false) -> WorldEnvironment
 
 	var env := Environment.new()
 
-	if stage == "vinculados_stage_1":
-		sun.light_energy = 1.55
-		sun.light_color = Color(0.92, 0.95, 1.05)
-		rim_light.light_energy = 1.15
-		rim_light.light_color = Color(0.68, 0.38, 0.98) # Violet/cyan neural resonance
-		zenith_fill.light_energy = 0.85
-		zenith_fill.light_color = Color(0.45, 0.75, 0.95)
-		env.ambient_light_color = Color(0.28, 0.32, 0.55)
-		env.ambient_light_energy = 1.45
-	elif stage == "marea_stage_1":
-		sun.light_energy = 1.95
-		sun.light_color = Color(1.08, 0.92, 0.72) # Radiant golden solar flare
-		rim_light.light_energy = 1.10
-		rim_light.light_color = Color(0.25, 0.90, 1.0) # Rushing turquoise Éther current
-		zenith_fill.light_energy = 0.80
-		zenith_fill.light_color = Color(0.95, 0.82, 0.65)
-		env.ambient_light_color = Color(0.36, 0.42, 0.46)
-		env.ambient_light_energy = 1.50
-	else:
-		sun.light_energy = 1.65
-		sun.light_color = Color(1.0, 0.96, 0.90)
-		rim_light.light_energy = 0.88
-		rim_light.light_color = Color(0.45, 0.78, 0.96)
-		zenith_fill.light_energy = 0.75
-		zenith_fill.light_color = Color(0.80, 0.86, 0.95)
-		env.ambient_light_color = Color(0.32, 0.42, 0.56)
-		env.ambient_light_energy = 1.40
+	match stage:
+		"vinculados_stage_1":
+			sun.light_energy = 1.55
+			sun.light_color = Color(0.92, 0.95, 1.05)
+			rim_light.light_energy = 1.15
+			rim_light.light_color = Color(0.68, 0.38, 0.98) # Violet/cyan neural resonance
+			zenith_fill.light_energy = 0.85
+			zenith_fill.light_color = Color(0.45, 0.75, 0.95)
+			env.ambient_light_color = Color(0.28, 0.32, 0.55)
+			env.ambient_light_energy = 1.45
+		"vinculados_stage_2":
+			sun.light_energy = 1.45
+			sun.light_color = Color(0.85, 0.92, 1.10)
+			rim_light.light_energy = 1.25
+			rim_light.light_color = Color(0.40, 0.88, 1.0) # High-altitude crystal beam rim
+			zenith_fill.light_energy = 0.90
+			zenith_fill.light_color = Color(0.62, 0.45, 0.95)
+			env.ambient_light_color = Color(0.22, 0.26, 0.58)
+			env.ambient_light_energy = 1.50
+		"vinculados_stage_3":
+			sun.light_energy = 1.85
+			sun.light_color = Color(1.0, 0.96, 1.05)
+			rim_light.light_energy = 1.35
+			rim_light.light_color = Color(0.88, 0.25, 0.95) # Cosmic rift neural purple
+			zenith_fill.light_energy = 0.75
+			zenith_fill.light_color = Color(0.35, 0.85, 1.0)
+			env.ambient_light_color = Color(0.18, 0.16, 0.36)
+			env.ambient_light_energy = 1.35
+		"marea_stage_1":
+			sun.light_energy = 1.95
+			sun.light_color = Color(1.08, 0.92, 0.72) # Radiant golden solar flare
+			rim_light.light_energy = 1.10
+			rim_light.light_color = Color(0.25, 0.90, 1.0) # Rushing turquoise Éther current
+			zenith_fill.light_energy = 0.80
+			zenith_fill.light_color = Color(0.95, 0.82, 0.65)
+			env.ambient_light_color = Color(0.36, 0.42, 0.46)
+			env.ambient_light_energy = 1.50
+		"marea_stage_2":
+			sun.light_energy = 1.80
+			sun.light_color = Color(1.10, 0.78, 0.42) # Industrial furnace ambient
+			rim_light.light_energy = 1.05
+			rim_light.light_color = Color(0.30, 0.85, 0.95)
+			zenith_fill.light_energy = 0.90
+			zenith_fill.light_color = Color(1.0, 0.65, 0.28)
+			env.ambient_light_color = Color(0.38, 0.35, 0.38)
+			env.ambient_light_energy = 1.48
+		"marea_stage_3":
+			sun.light_energy = 2.15
+			sun.light_color = Color(1.15, 0.96, 0.82) # Blazing open sea solar corona
+			rim_light.light_energy = 1.25
+			rim_light.light_color = Color(0.20, 0.94, 1.0) # Convergent Maelstrom current
+			zenith_fill.light_energy = 0.85
+			zenith_fill.light_color = Color(0.85, 0.90, 1.0)
+			env.ambient_light_color = Color(0.32, 0.46, 0.58)
+			env.ambient_light_energy = 1.55
+		"acero_stage_3":
+			sun.light_energy = 1.70
+			sun.light_color = Color(1.02, 0.92, 0.84)
+			rim_light.light_energy = 1.20
+			rim_light.light_color = Color(0.78, 0.20, 0.92) # Calm threshold corruption rim
+			zenith_fill.light_energy = 0.65
+			zenith_fill.light_color = Color(0.65, 0.75, 0.90)
+			env.ambient_light_color = Color(0.18, 0.22, 0.35)
+			env.ambient_light_energy = 1.30
+		_:
+			sun.light_energy = 1.65
+			sun.light_color = Color(1.0, 0.96, 0.90)
+			rim_light.light_energy = 0.88
+			rim_light.light_color = Color(0.45, 0.78, 0.96)
+			zenith_fill.light_energy = 0.75
+			zenith_fill.light_color = Color(0.80, 0.86, 0.95)
+			env.ambient_light_color = Color(0.32, 0.42, 0.56)
+			env.ambient_light_energy = 1.40
 
 	add_child(sun)
 	add_child(rim_light)
@@ -132,12 +178,21 @@ func get_faction_focus_transform(faction_id: String, t: float) -> Dictionary:
 			return {"cam_pos": cam_pos, "look_at": look_target, "look_target": look_target}
 
 func _build_celestial_planetoid() -> void:
-	if LoreDB.current_stage_id == "vinculados_stage_1":
-		_build_salmo_planetoid()
-	elif LoreDB.current_stage_id == "marea_stage_1":
-		_build_sol_dorado()
-	else:
-		_build_anvil_planetoid()
+	match LoreDB.current_stage_id:
+		"vinculados_stage_1":
+			_build_salmo_planetoid()
+		"vinculados_stage_2":
+			_build_crystal_moon_planetoid()
+		"vinculados_stage_3":
+			_build_calm_abyss_planetoid()
+		"marea_stage_1":
+			_build_sol_dorado()
+		"marea_stage_2":
+			_build_smelter_forge_planetoid()
+		"marea_stage_3":
+			_build_grand_sol_corona()
+		_:
+			_build_anvil_planetoid()
 
 func _build_anvil_planetoid() -> void:
 	# Distant Forge-World "Anvil" with molten tectonic forge-rings & cyan atmospheric rim
@@ -309,6 +364,174 @@ func _build_sol_dorado() -> void:
 		rock.material_override = r_mat
 		_moon_pivot.add_child(rock)
 
+func _build_crystal_moon_planetoid() -> void:
+	# Crystalline Moon of Psalm-7 with orbiting halo ring of levitating crystal prisms
+	var c_root := Node3D.new()
+	c_root.name = "CrystalMoonPsalm7"
+	c_root.position = Vector3(-75.0, 42.0, -170.0)
+	add_child(c_root)
+
+	_planet_node = MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 24.0
+	sphere.height = 48.0
+	sphere.radial_segments = 36
+	sphere.rings = 18
+	(_planet_node as MeshInstance3D).mesh = sphere
+	var c_mat := StandardMaterial3D.new()
+	c_mat.albedo_color = Color(0.82, 0.88, 1.0)
+	c_mat.roughness = 0.25
+	c_mat.metallic = 0.35
+	c_mat.emission_enabled = true
+	c_mat.emission = Color(0.40, 0.70, 1.0)
+	c_mat.emission_energy_multiplier = 0.85
+	(_planet_node as MeshInstance3D).material_override = c_mat
+	c_root.add_child(_planet_node)
+
+	# Planetary Crystal Belt
+	_planet_ring = MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 32.0
+	torus.outer_radius = 46.0
+	torus.rings = 36
+	torus.ring_segments = 8
+	_planet_ring.mesh = torus
+	_planet_ring.scale = Vector3(1.0, 0.02, 1.0)
+	_planet_ring.rotation_degrees = Vector3(32.0, -25.0, 10.0)
+	var r_mat := StandardMaterial3D.new()
+	r_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	r_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	r_mat.albedo_color = Color(0.50, 0.85, 1.0, 0.40)
+	_planet_ring.material_override = r_mat
+	c_root.add_child(_planet_ring)
+
+	_moon_pivot = Node3D.new()
+	c_root.add_child(_moon_pivot)
+	for i in range(6):
+		var p_mesh := PrismMesh.new()
+		p_mesh.size = Vector3(2.0, 5.0, 2.0)
+		var p_inst := MeshInstance3D.new()
+		p_inst.mesh = p_mesh
+		var a := float(i) * (TAU / 6.0)
+		p_inst.position = Vector3(cos(a) * 52.0, sin(a) * 6.0, sin(a) * 52.0)
+		var p_mat := StandardMaterial3D.new()
+		p_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		p_mat.albedo_color = Color(0.70, 0.45, 1.0)
+		p_inst.material_override = p_mat
+		_moon_pivot.add_child(p_inst)
+
+func _build_calm_abyss_planetoid() -> void:
+	# The Calm Abyss & Ancient Genesis Ring Singularity Nexus
+	var abyss_root := Node3D.new()
+	abyss_root.name = "CalmAbyssNexus"
+	abyss_root.position = Vector3(0.0, 32.0, -185.0)
+	add_child(abyss_root)
+
+	_planet_node = MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 22.0
+	sphere.height = 44.0
+	sphere.radial_segments = 36
+	sphere.rings = 18
+	(_planet_node as MeshInstance3D).mesh = sphere
+	var abyss_mat := StandardMaterial3D.new()
+	abyss_mat.albedo_color = Color(0.02, 0.01, 0.04)
+	abyss_mat.roughness = 0.90
+	abyss_mat.rim_enabled = true
+	abyss_mat.rim = 1.0
+	abyss_mat.rim_tint = 0.95
+	abyss_mat.emission_enabled = true
+	abyss_mat.emission = Color(0.65, 0.15, 0.85)
+	abyss_mat.emission_energy_multiplier = 0.75
+	(_planet_node as MeshInstance3D).material_override = abyss_mat
+	abyss_root.add_child(_planet_node)
+
+	# Surrounding Genesis Ring
+	_planet_ring = MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 35.0
+	torus.outer_radius = 48.0
+	torus.rings = 48
+	torus.ring_segments = 12
+	_planet_ring.mesh = torus
+	_planet_ring.scale = Vector3(1.0, 0.04, 1.0)
+	_planet_ring.rotation_degrees = Vector3(15.0, 45.0, -20.0)
+	var ring_mat := StandardMaterial3D.new()
+	ring_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ring_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ring_mat.albedo_color = Color(0.35, 0.90, 1.0, 0.45)
+	_planet_ring.material_override = ring_mat
+	abyss_root.add_child(_planet_ring)
+
+func _build_smelter_forge_planetoid() -> void:
+	# Distant Industrial Smelter Forge World with molten red fissures
+	var forge_root := Node3D.new()
+	forge_root.name = "SmelterWorld"
+	forge_root.position = Vector3(-85.0, 36.0, -180.0)
+	add_child(forge_root)
+
+	_planet_node = MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 26.0
+	sphere.height = 52.0
+	sphere.radial_segments = 48
+	sphere.rings = 24
+	(_planet_node as MeshInstance3D).mesh = sphere
+	(_planet_node as MeshInstance3D).material_override = _create_planet_material()
+	forge_root.add_child(_planet_node)
+
+	_planet_ring = MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 34.0
+	torus.outer_radius = 46.0
+	torus.rings = 36
+	torus.ring_segments = 8
+	_planet_ring.mesh = torus
+	_planet_ring.scale = Vector3(1.0, 0.03, 1.0)
+	_planet_ring.rotation_degrees = Vector3(-18.0, 30.0, 12.0)
+	var r_mat := StandardMaterial3D.new()
+	r_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	r_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	r_mat.albedo_color = Color(1.0, 0.45, 0.12, 0.35)
+	_planet_ring.material_override = r_mat
+	forge_root.add_child(_planet_ring)
+
+func _build_grand_sol_corona() -> void:
+	# Colossal Radiant Golden Sol Corona // The Open Star Sea
+	var sol_root := Node3D.new()
+	sol_root.name = "GrandSolCorona"
+	sol_root.position = Vector3(82.0, 50.0, -165.0)
+	add_child(sol_root)
+
+	_planet_node = MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 36.0
+	sphere.height = 72.0
+	sphere.radial_segments = 48
+	sphere.rings = 24
+	(_planet_node as MeshInstance3D).mesh = sphere
+	var sun_mat := StandardMaterial3D.new()
+	sun_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	sun_mat.albedo_color = Color(1.25, 0.95, 0.55)
+	(_planet_node as MeshInstance3D).material_override = sun_mat
+	sol_root.add_child(_planet_node)
+
+	_planet_ring = MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 46.0
+	torus.outer_radius = 70.0
+	torus.rings = 48
+	torus.ring_segments = 12
+	_planet_ring.mesh = torus
+	_planet_ring.scale = Vector3(1.0, 0.05, 1.0)
+	_planet_ring.rotation_degrees = Vector3(-24.0, 35.0, 15.0)
+	var ring_mat := StandardMaterial3D.new()
+	ring_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ring_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ring_mat.albedo_color = Color(1.0, 0.80, 0.32, 0.50)
+	_planet_ring.material_override = ring_mat
+	sol_root.add_child(_planet_ring)
+
 func _build_volumetric_ether_ribbons() -> void:
 	# Undulating 3D rivers of luminous cyan Éther flowing across the sector
 	var configs := [
@@ -319,6 +542,13 @@ func _build_volumetric_ether_ribbons() -> void:
 	if LoreDB.current_stage_id == "marea_stage_1":
 		# High-velocity "El Río del Viento" running straight through the Basalt Narrows canyon
 		configs.append({"pos": Vector3(0.0, -2.0, 0.0), "rot": Vector3(0.0, 0.0, 0.0), "w": 26.0, "len": 320.0})
+	elif LoreDB.current_stage_id == "marea_stage_3":
+		# Triple converging ribbons forming the Maelstrom vortex
+		configs.append({"pos": Vector3(-20.0, 0.0, 0.0), "rot": Vector3(0.0, 35.0, 0.0), "w": 24.0, "len": 340.0})
+		configs.append({"pos": Vector3(20.0, 0.0, 0.0), "rot": Vector3(0.0, -35.0, 0.0), "w": 24.0, "len": 340.0})
+	elif LoreDB.current_stage_id == "vinculados_stage_2":
+		# Vertical chasm ribbon running along the trench
+		configs.append({"pos": Vector3(0.0, 4.0, 0.0), "rot": Vector3(15.0, 0.0, 0.0), "w": 22.0, "len": 300.0})
 
 	var mat := _create_ribbon_material()
 	for cfg in configs:

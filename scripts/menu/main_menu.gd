@@ -773,55 +773,10 @@ func _select_faction_and_open_briefing(fac_id: String) -> void:
             _populate_acero_stage_briefing("acero_stage_1")
 
         "vinculados":
-            LoreDB.current_stage_id = "vinculados_stage_1"
-            var v_btn := Button.new()
-            v_btn.text = "STAGE 01 [TUTORIAL]: SANCTUARY SPIRE"
-            v_btn.custom_minimum_size = Vector2(230, 32)
-            v_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
-            _stage_selector_row.add_child(v_btn)
-
-            _briefing_title_lbl.text = "ACT II // STAGE 01 [TUTORIAL]: DEFENSE OF SANCTUARY SPIRE PSALM-4"
-            _briefing_sub_lbl.text = "FACTION: THE VINCULADOS // HARMONIC DEFENSE & STERN RAKE TUTORIAL"
-            _briefing_art_rect.texture = load("res://assets/factions/card_vinculados.png")
-            _commander_portrait_rect.texture = load("res://assets/heroes/ace_kaelen.png")
-            _commander_name_lbl.text = "ACE PILOT KAELEN-7"
-            _commander_role_lbl.text = "Lead Resonance Choir // Eidolon Ace Platoon"
-            _commander_quote_lbl.text = "\"Welcome to the Choir Wing, pilot. The Acero extraction force is encroaching upon Sanctuary Spire Psalm-4 to harvest its sacred harmonic crystals. Synchronize your neural frame with the Éther: our mobile suit platoons dance around their clumsy broadsides. Shield the Carrier Cradle, out-pivot their bulk, and strike their unarmored thrusters with critical Stern Rakes!\""
-            _objectives_lbl.text = """◆ TUTORIAL DRILL 1 (SANCTUARY DEFENSE): Protect the levitating resonance crystals of Sanctuary Spire Psalm-4.
-◆ TUTORIAL DRILL 2 (MECHA MOBILITY & STERN RAKE): Use agile vector turns to slip behind Acero hulls (+40% critical damage).
-◆ PRIMARY OBJECTIVE: Intercept and neutralize the Acero strike force (CNS Hammer of Anvil, CNS Vanguard-03).
-◆ SECONDARY OBJECTIVE: Keep the Carrier Ark (Sanktuario Albor) operational."""
-            _add_squadron_row("vinculados_cradle", "Sanktuario Albor", "Cradle-Class Carrier Ark • Conductor Seraph-2", "HP 250 | SPD 19 m/s | Spinal Resonance Mega-Beam & PD Lasers")
-            _add_squadron_row("vinculados_suit", "Eidolon Ace Wing", "Eidolon Mobile Suit Platoon • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Trio Formation, Beam Carbine & Shield")
-            _add_squadron_row("vinculados_anima", "Anima-01 Interceptor Wing", "Anima Strike Platoon • Ace Mirei-4", "HP 115 | SPD 36 m/s | High-Speed Echelon Trio & Flank Intercept")
-            if _launch_stage_btn != null:
-                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
+            _populate_vinculados_stage_briefing("vinculados_stage_1")
 
         "marea_libre":
-            LoreDB.current_stage_id = "marea_stage_1"
-            var m_btn := Button.new()
-            m_btn.text = "STAGE 01 [TUTORIAL]: THE BASALT NARROWS"
-            m_btn.custom_minimum_size = Vector2(250, 32)
-            m_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
-            _stage_selector_row.add_child(m_btn)
-
-            _briefing_title_lbl.text = "ACT III // STAGE 01 [TUTORIAL]: RUNNING THE BASALT NARROWS"
-            _briefing_sub_lbl.text = "FACTION: THE FREE TIDE // CANYON GORGE RUN & BARLOVENTO TUTORIAL"
-            _briefing_art_rect.texture = load("res://assets/factions/card_marea.png")
-            _commander_portrait_rect.texture = load("res://assets/heroes/ace_solano.png")
-            _commander_name_lbl.text = "CAPTAIN SOLANO"
-            _commander_role_lbl.text = "Corsair Flagship // Viento Rojo"
-            _commander_quote_lbl.text = "\"Listen up, sea dogs! We're navigating the Basalt Narrows—a treacherous asteroid gorge where Acero pickets try to box us in. Ride the raging cyan rush of El Río del Viento, claim the Weather-Gauge [BARLOVENTO], and smash their blockade with crushing broadside volleys!\""
-            _objectives_lbl.text = """◆ TUTORIAL DRILL 1 (THE BASALT NARROWS): Navigate the dense canyon gorge; don't collide with basalt spires.
-◆ TUTORIAL DRILL 2 (EL RÍO DEL VIENTO): Catch the high-velocity Éther stream for massive forward speed boosts.
-◆ TUTORIAL DRILL 3 (WEATHER-GAUGE [BARLOVENTO]): Attack from upwind for +12% Hit accuracy, unleashing +18% port/starboard broadsides.
-◆ PRIMARY OBJECTIVE: Break through the Acero blockade picket (CNS Hammer of Anvil, CNS Vanguard-03) and secure the Corsair Haven.
-◆ SECONDARY OBJECTIVE: Keep Corsair Flagship Viento Rojo afloat."""
-            _add_squadron_row("marea_galleon", "Viento Rojo", "Corsair Void-Galleon • Capt. Solano", "HP 300 | RNG 50m | Quantum Sails & Broadsides")
-            _add_squadron_row("marea_raider", "La Descarada", "Corsair Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
-            _add_squadron_row("marea_brigantine", "Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
-            if _launch_stage_btn != null:
-                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
+            _populate_marea_stage_briefing("marea_stage_1")
 
     _switch_view(MenuView.BRIEFING)
 
@@ -895,6 +850,159 @@ func _populate_acero_stage_briefing(stage_id: String) -> void:
     _add_squadron_row("acero_dreadnought", "CNS Iron Bastion", "Anvil-Class Dreadnought • Adm. Vane", "HP 380 | RNG 58m | Forward & Broadside Batteries")
     _add_squadron_row("acero_battlecruiser", "CNS Hammer of Anvil", "Hammer-Class Battlecruiser • Capt. Korr", "HP 260 | RNG 52m | Twin Spinal Railguns")
     _add_squadron_row("acero_corvette", "CNS Vanguard-03", "Chisel-Class Escort Corvette • Lt. Drake", "HP 150 | RNG 44m | High-Speed Flank Screen")
+
+func _populate_vinculados_stage_briefing(stage_id: String) -> void:
+    LoreDB.current_stage_id = stage_id
+
+    for child in _stage_selector_row.get_children():
+        child.queue_free()
+    for child in _squadron_vbox.get_children():
+        child.queue_free()
+
+    var stages := [
+        {"id": "vinculados_stage_1", "label": "STAGE 01 [TUTORIAL]: SANCTUARY SPIRE"},
+        {"id": "vinculados_stage_2", "label": "STAGE 02: CRYSTAL CHASM"},
+        {"id": "vinculados_stage_3", "label": "STAGE 03: GENESIS RING"}
+    ]
+    for st_info in stages:
+        var sid: String = st_info["id"]
+        var cleared := SaveManager.is_stage_completed(sid)
+        var btn := Button.new()
+        btn.text = ("%s ✓" % st_info["label"]) if cleared else String(st_info["label"])
+        btn.custom_minimum_size = Vector2(195, 32)
+        if sid == stage_id:
+            btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+        elif cleared:
+            btn.add_theme_color_override("font_color", Color(0.35, 1.0, 0.65))
+        btn.pressed.connect(func() -> void:
+            AudioManager.play_sfx("ui_click", -8.0)
+            _populate_vinculados_stage_briefing(sid)
+        )
+        _stage_selector_row.add_child(btn)
+
+    _briefing_art_rect.texture = load("res://assets/factions/card_vinculados.png")
+    _commander_portrait_rect.texture = load("res://assets/heroes/ace_kaelen.png")
+    _commander_name_lbl.text = "ACE PILOT KAELEN-7"
+    _commander_role_lbl.text = "Lead Resonance Choir // Eidolon Ace Platoon"
+
+    match stage_id:
+        "vinculados_stage_2":
+            _briefing_title_lbl.text = "ACT II // STAGE 02: DIVE INTO THE CRYSTAL CHASM"
+            _briefing_sub_lbl.text = "FACTION: THE VINCULADOS // VERTICAL ADVANTAGE & DIVE BOMBER TACTICS"
+            _commander_quote_lbl.text = "\"Imperial dreadnoughts are crawling through the deep basalt canyon below to sever our crystal conduits. We hold the high celestial ground (+16m altitude advantage). Dive upon their top decks where their armor is weakest! Let the Éther currents carry your beam carbines straight through their reactors!\""
+            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Dive from upper celestial ledge (+16m) and destroy all 3 Acero warships traversing the chasm trench below.
+◆ SECONDARY OBJECTIVE: Ensure Cradle Carrier Sanktuario Albor survives.
+◆ VERTICAL ADVANTAGE DOCTRINE: Firing down on lower altitude targets bypasses heavy belt armor, striking vulnerable deck plate (+20% Critical Hit)."""
+            _add_squadron_row("vinculados_cradle", "Sanktuario Albor", "Cradle-Class Carrier Ark • Conductor Seraph-2", "HP 250 | SPD 19 m/s | Spinal Resonance Mega-Beam & PD Lasers")
+            _add_squadron_row("vinculados_suit", "Eidolon Ace Wing", "Eidolon Mobile Suit Platoon • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Trio Formation, Beam Carbine & Shield")
+            _add_squadron_row("vinculados_anima", "Anima-01 Interceptor Wing", "Anima Strike Platoon • Ace Mirei-4", "HP 115 | SPD 36 m/s | High-Speed Echelon Trio & Flank Intercept")
+            if _launch_stage_btn != null:
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 02"
+        "vinculados_stage_3":
+            _commander_portrait_rect.texture = load("res://assets/heroes/ace_vael.png")
+            _commander_name_lbl.text = "ACE PILOT VAEL-09"
+            _commander_role_lbl.text = "Nous Frame Synchronizer // Transcendence Gate"
+            _briefing_title_lbl.text = "ACT II // STAGE 03: THE GENESIS RING // TRANSCENDENCE"
+            _briefing_sub_lbl.text = "FACTION: THE VINCULADOS // NOUS FRAME ACTIVATION & GATE DEFENSE"
+            _commander_quote_lbl.text = "\"The Calm has reached the outer perimeter of the Star Sea. The ancient Genesis Ring is our final hope to open the gateway to transcendence before the Éther fades forever. Ace Vael has synchronized with the legendary Nous-09 frame. Hold the gate ring against the combined Acero and renegade corsair assault!\""
+            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Defeat the reinforced Acero-Corsair assault fleet at the Genesis Ring.
+◆ SECONDARY OBJECTIVE: Ensure Carrier Sanktuario Albor and the Genesis Ring are protected.
+◆ PINNACLE ACE FRAME: Deploy the legendary Nous frame wielding autonomous resonance funnels and the Transcendent Mega-Buster!"""
+            _add_squadron_row("vinculados_cradle", "Sanktuario Albor", "Cradle-Class Carrier Ark • Conductor Seraph-2", "HP 250 | SPD 19 m/s | Spinal Resonance Mega-Beam & PD Lasers")
+            _add_squadron_row("vinculados_nous", "Nous Transcendent Frame", "Prototype Transcendent Ace Frame • Ace Vael-09", "HP 220 | SPD 32 m/s | Autonomous Fin Funnels & Mega-Buster Beam")
+            _add_squadron_row("vinculados_suit", "Eidolon Ace Wing", "Eidolon Mobile Suit Platoon • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Trio Formation, Beam Carbine & Shield")
+            if _launch_stage_btn != null:
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 03"
+        _:
+            _briefing_title_lbl.text = "ACT II // STAGE 01 [TUTORIAL]: DEFENSE OF SANCTUARY SPIRE PSALM-4"
+            _briefing_sub_lbl.text = "FACTION: THE VINCULADOS // HARMONIC DEFENSE & STERN RAKE TUTORIAL"
+            _commander_quote_lbl.text = "\"Welcome to the Choir Wing, pilot. The Acero extraction force is encroaching upon Sanctuary Spire Psalm-4 to harvest its sacred harmonic crystals. Synchronize your neural frame with the Éther: our mobile suit platoons dance around their clumsy broadsides. Shield the Carrier Cradle, out-pivot their bulk, and strike their unarmored thrusters with critical Stern Rakes!\""
+            _objectives_lbl.text = """◆ TUTORIAL DRILL 1 (SANCTUARY DEFENSE): Protect the levitating resonance crystals of Sanctuary Spire Psalm-4.
+◆ TUTORIAL DRILL 2 (MECHA MOBILITY & STERN RAKE): Use agile vector turns to slip behind Acero hulls (+40% critical damage).
+◆ PRIMARY OBJECTIVE: Intercept and neutralize the Acero strike force (CNS Hammer of Anvil, CNS Vanguard-03).
+◆ SECONDARY OBJECTIVE: Keep the Carrier Ark (Sanktuario Albor) operational."""
+            _add_squadron_row("vinculados_cradle", "Sanktuario Albor", "Cradle-Class Carrier Ark • Conductor Seraph-2", "HP 250 | SPD 19 m/s | Spinal Resonance Mega-Beam & PD Lasers")
+            _add_squadron_row("vinculados_suit", "Eidolon Ace Wing", "Eidolon Mobile Suit Platoon • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Trio Formation, Beam Carbine & Shield")
+            _add_squadron_row("vinculados_anima", "Anima-01 Interceptor Wing", "Anima Strike Platoon • Ace Mirei-4", "HP 115 | SPD 36 m/s | High-Speed Echelon Trio & Flank Intercept")
+            if _launch_stage_btn != null:
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
+
+func _populate_marea_stage_briefing(stage_id: String) -> void:
+    LoreDB.current_stage_id = stage_id
+
+    for child in _stage_selector_row.get_children():
+        child.queue_free()
+    for child in _squadron_vbox.get_children():
+        child.queue_free()
+
+    var stages := [
+        {"id": "marea_stage_1", "label": "STAGE 01 [TUTORIAL]: BASALT NARROWS"},
+        {"id": "marea_stage_2", "label": "STAGE 02: FOUNDRY VULCAN-3"},
+        {"id": "marea_stage_3", "label": "STAGE 03: THE MAELSTROM"}
+    ]
+    for st_info in stages:
+        var sid: String = st_info["id"]
+        var cleared := SaveManager.is_stage_completed(sid)
+        var btn := Button.new()
+        btn.text = ("%s ✓" % st_info["label"]) if cleared else String(st_info["label"])
+        btn.custom_minimum_size = Vector2(195, 32)
+        if sid == stage_id:
+            btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+        elif cleared:
+            btn.add_theme_color_override("font_color", Color(0.35, 1.0, 0.65))
+        btn.pressed.connect(func() -> void:
+            AudioManager.play_sfx("ui_click", -8.0)
+            _populate_marea_stage_briefing(sid)
+        )
+        _stage_selector_row.add_child(btn)
+
+    _briefing_art_rect.texture = load("res://assets/factions/card_marea.png")
+    _commander_portrait_rect.texture = load("res://assets/heroes/ace_solano.png")
+    _commander_name_lbl.text = "CAPTAIN SOLANO"
+    _commander_role_lbl.text = "Corsair Flagship // Viento Rojo"
+
+    match stage_id:
+        "marea_stage_2":
+            _briefing_title_lbl.text = "ACT III // STAGE 02: RAID ON FOUNDRY COMPLEX VULCAN-3"
+            _briefing_sub_lbl.text = "FACTION: THE FREE TIDE // INDUSTRIAL RAID & CHOKEPOINT AMBUSH"
+            _commander_quote_lbl.text = "\"Well done through the narrows! Now we strike the Imperial heart. The Acero smelter refinery Vulcan-3 is pumping stolen Éther into heavy battlecruisers. Slip behind the smelter platforms, use the industrial pylons as cover against their long-range railguns, and board their supply silos!\""
+            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Destroy the Acero defense garrison (CNS Hammer of Anvil, 2 Escort Corvettes) guarding Smelter Vulcan-3.
+◆ SECONDARY OBJECTIVE: Ensure Corsair Flagship Viento Rojo survives the raid.
+◆ TERRAIN ADVANTAGE: Industrial refinery gantries and slag funnels block direct railgun lines-of-fire."""
+            _add_squadron_row("marea_galleon", "Viento Rojo", "Corsair Void-Galleon • Capt. Solano", "HP 300 | RNG 50m | Quantum Sails & Broadsides")
+            _add_squadron_row("marea_brigantine", "Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
+            _add_squadron_row("marea_raider", "La Descarada", "Corsair Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
+            if _launch_stage_btn != null:
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 02"
+        "marea_stage_3":
+            _briefing_title_lbl.text = "ACT III // STAGE 03: THE MAELSTROM OF BARLOVENTO"
+            _briefing_sub_lbl.text = "FACTION: THE FREE TIDE // THE GREAT SOL CORONA & STORM SURFING"
+            _commander_quote_lbl.text = "\"Look at the sky, corsairs! The Great Sol Corona is whipping the Éther into the mother of all storms—the Maelstrom of Barlovento! The Armada's supreme dreadnought thought they could corner us here, but they don't know how to dance with the wind! Unfurl every quantum sail! Catch the vortex, claim the Weather-Gauge, and blast them into cosmic dust!\""
+            _objectives_lbl.text = """◆ PRIMARY OBJECTIVE: Annihilate the Imperial Supreme Suppression Battlegroup (Flagship Dreadnought, Battlecruiser, captured Mecha).
+◆ SECONDARY OBJECTIVE: Ensure Flagship Viento Rojo survives the final storm engagement.
+◆ 4-SHIP CORSAIR FLOTILLA: Command a reinforced strike group including the legendary raider 'Viento Furioso'!
+◆ MAELSTROM WINDS: High-velocity orbital currents grant unmatched drift speed and maximum Barlovento broadside modifiers!"""
+            _add_squadron_row("marea_galleon", "Viento Rojo", "Corsair Void-Galleon • Capt. Solano", "HP 360 | RNG 50m | Quantum Sails & Heavy Broadsides")
+            _add_squadron_row("marea_brigantine", "Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
+            _add_squadron_row("marea_raider", "La Descarada", "Corsair Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
+            _add_squadron_row("marea_raider", "Viento Furioso", "Corsair Strike Raider • Bosun Drake", "HP 210 | RNG 46m | High-Velocity Skirmisher")
+            if _launch_stage_btn != null:
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 03"
+        _:
+            _briefing_title_lbl.text = "ACT III // STAGE 01 [TUTORIAL]: RUNNING THE BASALT NARROWS"
+            _briefing_sub_lbl.text = "FACTION: THE FREE TIDE // CANYON GORGE RUN & BARLOVENTO TUTORIAL"
+            _commander_quote_lbl.text = "\"Listen up, sea dogs! We're navigating the Basalt Narrows—a treacherous asteroid gorge where Acero pickets try to box us in. Ride the raging cyan rush of El Río del Viento, claim the Weather-Gauge [BARLOVENTO], and smash their blockade with crushing broadside volleys!\""
+            _objectives_lbl.text = """◆ TUTORIAL DRILL 1 (THE BASALT NARROWS): Navigate the dense canyon gorge; don't collide with basalt spires.
+◆ TUTORIAL DRILL 2 (EL RÍO DEL VIENTO): Catch the high-velocity Éther stream for massive forward speed boosts.
+◆ TUTORIAL DRILL 3 (WEATHER-GAUGE [BARLOVENTO]): Attack from upwind for +12% Hit accuracy, unleashing +18% port/starboard broadsides.
+◆ PRIMARY OBJECTIVE: Break through the Acero blockade picket (CNS Hammer of Anvil, CNS Vanguard-03) and secure the Corsair Haven.
+◆ SECONDARY OBJECTIVE: Keep Corsair Flagship Viento Rojo afloat."""
+            _add_squadron_row("marea_galleon", "Viento Rojo", "Corsair Void-Galleon • Capt. Solano", "HP 300 | RNG 50m | Quantum Sails & Broadsides")
+            _add_squadron_row("marea_raider", "La Descarada", "Corsair Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
+            _add_squadron_row("marea_brigantine", "Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
+            if _launch_stage_btn != null:
+                _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
+
 
 func _add_squadron_row(ship_id: String, unit_name: String, role_str: String, stats_str: String) -> void:
     var panel := PanelContainer.new()

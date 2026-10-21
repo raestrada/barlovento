@@ -114,8 +114,16 @@ func get_next_stage_id(stage_id: String) -> String:
             return ""
         "vinculados_stage_1":
             return "vinculados_stage_2"
+        "vinculados_stage_2":
+            return "vinculados_stage_3"
+        "vinculados_stage_3":
+            return ""
         "marea_stage_1":
             return "marea_stage_2"
+        "marea_stage_2":
+            return "marea_stage_3"
+        "marea_stage_3":
+            return ""
         _:
             return ""
 
