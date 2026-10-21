@@ -165,7 +165,7 @@ func _build_ui() -> void:
     util_vbox.add_theme_constant_override("separation", 2)
     dock_row.add_child(util_vbox)
 
-    var btn_focus := _make_util_btn("⌖", "Focus Camera on Active Ship [V]", func() -> void: focus_camera_pressed.emit())
+    var btn_focus := _make_util_btn("⌖", "Zoom & Focus Camera on Active Unit [V / F]", func() -> void: focus_camera_pressed.emit())
     var btn_grid := _make_util_btn("⊞", "Toggle 3D Tactical Grid [G]", func() -> void: toggle_grid_pressed.emit())
     var btn_roster := _make_util_btn("★", "Open Hero Ace Roster [R]", func() -> void: open_roster_pressed.emit())
     util_vbox.add_child(btn_focus)

@@ -218,9 +218,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			_tactical_grid.visible = not _tactical_grid.visible
 		return
 	if event.is_action_pressed("focus_ship"):
-		if _selected_ship != null and _camera_rig != null:
-			_camera_rig.focus_on(_selected_ship.global_position)
+		_zoom_to_selected_ship()
 		return
+
+func _zoom_to_selected_ship() -> void:
+	if _selected_ship == null or _camera_rig == null:
+		return
+	var is_mecha: bool = (_selected_ship.faction == "vinculados" and _selected_ship.ship_id != "vinculados_cradle")
+	_camera_rig.focus_on_ship(_selected_ship.global_position, is_mecha, true)
 
 	if not TurnManager.is_resolving():
 		if event.is_action_pressed("cycle"):
@@ -711,12 +716,15 @@ func _on_ship_clicked(clicked_ship: Ship) -> void:
 		_refresh_fleet_panel()
 		_add_combat_log("Hostile targeted: %s [%s]" % [clicked_ship.ship_name, clicked_ship.pilot_name], Color(1.0, 0.65, 0.3))
 	else:
-		_set_selected(clicked_ship)
-		_add_combat_log("Selected unit: %s" % clicked_ship.ship_name, Color(0.35, 1.0, 0.6))
-		if _admiral_chart != null and _admiral_chart.visible:
-			var s_idx := _player_ships.find(clicked_ship)
-			if s_idx != -1:
-				_admiral_chart.set_selected_unit(s_idx)
+		if _selected_ship == clicked_ship:
+			_zoom_to_selected_ship()
+		else:
+			_set_selected(clicked_ship)
+			_add_combat_log("Selected unit: %s" % clicked_ship.ship_name, Color(0.35, 1.0, 0.6))
+			if _admiral_chart != null and _admiral_chart.visible:
+				var s_idx := _player_ships.find(clicked_ship)
+				if s_idx != -1:
+					_admiral_chart.set_selected_unit(s_idx)
 
 func _on_ship_right_clicked(clicked_ship: Ship) -> void:
 	if clicked_ship.team == 1:
@@ -2724,10 +2732,7 @@ func _build_hud() -> void:
 	_order_panel.engage_ace_pressed.connect(_engage_ace_mode)
 	_order_panel.execute_turn_pressed.connect(_execute_current_phase)
 	_order_panel.formation_pressed.connect(_align_fleet_formation)
-	_order_panel.focus_camera_pressed.connect(func() -> void:
-		if _selected_ship != null and _camera_rig != null:
-			_camera_rig.focus_on(_selected_ship.global_position)
-	)
+	_order_panel.focus_camera_pressed.connect(_zoom_to_selected_ship)
 	_order_panel.toggle_grid_pressed.connect(func() -> void:
 		if _tactical_grid != null:
 			_tactical_grid.visible = not _tactical_grid.visible
@@ -3299,8 +3304,9 @@ Space              Execute simultaneous WEGO turn
 CAMERA & BATTLEFIELD:
 Left/Middle Drag   Pan battlefield plane
 Right-Click Drag   Orbit tactical camera
-Mouse Wheel        Zoom in / out
-V                  Focus camera on selected ship
+Mouse Wheel        Smooth zoom in / out (close inspection down to 2.8m)
+V / F              Zoom in close to unit / toggle tactical overview
+Click Selected     Zoom camera directly to unit
 G                  Toggle 3D tactical grid & altitude stems"""
 	col2_text.add_theme_font_size_override("font_size", 11)
 	col2_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -3553,7 +3559,7 @@ func _setup_input_actions() -> void:
 	_add_action("resolve", [KEY_SPACE])
 	_add_action("cycle", [KEY_TAB])
 	_add_action("stop", [KEY_X])
-	_add_action("focus_ship", [KEY_V])
+	_add_action("focus_ship", [KEY_V, KEY_F])
 	_add_action("toggle_grid", [KEY_G])
 	_add_action("help", [KEY_H, KEY_ESCAPE])
 	_add_action("toggle_roster", [KEY_R])

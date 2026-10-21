@@ -379,12 +379,13 @@ static func _build_vinculados_carrier(ship: Ship, root: Node3D, thrusters: Array
 static func _build_vinculados_platoon(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
     var s := ship.body_size
     # 3 Agile Mobile Suits per tactical unit in tight echelon flight formation
+    # Scaled up for tactical readability and detailed close inspection
     # 1. Lead Suit (Commander / Ace)
-    _build_mobile_suit(root, 0.44, true, ship.ship_id, thrusters, 0.0, Vector3(0.0, 0.0, -s.z * 0.12), Vector3.ZERO)
+    _build_mobile_suit(root, 1.25, true, ship.ship_id, thrusters, 0.0, Vector3(0.0, 0.0, -1.35), Vector3.ZERO)
     # 2. Port Wingman (Left Escort)
-    _build_mobile_suit(root, 0.38, false, ship.ship_id, thrusters, 1.85, Vector3(-s.x * 0.52, s.y * 0.16, s.z * 0.22), Vector3(0.0, -5.0, 3.0))
+    _build_mobile_suit(root, 1.05, false, ship.ship_id, thrusters, 1.85, Vector3(-1.85, 0.45, 1.15), Vector3(0.0, -6.0, 4.0))
     # 3. Starboard Wingman (Right Escort)
-    _build_mobile_suit(root, 0.38, false, ship.ship_id, thrusters, 3.70, Vector3(s.x * 0.52, -s.y * 0.14, s.z * 0.26), Vector3(0.0, 5.0, -3.0))
+    _build_mobile_suit(root, 1.05, false, ship.ship_id, thrusters, 3.70, Vector3(1.85, -0.38, 1.35), Vector3(0.0, 6.0, -4.0))
 
 static func _build_mobile_suit(
     parent: Node3D,
@@ -398,6 +399,8 @@ static func _build_mobile_suit(
 ) -> void:
     var suit := GundamSuitNode.new()
     suit.phase_offset = phase_seed
+    suit.sway_amplitude = 0.16
+    suit.bank_amplitude = 2.4
     suit.position = offset_pos
     suit.rotation_degrees = base_rot
     suit.scale = Vector3(suit_scale, suit_scale, suit_scale)

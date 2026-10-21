@@ -3,11 +3,11 @@ extends Node3D
 
 @export var target: Vector3 = Vector3.ZERO
 @export var distance: float = 65.0
-@export var min_distance: float = 12.0
+@export var min_distance: float = 2.8
 @export var max_distance: float = 350.0
 @export var yaw_speed: float = 0.005
 @export var pitch_speed: float = 0.005
-@export var zoom_speed: float = 1.15
+@export var zoom_speed: float = 1.20
 @export var pan_speed: float = 0.0018
 @export var min_pitch: float = -1.52
 @export var max_pitch: float = 1.52
@@ -28,6 +28,7 @@ func _ready() -> void:
     _camera.name = "Camera3D"
     _camera.current = true
     _camera.fov = 55.0
+    _camera.near = 0.1
     add_child(_camera)
 
     _target_position = target
@@ -37,6 +38,20 @@ func _ready() -> void:
 
 func focus_on(pos: Vector3) -> void:
     _target_position = pos
+
+func focus_on_ship(pos: Vector3, is_mecha: bool = false, toggle_zoom: bool = true) -> void:
+    _target_position = pos
+    if toggle_zoom:
+        var close_dist: float = 7.5 if is_mecha else 14.0
+        # If already zoomed in on this target, toggle back out to tactical overview
+        if _target_distance < 20.0 and target.distance_to(pos) < 6.0:
+            _target_distance = 55.0
+        else:
+            _target_distance = close_dist
+
+func zoom_to_unit(pos: Vector3, is_mecha: bool = false) -> void:
+    _target_position = pos
+    _target_distance = 7.5 if is_mecha else 14.0
 
 func set_view_target(pos: Vector3, dist: float, pitch_val: float, yaw_val: float) -> void:
     _target_position = pos
