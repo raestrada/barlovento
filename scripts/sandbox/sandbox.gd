@@ -221,12 +221,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_zoom_to_selected_ship()
 		return
 
-func _zoom_to_selected_ship() -> void:
-	if _selected_ship == null or _camera_rig == null:
-		return
-	var is_mecha: bool = (_selected_ship.faction == "vinculados" and _selected_ship.ship_id != "vinculados_cradle")
-	_camera_rig.focus_on_ship(_selected_ship.global_position, is_mecha, true)
-
 	if not TurnManager.is_resolving():
 		if event.is_action_pressed("cycle"):
 			_cycle_selection()
@@ -261,6 +255,12 @@ func _zoom_to_selected_ship() -> void:
 			elif event is InputEventKey and event.keycode == KEY_X:
 				_tutorial_banner.visible = false
 				_add_combat_log("🎓 Tutorial guide dismissed. Press [T] to re-open.", Color(0.4, 0.9, 1.0))
+
+func _zoom_to_selected_ship() -> void:
+	if _selected_ship == null or _camera_rig == null:
+		return
+	var is_mecha: bool = (_selected_ship.faction == "vinculados" and _selected_ship.ship_id != "vinculados_cradle")
+	_camera_rig.focus_on_ship(_selected_ship.global_position, is_mecha, true)
 
 func _apply_mouse_vector_steering(screen_pos: Vector2, play_feedback: bool) -> void:
 	if _selected_ship == null or _selected_ship.is_destroyed():
