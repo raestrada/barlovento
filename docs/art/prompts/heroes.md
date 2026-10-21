@@ -9,6 +9,9 @@
 - `assets/heroes/ace_moreau.png` — Captain Moreau (The Free Tide, *Brisa Negra*)
 - `assets/heroes/ace_kaelen.png` — Ace Pilot Kaelen-7 (The Vinculados, *Eidolon Prime*)
 - `assets/heroes/ace_mirei.png` — Ace Pilot Mirei-4 (The Vinculados, *Anima-01 Aria*)
+- `assets/heroes/ace_orin.png` — Ace Pilot Orin-9 (The Vinculados, *Nous Heavy Assault*)
+- `assets/heroes/ace_tarek.png` — Fleet Admiral Tarek (Armada of Acero, *CNS Crucible*)
+- `assets/heroes/ace_marina.png` — Commodore Marina "La Tormenta" (The Free Tide, *El Huracán*)
 
 **Aspect ratio:** 1:1 (Square HUD / Roster Portrait)
 

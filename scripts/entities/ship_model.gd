@@ -228,10 +228,19 @@ static func _build_acero(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> 
 # ---------------------------------------------------------------------------
 
 static func _build_vinculados(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
-    if ship.ship_id == "vinculados_cradle":
-        _build_vinculados_carrier(ship, root, thrusters)
-    else:
-        _build_vinculados_platoon(ship, root, thrusters)
+    match ship.ship_id:
+        "vinculados_cradle":
+            _build_vinculados_carrier(ship, root, thrusters)
+        "vinculados_colossus":
+            _build_vinculados_colossus_mobile_armor(ship, root, thrusters)
+        "vinculados_aegis":
+            _build_vinculados_aegis_mobile_armor(ship, root, thrusters)
+        "vinculados_psyche":
+            _build_vinculados_diamond_squad(ship, root, thrusters)
+        "vinculados_chorus":
+            _build_vinculados_swarm_echelon(ship, root, thrusters)
+        _:
+            _build_vinculados_platoon(ship, root, thrusters)
 
 static func _build_vinculados_carrier(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
     var s := ship.body_size
@@ -386,6 +395,108 @@ static func _build_vinculados_platoon(ship: Ship, root: Node3D, thrusters: Array
     _build_mobile_suit(root, 1.05, false, ship.ship_id, thrusters, 1.85, Vector3(-1.85, 0.45, 1.15), Vector3(0.0, -6.0, 4.0))
     # 3. Starboard Wingman (Right Escort)
     _build_mobile_suit(root, 1.05, false, ship.ship_id, thrusters, 3.70, Vector3(1.85, -0.38, 1.35), Vector3(0.0, 6.0, -4.0))
+
+static func _build_vinculados_colossus_mobile_armor(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
+    var s := ship.body_size
+    var ceramic := _textured(load(VINCULADOS_HULL), 0.16, 0.22, Vector3(2.5, 2.5, 1.0))
+    ceramic.albedo_color = Color(1.0, 1.0, 1.0)
+    var cobalt_blue := _colored(Color(0.12, 0.22, 0.46), 0.42, 0.36)
+    var frame_dark := _colored(Color(0.12, 0.14, 0.18), 0.70, 0.36)
+    var cyan_energy := _emissive(Color(0.25, 0.88, 1.0), 2.5)
+    var soul_core_mat := _get_soul_core_material()
+
+    var ma_node := GundamSuitNode.new()
+    ma_node.phase_offset = 0.0
+    ma_node.sway_amplitude = 0.08
+    ma_node.bank_amplitude = 1.2
+    root.add_child(ma_node)
+
+    # 1. Central Command Monolith & Sensor Crest
+    ma_node.add_child(_box(Vector3(s.x * 0.42, s.y * 0.50, s.z * 0.65), ceramic, Vector3(0.0, 0.0, 0.0)))
+    ma_node.add_child(_box(Vector3(s.x * 0.32, s.y * 0.38, s.z * 0.48), cobalt_blue, Vector3(0.0, s.y * 0.32, -s.z * 0.08)))
+    ma_node.add_child(_sphere(s.x * 0.20, s.y * 0.30, soul_core_mat, Vector3(0.0, s.y * 0.10, -s.z * 0.34)))
+
+    for side in [-1.0, 1.0]:
+        ma_node.add_child(_box(
+            Vector3(0.12, 0.85, 0.25), ceramic,
+            Vector3(side * s.x * 0.14, s.y * 0.75, -s.z * 0.22),
+            Vector3(-15.0, side * 14.0, side * -22.0)
+        ))
+
+    # 2. Swept Shield Binder Wings (Housing Autonomous Funnel Arrays)
+    for side in [-1.0, 1.0]:
+        var wing_root := Node3D.new()
+        wing_root.position = Vector3(side * s.x * 0.45, s.y * 0.15, 0.0)
+        wing_root.rotation_degrees = Vector3(5.0, side * -12.0, side * -15.0)
+        ma_node.add_child(wing_root)
+
+        wing_root.add_child(_box(Vector3(s.x * 0.28, s.y * 0.85, s.z * 0.95), ceramic, Vector3(side * s.x * 0.32, 0.0, 0.0)))
+        wing_root.add_child(_box(Vector3(s.x * 0.22, s.y * 0.70, s.z * 0.75), cobalt_blue, Vector3(side * s.x * 0.38, 0.0, -s.z * 0.05)))
+
+        for f in 4:
+            var fz: float = lerpf(-s.z * 0.35, s.z * 0.35, float(f) / 3.0)
+            wing_root.add_child(_cyl(0.14, 0.10, 0.95, 8, frame_dark, Vector3(side * s.x * 0.52, s.y * 0.12, fz), Vector3(90.0, 0.0, 0.0)))
+            wing_root.add_child(_sphere(0.08, 0.16, cyan_energy, Vector3(side * s.x * 0.52, s.y * 0.12, fz - 0.55)))
+
+    # 3. Twin Heavy Underslung Spinal Mega-Buster Cannons
+    for side in [-1.0, 1.0]:
+        ma_node.add_child(_cyl(0.28, 0.35, s.z * 0.85, 12, frame_dark, Vector3(side * s.x * 0.26, -s.y * 0.35, -s.z * 0.25), Vector3(90.0, 0.0, 0.0)))
+        ma_node.add_child(_cyl(0.24, 0.24, 0.45, 10, cyan_energy, Vector3(side * s.x * 0.26, -s.y * 0.35, -s.z * 0.70), Vector3(90.0, 0.0, 0.0)))
+
+    # 4. Colossal Vernier Thruster Array (6 High-Output Rockets)
+    for side in [-1.0, 1.0]:
+        for vy in [-0.25, 0.15, 0.55]:
+            var nozzle := _cyl(s.x * 0.08, s.x * 0.12, 0.55, 10, cyan_energy, Vector3(side * s.x * 0.25, vy * s.y, s.z * 0.35), Vector3(-90.0, 0.0, 0.0))
+            ma_node.add_child(nozzle)
+            thrusters.append(nozzle)
+
+static func _build_vinculados_aegis_mobile_armor(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
+    var s := ship.body_size
+    var ceramic := _textured(load(VINCULADOS_HULL), 0.16, 0.22, Vector3(2.2, 2.2, 1.0))
+    ceramic.albedo_color = Color(0.95, 0.98, 1.0)
+    var cobalt_blue := _colored(Color(0.12, 0.22, 0.46), 0.42, 0.36)
+    var frame_dark := _colored(Color(0.12, 0.14, 0.18), 0.70, 0.36)
+    var cyan_energy := _emissive(Color(0.25, 0.88, 1.0), 2.2)
+    var soul_core_mat := _get_soul_core_material()
+
+    var ma_node := GundamSuitNode.new()
+    ma_node.phase_offset = 0.5
+    ma_node.sway_amplitude = 0.10
+    ma_node.bank_amplitude = 1.5
+    root.add_child(ma_node)
+
+    ma_node.add_child(_box(Vector3(s.x * 0.60, s.y * 0.45, s.z * 0.70), ceramic, Vector3.ZERO))
+    ma_node.add_child(_box(Vector3(s.x * 0.75, s.y * 0.55, s.z * 0.35), cobalt_blue, Vector3(0.0, 0.0, -s.z * 0.25)))
+    ma_node.add_child(_sphere(s.x * 0.18, s.y * 0.28, soul_core_mat, Vector3(0.0, 0.0, -s.z * 0.42)))
+
+    for side in [-1.0, 1.0]:
+        var t := _cyl(s.x * 0.10, s.x * 0.14, 0.50, 10, cyan_energy, Vector3(side * s.x * 0.28, 0.0, s.z * 0.38), Vector3(-90.0, 0.0, 0.0))
+        ma_node.add_child(t)
+        thrusters.append(t)
+
+static func _build_vinculados_diamond_squad(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
+    # 4 Agile Mobile Suits in Diamond Electronic-Warfare Formation
+    # 1. Lead Suit
+    _build_mobile_suit(root, 1.25, true, ship.ship_id, thrusters, 0.0, Vector3(0.0, 0.0, -2.4), Vector3.ZERO)
+    # 2. Port Flank
+    _build_mobile_suit(root, 1.05, false, ship.ship_id, thrusters, 1.5, Vector3(-2.2, 0.35, 0.0), Vector3(0.0, -5.0, 3.0))
+    # 3. Starboard Flank
+    _build_mobile_suit(root, 1.05, false, ship.ship_id, thrusters, 3.0, Vector3(2.2, -0.35, 0.0), Vector3(0.0, 5.0, -3.0))
+    # 4. Rear Anchor
+    _build_mobile_suit(root, 1.05, false, ship.ship_id, thrusters, 4.5, Vector3(0.0, 0.55, 2.4), Vector3(0.0, 0.0, 0.0))
+
+static func _build_vinculados_swarm_echelon(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
+    # 5 Agile Light Mobile Suits in Choral Swarm Echelon Formation
+    # 1. Lead Ace
+    _build_mobile_suit(root, 1.20, true, ship.ship_id, thrusters, 0.0, Vector3(0.0, 0.0, -2.2), Vector3.ZERO)
+    # 2. Inner Port Wingman
+    _build_mobile_suit(root, 1.00, false, ship.ship_id, thrusters, 1.2, Vector3(-1.65, 0.38, 0.0), Vector3(0.0, -4.0, 2.0))
+    # 3. Inner Starboard Wingman
+    _build_mobile_suit(root, 1.00, false, ship.ship_id, thrusters, 2.4, Vector3(1.65, -0.32, 0.0), Vector3(0.0, 4.0, -2.0))
+    # 4. Outer Port Wingman
+    _build_mobile_suit(root, 0.95, false, ship.ship_id, thrusters, 3.6, Vector3(-3.30, 0.72, 2.1), Vector3(0.0, -8.0, 4.0))
+    # 5. Outer Starboard Wingman
+    _build_mobile_suit(root, 0.95, false, ship.ship_id, thrusters, 4.8, Vector3(3.30, -0.65, 2.1), Vector3(0.0, 8.0, -4.0))
 
 static func _build_mobile_suit(
     parent: Node3D,

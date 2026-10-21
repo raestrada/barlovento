@@ -36,16 +36,28 @@ MOOD: retro-futuristic anime military mecha meets mystical Éther resonance; dyn
 
 ## Prompts
 
-### Faction Selection Card — The Vinculados (`assets/factions/card_vinculados.png`)
+### Faction Selection Card — The Vinculados (`assets/factions/card_vinculados.png`) [v3 - Mobile Suit Platoon & Pegasus Carrier Ark]
 
 ```text
-STYLE: painterly sci-fi concept art, cinematic lighting, volumetric depth, not flat, not cartoon, not photorealistic, not anime.
-PALETTE: cold deep-space base of near-black blue and indigo; cold magenta and violet accent for the soul-core energy; luminous cyan accent for the Éther and visor.
+STYLE: painterly sci-fi concept art, cinematic lighting, volumetric depth, not flat, not cartoon, not photorealistic.
+PALETTE: cold deep-space base of near-black blue and indigo; cold magenta and violet accent for neural soul-resonance; luminous cyan accent for the Éther and beam verniers.
 LIGHT: strong single key light from a distant star, strong rim light, heavy chiaroscuro, clear readable silhouettes.
 QUALITY: high detail, clean composition, no text, no watermark, no logo.
-FACTION: The Vinculados — transhuman mecha pilots. Sleek, organic-curved humanoid mobile suits with smooth matte white ceramic armor over dark striated biomechanical sinew joints, smooth dome helmets with a thin cyan slit visor (no antennae or V-fins), and an exposed glowing magenta soul-core in the chest.
-SUBJECT: Faction allegiance artwork for "The Vinculados". In the center-left, a sleek, organic-curved biomechanical humanoid combat frame floats gracefully in deep indigo space amid a faint cyan and magenta Éther current. The frame has smooth matte-white ceramic armor plates over dark striated biomechanical sinew joints, a smooth aerodynamic dome-shaped helmet with a thin glowing cyan slit visor (no antennae, no V-fin, no horns), curved swept shoulder pauldrons, and a circular glowing magenta soul-core embedded in the center of its chest. Small cyan RCS thruster plumes glow at its shoulders and calves, and it holds a slender glowing cyan resonance lance. In the lower right foreground, seen from inside a translucent neural-link cockpit canopy, a linked pilot in a sleek dark-and-white neural interface suit with glowing magenta biometric lines on their collar looks toward the frame.
+FACTION: The Vinculados — real-robot mecha squadrons and carrier arks in the spirit of classic Gundam. Pristine white ceramic armor, cobalt blue chest and shoulder plates, dark slate inner mechanical joints, warm amber intake vents, glowing magenta soul cores, cyan beam weapons and vernier trails.
+SUBJECT: Iconic faction allegiance artwork for "The Vinculados". In the upper left background, the colossal catamaran Pegasus-class Carrier Ark "Sanktuario Albor" cuts through deep indigo space, its twin forward launch catapult decks glowing with cyan magnetic acceleration rails, an elevated conning bridge tower, and an imposing spinal resonance mega-beam cannon. In the center, a 3-unit echelon platoon of agile athletic humanoid mobile suits launches into the void in dynamic zero-G flight posture (torsos angled forward into the vector, legs bent backwards with brilliant cyan vernier thrust trails, holding beveled combat shields and glowing beam carbines). In the far background, the imposing silhouette of a colossal Mobile Armor "Seraph-Prime" looms with massive binder wings. In the lower right foreground, inside a translucent holographic neural-link cockpit canopy, Ace Pilot Kaelen in a harmonic flight suit with glowing neural filament accents synchronizes with the fleet.
 RATIO: 4:3
+```
+
+### Colossal Mobile Armor — Seraph-Prime (`assets/ships/vinculados/mobile_armor_colossus.png`)
+
+```text
+STYLE: painterly sci-fi concept art, cinematic lighting, volumetric depth, not flat, not cartoon, not photorealistic.
+PALETTE: cold deep-space base of near-black blue and indigo; cold magenta and violet soul-resonance; bright cyan energy beam verniers.
+LIGHT: dramatic single key light from a distant star, heavy rim light, volumetric dust.
+QUALITY: high detail, clean composition, no text, no watermark, no logo.
+FACTION: The Vinculados — Colossal Mobile Armor (Psycho-Frame / Mobile Armor archetype in the spirit of Gundam's Psycho Gundam / Dendrobium).
+SUBJECT: A colossal, monolithic mobile armor war-machine "Seraph-Prime" hovering menacingly in deep indigo space amid swirling cyan Éther clouds. It features massive sweeping white-and-cobalt shield binder wings that house banks of autonomous resonance beam funnels, an armored central command core with a pulsing magenta soul reactor, twin heavy underslung spinal beam cannons crackling with cyan energy, and multiple banks of glowing cyan high-output vernier thrusters trailing luminous particle plumes. In the distance for scale reference, a standard 3-unit mobile suit scout wing escorts the massive leviathan.
+RATIO: 16:9
 ```
 
 ## Asset log
@@ -53,5 +65,7 @@ RATIO: 4:3
 | Asset | File | Ratio | Version | Date | Note |
 | --- | --- | --- | --- | --- | --- |
 | Suit Concept | `assets/ships/vinculados/suit_concept.png` | 1:1 | v1 | 2026-10-14 | White ceramic armor, dark sinew joints, glowing magenta core |
-| Faction Selection Card | `assets/factions/card_vinculados.png` | 4:3 | v2 | 2026-10-18 | Organic-ceramic biomechanical suit with smooth dome helmet & cyan slit visor matching in-game model |
+| Faction Selection Card | `assets/factions/card_vinculados.png` | 4:3 | v2 | 2026-10-18 | Organic-ceramic biomechanical suit (superseded) |
+| Faction Selection Card | `assets/factions/card_vinculados.png` | 4:3 | v3 | 2026-10-21 | Mobile suit 3-unit platoon + Pegasus Carrier Ark + Colossal Mobile Armor |
+| Colossal Mobile Armor | `assets/ships/vinculados/mobile_armor_colossus.png` | 16:9 | v1 | 2026-10-21 | Seraph-Prime colossal mobile armor with massive binder wings & funnels |
 

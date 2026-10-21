@@ -42,6 +42,34 @@ func _register_ships() -> void:
         Color(0.55, 0.58, 0.66), Vector3(1.8, 1.0, 6.5),
         "res://assets/heroes/ace_drake.png", "Chisel-Class Escort Corvette"
     ))
+    _add_ship(_make_def(
+        "acero_monitor", "CNS Crucible", "Adm. Tarek", "acero",
+        650.0, 4000.0, 3200.0, 380.0, 12.0,
+        310.0, 64.0, 48.0, 60.0,
+        Color(0.62, 0.58, 0.52), Vector3(2.8, 2.2, 8.5),
+        "res://assets/heroes/ace_tarek.png", "Crucible-Class Heavy Siege Monitor"
+    ))
+    _add_ship(_make_def(
+        "acero_carrier", "CNS Forge-01", "Cmdr. Vance", "acero",
+        950.0, 4800.0, 3600.0, 320.0, 11.0,
+        420.0, 48.0, 30.0, 60.0,
+        Color(0.58, 0.56, 0.52), Vector3(3.6, 2.5, 12.0),
+        "res://assets/heroes/ace_vane.png", "Arsenal-Class Mobile Fleet Bastion"
+    ))
+    _add_ship(_make_def(
+        "acero_lancer", "CNS Halberd", "Lt. Silas", "acero",
+        280.0, 4200.0, 3600.0, 720.0, 24.0,
+        180.0, 46.0, 26.0, 78.0,
+        Color(0.52, 0.55, 0.62), Vector3(1.9, 1.1, 7.2),
+        "res://assets/heroes/ace_drake.png", "Pike-Class Torpedo Frigate"
+    ))
+    _add_ship(_make_def(
+        "acero_juggernaut", "CNS Imperator", "Grand Marshall Kurtz", "acero",
+        1600.0, 7500.0, 5200.0, 260.0, 9.5,
+        600.0, 68.0, 62.0, 65.0,
+        Color(0.75, 0.70, 0.65), Vector3(4.5, 3.2, 16.0),
+        "res://assets/heroes/ace_vane.png", "Colossus-Class Supreme Fortress Flagship"
+    ))
 
     # --- THE VINCULADOS (Principle: Soul / Resonance — Mobile Suit Platoons & Carrier Ark) ---
     _add_ship(_make_def(
@@ -70,7 +98,35 @@ func _register_ships() -> void:
         78.0, 2100.0, 2200.0, 850.0, 27.0,
         195.0, 44.0, 30.0, 85.0,
         Color(0.68, 0.45, 0.96), Vector3(2.8, 1.3, 5.0),
-        "res://assets/heroes/ace_kaelen.png", "Nous Heavy Assault Platoon"
+        "res://assets/heroes/ace_orin.png", "Nous Heavy Assault Platoon"
+    ))
+    _add_ship(_make_def(
+        "vinculados_psyche", "Psyche EW Diamond Squad", "Ace Lyra-3", "vinculados",
+        68.0, 2400.0, 2600.0, 1050.0, 32.0,
+        140.0, 42.0, 22.0, 92.0,
+        Color(0.45, 0.60, 0.95), Vector3(2.8, 1.2, 5.2),
+        "res://assets/heroes/ace_mirei.png", "Psyche 4-Unit EW Diamond Platoon"
+    ))
+    _add_ship(_make_def(
+        "vinculados_chorus", "Chorus Swarm Echelon", "Conductor Trio", "vinculados",
+        85.0, 2800.0, 3000.0, 1100.0, 34.0,
+        175.0, 40.0, 28.0, 88.0,
+        Color(0.55, 0.82, 0.98), Vector3(3.2, 1.4, 5.6),
+        "res://assets/heroes/ace_kaelen.png", "Chorus 5-Unit Choral Swarm Echelon"
+    ))
+    _add_ship(_make_def(
+        "vinculados_colossus", "Seraph-Prime Mobile Armor", "Ascendant Mind Core", "vinculados",
+        1200.0, 8200.0, 6400.0, 350.0, 24.0,
+        480.0, 62.0, 54.0, 85.0,
+        Color(0.92, 0.95, 1.0), Vector3(5.5, 3.4, 11.0),
+        "res://assets/heroes/ace_kaelen.png", "Colossal Mobile Armor War-Machine"
+    ))
+    _add_ship(_make_def(
+        "vinculados_aegis", "Aegis Mobile Armor Anchor", "Ace Ren-1", "vinculados",
+        750.0, 5400.0, 4600.0, 420.0, 21.0,
+        340.0, 50.0, 38.0, 80.0,
+        Color(0.82, 0.88, 1.0), Vector3(4.2, 2.8, 8.5),
+        "res://assets/heroes/ace_orin.png", "Aegis Heavy Mobile Armor Anchor"
     ))
 
     # --- THE FREE TIDE / MAREA LIBRE (Principle: Wind / Liberty — Corsair Skirmishers) ---
@@ -94,6 +150,34 @@ func _register_ships() -> void:
         110.0, 42.0, 18.0, 90.0,
         Color(0.75, 0.44, 0.20), Vector3(1.9, 2.2, 6.8),
         "res://assets/heroes/ace_moreau.png", "Corsair Void-Brigantine"
+    ))
+    _add_ship(_make_def(
+        "marea_frigate", "El Gavilán", "Commodore Marina", "marea_libre",
+        290.0, 3200.0, 2600.0, 510.0, 22.0,
+        240.0, 50.0, 32.0, 95.0,
+        Color(0.82, 0.52, 0.24), Vector3(2.3, 2.8, 8.2),
+        "res://assets/heroes/ace_marina.png", "Navío 3-Deck Heavy Void Frigate"
+    ))
+    _add_ship(_make_def(
+        "marea_cutter", "La Saeta", "Bosun Jax", "marea_libre",
+        140.0, 3400.0, 2800.0, 780.0, 28.0,
+        120.0, 38.0, 24.0, 90.0,
+        Color(0.72, 0.42, 0.18), Vector3(1.5, 1.8, 5.4),
+        "res://assets/heroes/ace_vael.png", "Cúter Stealth Torpedo Boarder"
+    ))
+    _add_ship(_make_def(
+        "marea_bombard", "El Trueno", "Master Gunner Rico", "marea_libre",
+        310.0, 2700.0, 2200.0, 420.0, 17.0,
+        190.0, 60.0, 45.0, 75.0,
+        Color(0.78, 0.46, 0.22), Vector3(2.4, 2.6, 7.8),
+        "res://assets/heroes/ace_moreau.png", "Mortero Heavy Void Ketch"
+    ))
+    _add_ship(_make_def(
+        "marea_leviathan", "Soberano del Mar", "Barbanegra", "marea_libre",
+        580.0, 4200.0, 3400.0, 360.0, 20.0,
+        450.0, 54.0, 42.0, 98.0,
+        Color(0.90, 0.60, 0.28), Vector3(3.4, 4.0, 12.5),
+        "res://assets/heroes/ace_solano.png", "Soberano-Class Corsair Mega-Galleon"
     ))
 
 func _make_def(
