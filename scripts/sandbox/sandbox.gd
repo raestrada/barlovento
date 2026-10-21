@@ -2446,7 +2446,7 @@ func _build_acero_calm_bastion() -> void:
 		var ang: float = float(i) * (PI * 0.5) + (PI * 0.25)
 		var turret := MeshInstance3D.new()
 		var t_box := BoxMesh.new()
-	t_box.size = Vector3(1.6, 1.4, 6.0)
+		t_box.size = Vector3(1.6, 1.4, 6.0)
 		turret.mesh = t_box
 		turret.position = Vector3(cos(ang) * 7.5, 1.0, sin(ang) * 7.5)
 		turret.look_at(_stage_landmark_root.global_position + Vector3(cos(ang) * 20.0, 1.0, sin(ang) * 20.0))
@@ -2455,8 +2455,8 @@ func _build_acero_calm_bastion() -> void:
 
 		var glow_tip := MeshInstance3D.new()
 		var gt_sph := SphereMesh.new()
-	gt_sph.radius = 0.45
-	gt_sph.height = 0.9
+		gt_sph.radius = 0.45
+		gt_sph.height = 0.9
 		glow_tip.mesh = gt_sph
 		glow_tip.position = Vector3(0.0, 0.0, -3.1)
 		glow_tip.material_override = warning_red
@@ -2636,7 +2636,7 @@ func _build_vinculados_genesis_ring() -> void:
 		var ang: float = float(i) * (PI * 0.5)
 		var pylon := MeshInstance3D.new()
 		var p_box := BoxMesh.new()
-	p_box.size = Vector3(1.2, 0.8, 8.0)
+		p_box.size = Vector3(1.2, 0.8, 8.0)
 		pylon.mesh = p_box
 		pylon.position = Vector3(cos(ang) * 12.0, 0.0, sin(ang) * 12.0)
 		pylon.look_at(_stage_landmark_root.global_position)
@@ -2721,14 +2721,14 @@ func _build_marea_foundry_complex() -> void:
 	for offset_x in [-10.0, 10.0]:
 		var silo := MeshInstance3D.new()
 		var s_cyl := CylinderMesh.new()
-	s_cyl.top_radius = 3.2
-	s_cyl.bottom_radius = 3.2
-	s_cyl.height = 9.0
-	s_cyl.radial_segments = 8
-	silo.mesh = s_cyl
-	silo.position = Vector3(offset_x, 1.0, 0.0)
-	silo.material_override = iron_mat
-	_stage_landmark_root.add_child(silo)
+		s_cyl.top_radius = 3.2
+		s_cyl.bottom_radius = 3.2
+		s_cyl.height = 9.0
+		s_cyl.radial_segments = 8
+		silo.mesh = s_cyl
+		silo.position = Vector3(offset_x, 1.0, 0.0)
+		silo.material_override = iron_mat
+		_stage_landmark_root.add_child(silo)
 
 	var station_lbl := Label3D.new()
 	station_lbl.text = "⚙ SMELTER REFINERY VULCAN-3\n[IMPERIAL ORE FOUNDRY]"
@@ -2786,7 +2786,7 @@ func _build_marea_wind_maelstrom() -> void:
 		var ang: float = float(i) * (PI / 3.0)
 		var fin := MeshInstance3D.new()
 		var f_box := BoxMesh.new()
-	f_box.size = Vector3(0.4, 6.0, 11.0)
+		f_box.size = Vector3(0.4, 6.0, 11.0)
 		fin.mesh = f_box
 		fin.position = Vector3(cos(ang) * 6.0, 0.0, sin(ang) * 6.0)
 		fin.rotation = Vector3(0.0, -ang + 0.35, 0.2)

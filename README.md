@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/raestrada/barlovento/releases/download/v0.2.0-alpha/Barlovento.zip"><img src="https://img.shields.io/badge/Download_Build-Windows_64--bit-0284c7?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Build" /></a>
+  <a href="https://github.com/raestrada/barlovento/releases/download/v0.3.0-alpha/Barlovento.zip"><img src="https://img.shields.io/badge/Download_Build-Windows_64--bit-0284c7?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Build" /></a>
   <a href="https://raestrada.github.io/barlovento/"><img src="https://img.shields.io/badge/Official_Site-GitHub_Pages-38bdf8?style=for-the-badge&logo=github" alt="Official Site" /></a>
   <img src="https://img.shields.io/badge/Tutorials-Active_All_Factions-10b981?style=for-the-badge" alt="Tutorials Active" />
   <img src="https://img.shields.io/badge/Engine-Godot_4.7.2_Forward%2B-478cbf?style=for-the-badge&logo=godotengine&logoColor=white" alt="Godot 4.7.2" />
@@ -25,7 +25,7 @@
 > **🎓 Interactive Tutorials are now LIVE!**
 > The introductory training mission (Act I // Stage 01) is active for all three civilizations—**The Armada of Acero**, **The Vinculados**, and **The Free Tide**—featuring a guided **5-step Tactical Academy guide**, Newtonian maneuvering drills, active directional armor absorption, and rebalanced training duels.
 >
-> 🚀 **[Download Windows Alpha Build (Barlovento.zip)](https://github.com/raestrada/barlovento/releases/download/v0.2.0-alpha/Barlovento.zip)** • [View GitHub Releases](https://github.com/raestrada/barlovento/releases)
+> 🚀 **[Download Windows Alpha Build (Barlovento.zip)](https://github.com/raestrada/barlovento/releases/download/v0.3.0-alpha/Barlovento.zip)** • [View GitHub Releases](https://github.com/raestrada/barlovento/releases)
 
 <p align="center">
   <a href="https://raestrada.github.io/barlovento/"><b>Explore the Interactive Web Experience & Watch the Cinematic Prologue &rarr;</b></a>

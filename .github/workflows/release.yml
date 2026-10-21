@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release Tag (e.g. v0.2.0-alpha)'
+        description: 'Release Tag (e.g. v0.3.0-alpha)'
         required: false
-        default: 'v0.2.0-alpha'
+        default: 'v0.3.0-alpha'
 
 permissions:
   contents: write
@@ -31,14 +31,14 @@ jobs:
           prerelease: true
           generate_release_notes: true
           body: |
-            ## 🚀 BARLOVENTO Latest Build
+            ## 🚀 BARLOVENTO v0.3.0-alpha Build
 
             ### ✨ Highlights:
-            - **🎓 Tactical Academy Tutorials Active:** Act I Stage 01 for all three civilizations (Armada of Acero, The Vinculados, and The Free Tide) with step-by-step guidance!
-            - **🗺 10×8 Strategic Naval Chart:** 80 quadrants (A1–J8) with contested Éther Conduits (+1 AP / +15% Speed), Barlovento Wind Streams, Basalt Reefs, and The Calm incursions.
-            - **⚖ Rebalanced Corsair Skirmishers:** Marea Libre timber hulls and broadside ballistics (+18% DMG on flanks, fragile hulls).
-            - **🛡 Directional Armor Absorption:** Active kinetic mitigation across Bow, Flank, and Stern quadrants.
-            - **🤖 Balanced Tutorial AI:** 1v1 duels with forgiving baseline accuracy.
+            - **⚔ Stages 1, 2 & 3 Active Across All 3 Factions:** Play through 9 complete distinct campaign missions for Armada of Acero, The Vinculados, and La Marea Libre!
+            - **🌌 Dynamic Strategic Naval Charts:** Grid topologies scaling from 8×10 narrow canyon gorges to 12×10 oceanic storm charts with spires, rings, maelstroms, and Calm fronts.
+            - **🤖 Mecha Squad Formations & Colossal Mobile Armor:** Vinculados agile 3-unit wings, 4-unit EW diamond squads, 5-unit choral swarms, and the colossal Mobile Armor *Seraph-Prime* with autonomous funnels.
+            - **🏔 3D Battlefield Landmarks & Altitude Tactics:** Fight around Bastion-7, the Crystal Chasm (+16m altitude dive attacks), the rotating Genesis Ring, Smelter Vulcan-3, and the Eye of the Maelstrom.
+            - **🏅 Campaign Save & Veteran Ace Progression:** Persistent promotions carry forward between stages.
 
             ### 🎮 Quick Start:
             1. Download `Barlovento.zip` attached below.
