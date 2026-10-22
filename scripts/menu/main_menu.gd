@@ -827,16 +827,22 @@ func _populate_acero_stage_briefing(stage_id: String) -> void:
         )
         _stage_selector_row.add_child(btn)
 
-    var art_tex: Texture2D = load("res://assets/factions/acero_stage1_briefing.png")
+    var cur_num := int(stage_id.get_slice("_", 2))
+    var act_str := "ACT I" if cur_num <= 4 else ("ACT II" if cur_num <= 8 else "ACT III")
+
+    var art_path := "res://assets/briefings/acero_act1.png"
+    if cur_num >= 9:
+        art_path = "res://assets/briefings/acero_act3.png"
+    elif cur_num >= 5:
+        art_path = "res://assets/briefings/acero_act2.png"
+    var art_tex: Texture2D = load(art_path)
     if art_tex == null:
         art_tex = load("res://assets/factions/card_acero.png")
     _briefing_art_rect.texture = art_tex
+
     _commander_portrait_rect.texture = load("res://assets/heroes/ace_vane.png")
     _commander_name_lbl.text = "FLEET ADMIRAL VANE"
-    _commander_role_lbl.text = "Flagship Command // CNS Iron Bastion (Anvil-Class)"
-
-    var cur_num := int(stage_id.get_slice("_", 2))
-    var act_str := "ACT I" if cur_num <= 4 else ("ACT II" if cur_num <= 8 else "ACT III")
+    _commander_role_lbl.text = "Flagship Command // CNS Iron Bastion (Anvil-Class)" 
 
     match stage_id:
         "acero_stage_1":
@@ -971,13 +977,22 @@ func _populate_vinculados_stage_briefing(stage_id: String) -> void:
         )
         _stage_selector_row.add_child(btn)
 
-    _briefing_art_rect.texture = load("res://assets/factions/card_vinculados.png")
-    _commander_portrait_rect.texture = load("res://assets/heroes/ace_kaelen.png")
-    _commander_name_lbl.text = "ACE PILOT KAELEN-7"
-    _commander_role_lbl.text = "Lead Resonance Choir // Eidolon Ace Platoon"
-
     var cur_num := int(stage_id.get_slice("_", 2))
     var act_str := "ACT I" if cur_num <= 4 else ("ACT II" if cur_num <= 8 else "ACT III")
+
+    var art_path := "res://assets/briefings/vinculados_act1.png"
+    if cur_num >= 8:
+        art_path = "res://assets/briefings/vinculados_act3.png"
+    elif cur_num >= 4:
+        art_path = "res://assets/briefings/vinculados_act2.png"
+    var art_tex: Texture2D = load(art_path)
+    if art_tex == null:
+        art_tex = load("res://assets/factions/card_vinculados.png")
+    _briefing_art_rect.texture = art_tex
+
+    _commander_portrait_rect.texture = load("res://assets/heroes/ace_kaelen.png")
+    _commander_name_lbl.text = "ACE PILOT KAELEN-7"
+    _commander_role_lbl.text = "Lead Resonance Choir // Eidolon Ace Platoon" 
 
     match stage_id:
         "vinculados_stage_1":
@@ -1107,13 +1122,22 @@ func _populate_marea_stage_briefing(stage_id: String) -> void:
         )
         _stage_selector_row.add_child(btn)
 
-    _briefing_art_rect.texture = load("res://assets/factions/card_marea.png")
-    _commander_portrait_rect.texture = load("res://assets/heroes/ace_solano.png")
-    _commander_name_lbl.text = "CAPTAIN SOLANO"
-    _commander_role_lbl.text = "Corsair Flagship // Viento Rojo"
-
     var cur_num := int(stage_id.get_slice("_", 2))
     var act_str := "ACT I" if cur_num <= 4 else ("ACT II" if cur_num <= 8 else "ACT III")
+
+    var art_path := "res://assets/briefings/marea_act1.png"
+    if cur_num >= 8:
+        art_path = "res://assets/briefings/marea_act3.png"
+    elif cur_num >= 4:
+        art_path = "res://assets/briefings/marea_act2.png"
+    var art_tex: Texture2D = load(art_path)
+    if art_tex == null:
+        art_tex = load("res://assets/factions/card_marea.png")
+    _briefing_art_rect.texture = art_tex
+
+    _commander_portrait_rect.texture = load("res://assets/heroes/ace_solano.png")
+    _commander_name_lbl.text = "CAPTAIN SOLANO"
+    _commander_role_lbl.text = "Corsair Flagship // Viento Rojo" 
 
     match stage_id:
         "marea_stage_1":
