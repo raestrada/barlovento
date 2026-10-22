@@ -106,24 +106,48 @@ func record_stage_victory(stage_id: String, surviving_ships: Array, enemies_dest
 
 func get_next_stage_id(stage_id: String) -> String:
     match stage_id:
-        "acero_stage_1":
-            return "acero_stage_2"
-        "acero_stage_2":
-            return "acero_stage_3"
-        "acero_stage_3":
-            return ""
-        "vinculados_stage_1":
-            return "vinculados_stage_2"
-        "vinculados_stage_2":
-            return "vinculados_stage_3"
-        "vinculados_stage_3":
-            return ""
-        "marea_stage_1":
-            return "marea_stage_2"
-        "marea_stage_2":
-            return "marea_stage_3"
-        "marea_stage_3":
-            return ""
+        # --- THE ARMADA OF ACERO (Stages 01 - 12) ---
+        "acero_stage_1": return "acero_stage_2"
+        "acero_stage_2": return "acero_stage_3"
+        "acero_stage_3": return "acero_stage_4"
+        "acero_stage_4": return "acero_stage_5"
+        "acero_stage_5": return "acero_stage_6"
+        "acero_stage_6": return "acero_stage_7"
+        "acero_stage_7": return "acero_stage_8"
+        "acero_stage_8": return "acero_stage_9"
+        "acero_stage_9": return "acero_stage_10"
+        "acero_stage_10": return "acero_stage_11"
+        "acero_stage_11": return "acero_stage_12"
+        "acero_stage_12": return ""
+
+        # --- THE VINCULADOS (Stages 01 - 12) ---
+        "vinculados_stage_1": return "vinculados_stage_2"
+        "vinculados_stage_2": return "vinculados_stage_3"
+        "vinculados_stage_3": return "vinculados_stage_4"
+        "vinculados_stage_4": return "vinculados_stage_5"
+        "vinculados_stage_5": return "vinculados_stage_6"
+        "vinculados_stage_6": return "vinculados_stage_7"
+        "vinculados_stage_7": return "vinculados_stage_8"
+        "vinculados_stage_8": return "vinculados_stage_9"
+        "vinculados_stage_9": return "vinculados_stage_10"
+        "vinculados_stage_10": return "vinculados_stage_11"
+        "vinculados_stage_11": return "vinculados_stage_12"
+        "vinculados_stage_12": return ""
+
+        # --- THE FREE TIDE / MAREA LIBRE (Stages 01 - 12) ---
+        "marea_stage_1": return "marea_stage_2"
+        "marea_stage_2": return "marea_stage_3"
+        "marea_stage_3": return "marea_stage_4"
+        "marea_stage_4": return "marea_stage_5"
+        "marea_stage_5": return "marea_stage_6"
+        "marea_stage_6": return "marea_stage_7"
+        "marea_stage_7": return "marea_stage_8"
+        "marea_stage_8": return "marea_stage_9"
+        "marea_stage_9": return "marea_stage_10"
+        "marea_stage_10": return "marea_stage_11"
+        "marea_stage_11": return "marea_stage_12"
+        "marea_stage_12": return ""
+
         _:
             return ""
 

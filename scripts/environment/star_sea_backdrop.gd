@@ -179,17 +179,17 @@ func get_faction_focus_transform(faction_id: String, t: float) -> Dictionary:
 
 func _build_celestial_planetoid() -> void:
 	match LoreDB.current_stage_id:
-		"vinculados_stage_1":
+		"vinculados_stage_1", "vinculados_stage_4", "vinculados_stage_6", "vinculados_stage_8", "marea_stage_8":
 			_build_salmo_planetoid()
-		"vinculados_stage_2":
+		"vinculados_stage_2", "vinculados_stage_5", "acero_stage_6", "acero_stage_10":
 			_build_crystal_moon_planetoid()
-		"vinculados_stage_3":
+		"vinculados_stage_3", "vinculados_stage_7", "vinculados_stage_10", "vinculados_stage_11", "vinculados_stage_12", "acero_stage_3", "acero_stage_11", "acero_stage_12":
 			_build_calm_abyss_planetoid()
-		"marea_stage_1":
+		"marea_stage_1", "marea_stage_4", "marea_stage_6":
 			_build_sol_dorado()
-		"marea_stage_2":
+		"marea_stage_2", "marea_stage_5", "marea_stage_7", "marea_stage_10", "acero_stage_5", "acero_stage_8":
 			_build_smelter_forge_planetoid()
-		"marea_stage_3":
+		"marea_stage_3", "marea_stage_9", "marea_stage_11", "marea_stage_12", "acero_stage_9":
 			_build_grand_sol_corona()
 		_:
 			_build_anvil_planetoid()

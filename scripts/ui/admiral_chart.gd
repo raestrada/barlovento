@@ -79,15 +79,80 @@ func _process(delta: float) -> void:
 
 func _configure_stage_grid() -> void:
 	match LoreDB.current_stage_id:
+		# --- ARMADA OF ACERO (12 STAGES) ---
+		"acero_stage_1", "acero_stage_2":
+			grid_cols = 10
+			grid_rows = 8
 		"acero_stage_3":
 			grid_cols = 12
 			grid_rows = 9
+		"acero_stage_4":
+			grid_cols = 8
+			grid_rows = 12
+		"acero_stage_5":
+			grid_cols = 11
+			grid_rows = 9
+		"acero_stage_6":
+			grid_cols = 10
+			grid_rows = 10
+		"acero_stage_7":
+			grid_cols = 12
+			grid_rows = 10
+		"acero_stage_8":
+			grid_cols = 9
+			grid_rows = 9
+		"acero_stage_9":
+			grid_cols = 12
+			grid_rows = 10
+		"acero_stage_10":
+			grid_cols = 12
+			grid_rows = 8
+		"acero_stage_11":
+			grid_cols = 14
+			grid_rows = 10
+		"acero_stage_12":
+			grid_cols = 14
+			grid_rows = 12
+
+		# --- LOS VINCULADOS (12 STAGES) ---
+		"vinculados_stage_1":
+			grid_cols = 10
+			grid_rows = 8
 		"vinculados_stage_2":
 			grid_cols = 8
 			grid_rows = 10
 		"vinculados_stage_3":
 			grid_cols = 12
 			grid_rows = 8
+		"vinculados_stage_4":
+			grid_cols = 10
+			grid_rows = 9
+		"vinculados_stage_5":
+			grid_cols = 12
+			grid_rows = 9
+		"vinculados_stage_6":
+			grid_cols = 11
+			grid_rows = 10
+		"vinculados_stage_7":
+			grid_cols = 8
+			grid_rows = 12
+		"vinculados_stage_8":
+			grid_cols = 10
+			grid_rows = 10
+		"vinculados_stage_9":
+			grid_cols = 12
+			grid_rows = 11
+		"vinculados_stage_10":
+			grid_cols = 12
+			grid_rows = 10
+		"vinculados_stage_11":
+			grid_cols = 12
+			grid_rows = 12
+		"vinculados_stage_12":
+			grid_cols = 16
+			grid_rows = 12
+
+		# --- LA MAREA LIBRE (12 STAGES) ---
 		"marea_stage_1":
 			grid_cols = 8
 			grid_rows = 10
@@ -97,6 +162,34 @@ func _configure_stage_grid() -> void:
 		"marea_stage_3":
 			grid_cols = 12
 			grid_rows = 10
+		"marea_stage_4":
+			grid_cols = 10
+			grid_rows = 9
+		"marea_stage_5":
+			grid_cols = 11
+			grid_rows = 9
+		"marea_stage_6":
+			grid_cols = 9
+			grid_rows = 11
+		"marea_stage_7":
+			grid_cols = 10
+			grid_rows = 10
+		"marea_stage_8":
+			grid_cols = 12
+			grid_rows = 9
+		"marea_stage_9":
+			grid_cols = 13
+			grid_rows = 10
+		"marea_stage_10":
+			grid_cols = 12
+			grid_rows = 11
+		"marea_stage_11":
+			grid_cols = 14
+			grid_rows = 11
+		"marea_stage_12":
+			grid_cols = 16
+			grid_rows = 12
+
 		_:
 			grid_cols = 10
 			grid_rows = 8
@@ -328,6 +421,304 @@ func _init_sector_terrain() -> void:
 			_sector_types[Vector2i(2, 7)] = "conduit"
 			_sector_types[Vector2i(9, 7)] = "conduit"
 			_sector_types[Vector2i(5, 1)] = "conduit"
+
+		# --- ACERO EXPANSION (STAGES 4 - 12) ---
+		"acero_stage_4":
+			# Iron Gate Tertius: 8x12 narrow canyon, central sluice gate
+			for y in range(grid_rows):
+				_sector_types[Vector2i(0, y)] = "reef"
+				_sector_types[Vector2i(7, y)] = "reef"
+			_sector_types[Vector2i(3, 5)] = "sluice"
+			_sector_types[Vector2i(4, 5)] = "sluice"
+			for y in range(2, 10):
+				_sector_types[Vector2i(3, y)] = "wind_stream"
+				_sector_types[Vector2i(4, y)] = "wind_stream"
+			_sector_types[Vector2i(2, 8)] = "conduit"
+			_sector_types[Vector2i(5, 3)] = "conduit"
+
+		"acero_stage_5":
+			# Smuggler's Atoll: 11x9 hollow caldera reef
+			for x in range(2, 9):
+				_sector_types[Vector2i(x, 2)] = "reef"
+				_sector_types[Vector2i(x, 6)] = "reef"
+			_sector_types[Vector2i(2, 3)] = "reef"
+			_sector_types[Vector2i(2, 5)] = "reef"
+			_sector_types[Vector2i(8, 3)] = "reef"
+			_sector_types[Vector2i(8, 5)] = "reef"
+			_sector_types[Vector2i(5, 4)] = "spire"
+			_sector_types[Vector2i(2, 4)] = "conduit"
+			_sector_types[Vector2i(8, 4)] = "conduit"
+			for p in [Vector2i(0, 4), Vector2i(1, 4), Vector2i(9, 4), Vector2i(10, 4)]:
+				_sector_types[p] = "wind_stream"
+
+		"acero_stage_6":
+			# The Choir Intercept: 10x10 high-speed crosswinds
+			for x in range(grid_cols):
+				_sector_types[Vector2i(x, 4)] = "wind_stream"
+				_sector_types[Vector2i(x, 5)] = "wind_stream"
+			_sector_types[Vector2i(4, 4)] = "spire"
+			_sector_types[Vector2i(5, 5)] = "spire"
+			_sector_types[Vector2i(2, 2)] = "conduit"
+			_sector_types[Vector2i(7, 7)] = "conduit"
+
+		"acero_stage_7":
+			# Operation Obsidian Anvil: 12x10 calm seeps escort
+			for x in range(grid_cols):
+				_sector_types[Vector2i(x, 0)] = "calm"
+				_sector_types[Vector2i(x, 1)] = "calm"
+			for y in range(2, 8):
+				_sector_types[Vector2i(5, y)] = "wind_stream"
+				_sector_types[Vector2i(6, y)] = "wind_stream"
+			_sector_types[Vector2i(5, 8)] = "sluice"
+			_sector_types[Vector2i(6, 8)] = "sluice"
+			_sector_types[Vector2i(2, 5)] = "conduit"
+			_sector_types[Vector2i(9, 5)] = "conduit"
+
+		"acero_stage_8":
+			# Ferro-Magnetic Reef: 9x9 sensor anomaly grid
+			for p in [Vector2i(3, 3), Vector2i(4, 3), Vector2i(5, 3), Vector2i(3, 4), Vector2i(5, 4), Vector2i(3, 5), Vector2i(4, 5), Vector2i(5, 5)]:
+				_sector_types[p] = "reef"
+			_sector_types[Vector2i(4, 4)] = "conduit"
+			for y in range(grid_rows):
+				_sector_types[Vector2i(1, y)] = "wind_stream"
+				_sector_types[Vector2i(7, y)] = "wind_stream"
+
+		"acero_stage_9":
+			# Assault on Maelstrom Station: 12x10
+			_sector_types[Vector2i(5, 4)] = "maelstrom"
+			_sector_types[Vector2i(6, 4)] = "maelstrom"
+			_sector_types[Vector2i(5, 5)] = "spire"
+			_sector_types[Vector2i(6, 5)] = "spire"
+			for p in [Vector2i(2, 2), Vector2i(3, 3), Vector2i(8, 6), Vector2i(9, 7)]:
+				_sector_types[p] = "wind_stream"
+			_sector_types[Vector2i(2, 7)] = "conduit"
+			_sector_types[Vector2i(9, 2)] = "conduit"
+
+		"acero_stage_10":
+			# Duel with the Colossus: 12x8 open chasm
+			_sector_types[Vector2i(3, 3)] = "spire"
+			_sector_types[Vector2i(8, 3)] = "spire"
+			_sector_types[Vector2i(5, 2)] = "ring"
+			_sector_types[Vector2i(6, 2)] = "ring"
+			for x in range(3, 9):
+				_sector_types[Vector2i(x, 5)] = "wind_stream"
+
+		"acero_stage_11":
+			# The Dying Tide: 14x10 Great Sluice Dam
+			for x in range(grid_cols):
+				_sector_types[Vector2i(x, 0)] = "calm"
+				_sector_types[Vector2i(x, 1)] = "calm"
+				_sector_types[Vector2i(x, 5)] = "sluice"
+			_sector_types[Vector2i(6, 5)] = "conduit"
+			_sector_types[Vector2i(7, 5)] = "conduit"
+			for y in range(6, 10):
+				_sector_types[Vector2i(6, y)] = "wind_stream"
+				_sector_types[Vector2i(7, y)] = "wind_stream"
+
+		"acero_stage_12":
+			# Apex of Steel: The Calm Citadel (14x12)
+			for x in range(grid_cols):
+				for y in range(3):
+					_sector_types[Vector2i(x, y)] = "calm"
+			_sector_types[Vector2i(6, 6)] = "sluice"
+			_sector_types[Vector2i(7, 6)] = "sluice"
+			_sector_types[Vector2i(6, 7)] = "ring"
+			_sector_types[Vector2i(7, 7)] = "ring"
+			for y in range(4, 12):
+				_sector_types[Vector2i(3, y)] = "wind_stream"
+				_sector_types[Vector2i(10, y)] = "wind_stream"
+			_sector_types[Vector2i(3, 8)] = "conduit"
+			_sector_types[Vector2i(10, 8)] = "conduit"
+
+		# --- VINCULADOS EXPANSION (STAGES 4 - 12) ---
+		"vinculados_stage_4":
+			# Requiem of Outer Shrines: 10x9
+			_sector_types[Vector2i(3, 3)] = "spire"
+			_sector_types[Vector2i(6, 3)] = "spire"
+			_sector_types[Vector2i(2, 6)] = "conduit"
+			_sector_types[Vector2i(7, 6)] = "conduit"
+			for p in [Vector2i(4, 4), Vector2i(5, 4), Vector2i(4, 5), Vector2i(5, 5)]:
+				_sector_types[p] = "wind_stream"
+
+		"vinculados_stage_5":
+			# Awakening of Seraph-Prime: 12x9
+			for x in range(grid_cols):
+				_sector_types[Vector2i(x, 2)] = "calm"
+			_sector_types[Vector2i(5, 5)] = "ring"
+			_sector_types[Vector2i(6, 5)] = "ring"
+			for y in range(3, 8):
+				_sector_types[Vector2i(3, y)] = "wind_stream"
+				_sector_types[Vector2i(8, y)] = "wind_stream"
+
+		"vinculados_stage_6":
+			# Symphony of 5-Voice Choir: 11x10
+			for y in range(2, 8):
+				_sector_types[Vector2i(2, y)] = "wind_stream"
+				_sector_types[Vector2i(4, y)] = "wind_stream"
+				_sector_types[Vector2i(6, y)] = "wind_stream"
+				_sector_types[Vector2i(8, y)] = "wind_stream"
+			_sector_types[Vector2i(5, 4)] = "spire"
+			_sector_types[Vector2i(5, 5)] = "conduit"
+
+		"vinculados_stage_7":
+			# The Calm Abyss Trench: 8x12
+			for y in range(grid_rows):
+				_sector_types[Vector2i(0, y)] = "calm"
+				_sector_types[Vector2i(1, y)] = "calm"
+				_sector_types[Vector2i(6, y)] = "calm"
+				_sector_types[Vector2i(7, y)] = "calm"
+			for y in range(2, 10):
+				_sector_types[Vector2i(3, y)] = "wind_stream"
+				_sector_types[Vector2i(4, y)] = "wind_stream"
+			_sector_types[Vector2i(3, 6)] = "conduit"
+			_sector_types[Vector2i(4, 6)] = "conduit"
+
+		"vinculados_stage_8":
+			# Parley at the Astrolabe: 10x10
+			_sector_types[Vector2i(4, 4)] = "ring"
+			_sector_types[Vector2i(5, 4)] = "ring"
+			_sector_types[Vector2i(4, 5)] = "conduit"
+			_sector_types[Vector2i(5, 5)] = "conduit"
+			for p in [Vector2i(1, 1), Vector2i(2, 2), Vector2i(7, 7), Vector2i(8, 8)]:
+				_sector_types[p] = "wind_stream"
+
+		"vinculados_stage_9":
+			# Shattering the Sluice Dam: 12x11
+			for x in range(grid_cols):
+				_sector_types[Vector2i(x, 4)] = "sluice"
+			_sector_types[Vector2i(5, 4)] = "wind_stream"
+			_sector_types[Vector2i(6, 4)] = "wind_stream"
+			_sector_types[Vector2i(3, 7)] = "conduit"
+			_sector_types[Vector2i(8, 7)] = "conduit"
+
+		"vinculados_stage_10":
+			# Clash of Titans: 12x10
+			_sector_types[Vector2i(5, 4)] = "ring"
+			_sector_types[Vector2i(6, 4)] = "ring"
+			_sector_types[Vector2i(5, 5)] = "spire"
+			_sector_types[Vector2i(6, 5)] = "spire"
+			for p in [Vector2i(2, 2), Vector2i(3, 3), Vector2i(8, 6), Vector2i(9, 7)]:
+				_sector_types[p] = "wind_stream"
+
+		"vinculados_stage_11":
+			# The Calm Singularity: 12x12
+			for x in range(grid_cols):
+				_sector_types[Vector2i(x, 0)] = "calm"
+				_sector_types[Vector2i(x, 1)] = "calm"
+				_sector_types[Vector2i(x, 10)] = "calm"
+				_sector_types[Vector2i(x, 11)] = "calm"
+			_sector_types[Vector2i(5, 5)] = "ring"
+			_sector_types[Vector2i(6, 5)] = "ring"
+			_sector_types[Vector2i(5, 6)] = "conduit"
+			_sector_types[Vector2i(6, 6)] = "conduit"
+
+		"vinculados_stage_12":
+			# Symphony of the Star Sea: 16x12 Transcendence Gateway
+			for x in range(6, 10):
+				_sector_types[Vector2i(x, 5)] = "ring"
+				_sector_types[Vector2i(x, 6)] = "ring"
+			for x in range(grid_cols):
+				_sector_types[Vector2i(x, 0)] = "calm"
+			for y in range(2, 10):
+				_sector_types[Vector2i(3, y)] = "wind_stream"
+				_sector_types[Vector2i(12, y)] = "wind_stream"
+			_sector_types[Vector2i(3, 8)] = "conduit"
+			_sector_types[Vector2i(12, 8)] = "conduit"
+
+		# --- MAREA LIBRE EXPANSION (STAGES 4 - 12) ---
+		"marea_stage_4":
+			# The Free Trader Convoy: 10x9
+			for y in range(2, 7):
+				_sector_types[Vector2i(2, y)] = "reef"
+				_sector_types[Vector2i(7, y)] = "reef"
+			for y in range(1, 8):
+				_sector_types[Vector2i(4, y)] = "wind_stream"
+				_sector_types[Vector2i(5, y)] = "wind_stream"
+			_sector_types[Vector2i(4, 7)] = "conduit"
+			_sector_types[Vector2i(5, 7)] = "conduit"
+
+		"marea_stage_5":
+			# Prize of the Soberano: 11x9
+			_sector_types[Vector2i(5, 4)] = "spire"
+			for x in range(3, 8):
+				_sector_types[Vector2i(x, 2)] = "reef"
+				_sector_types[Vector2i(x, 6)] = "reef"
+			for p in [Vector2i(1, 4), Vector2i(2, 4), Vector2i(8, 4), Vector2i(9, 4)]:
+				_sector_types[p] = "wind_stream"
+			_sector_types[Vector2i(1, 2)] = "conduit"
+			_sector_types[Vector2i(9, 6)] = "conduit"
+
+		"marea_stage_6":
+			# The Dead Reef Ambush: 9x11
+			for y in range(grid_rows):
+				if y % 2 == 0:
+					_sector_types[Vector2i(2, y)] = "reef"
+					_sector_types[Vector2i(6, y)] = "reef"
+			for y in range(2, 9):
+				_sector_types[Vector2i(4, y)] = "wind_stream"
+			_sector_types[Vector2i(4, 5)] = "conduit"
+
+		"marea_stage_7":
+			# Siege of Fort Almirante: 10x10
+			_sector_types[Vector2i(4, 2)] = "sluice"
+			_sector_types[Vector2i(5, 2)] = "sluice"
+			for x in range(2, 8):
+				_sector_types[Vector2i(x, 3)] = "reef"
+			for y in range(4, 9):
+				_sector_types[Vector2i(4, y)] = "wind_stream"
+				_sector_types[Vector2i(5, y)] = "wind_stream"
+			_sector_types[Vector2i(2, 7)] = "conduit"
+			_sector_types[Vector2i(7, 7)] = "conduit"
+
+		"marea_stage_8":
+			# The Ghost Flotilla: 12x9
+			_sector_types[Vector2i(5, 4)] = "spire"
+			_sector_types[Vector2i(6, 4)] = "spire"
+			for p in [Vector2i(2, 2), Vector2i(3, 3), Vector2i(8, 5), Vector2i(9, 6)]:
+				_sector_types[p] = "wind_stream"
+			_sector_types[Vector2i(3, 6)] = "conduit"
+			_sector_types[Vector2i(8, 2)] = "conduit"
+
+		"marea_stage_9":
+			# The Triple Confluence: 13x10
+			_sector_types[Vector2i(6, 4)] = "conduit"
+			_sector_types[Vector2i(6, 5)] = "conduit"
+			for x in range(1, 6):
+				_sector_types[Vector2i(x, 2)] = "wind_stream"
+			for x in range(7, 12):
+				_sector_types[Vector2i(x, 2)] = "wind_stream"
+			for y in range(5, 10):
+				_sector_types[Vector2i(6, y)] = "wind_stream"
+
+		"marea_stage_10":
+			# Breaking the Iron Citadel: 12x11
+			for x in range(3, 9):
+				_sector_types[Vector2i(x, 2)] = "sluice"
+				_sector_types[Vector2i(x, 3)] = "reef"
+			_sector_types[Vector2i(5, 3)] = "wind_stream"
+			_sector_types[Vector2i(6, 3)] = "wind_stream"
+			for y in range(4, 10):
+				_sector_types[Vector2i(5, y)] = "wind_stream"
+				_sector_types[Vector2i(6, y)] = "wind_stream"
+
+		"marea_stage_11":
+			# Eye of Chaos: 14x11 Maelstrom
+			_sector_types[Vector2i(6, 5)] = "maelstrom"
+			_sector_types[Vector2i(7, 5)] = "maelstrom"
+			for p in [Vector2i(2, 2), Vector2i(3, 3), Vector2i(10, 7), Vector2i(11, 8)]:
+				_sector_types[p] = "wind_stream"
+			_sector_types[Vector2i(3, 8)] = "conduit"
+			_sector_types[Vector2i(10, 2)] = "conduit"
+
+		"marea_stage_12":
+			# The Sovereign Ocean: 16x12
+			_sector_types[Vector2i(7, 5)] = "ring"
+			_sector_types[Vector2i(8, 5)] = "ring"
+			for y in range(2, 10):
+				_sector_types[Vector2i(4, y)] = "wind_stream"
+				_sector_types[Vector2i(11, y)] = "wind_stream"
+			_sector_types[Vector2i(4, 9)] = "conduit"
+			_sector_types[Vector2i(11, 9)] = "conduit"
 
 		_:
 			# Fallback default
@@ -1164,7 +1555,7 @@ func _draw_naval_chart() -> void:
 	var cur_sel_cell := _p_cells[selected_unit_idx]
 
 	# 1. Draw Strategic Quadrants (Clean, unsaturated, non-intrusive)
-	var cols_lbl := ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"]
+	var cols_lbl := ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"]
 	for gx in range(grid_cols):
 		for gy in range(grid_rows):
 			var cell := Vector2i(gx, gy)

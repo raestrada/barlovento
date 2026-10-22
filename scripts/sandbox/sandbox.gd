@@ -123,6 +123,7 @@ func _ready() -> void:
 		return
 
 	match LoreDB.current_stage_id:
+		# --- ARMADA OF ACERO (STAGES 1 - 12) ---
 		"acero_stage_1":
 			_add_combat_log("ACT I // STAGE 01 [TUTORIAL]: Sluice Station Well-09 under Corsair raid!", Color(1.0, 0.72, 0.28))
 			_add_combat_log("Adm. Vane: \"Cadets, sound battle stations. Present heavy bow armor and cross their T!\"", Color(0.4, 0.92, 1.0))
@@ -133,27 +134,112 @@ func _ready() -> void:
 		"acero_stage_3":
 			_add_combat_log("ACT I // STAGE 03: The Calm Threshold — Grand Coalition Fleet ahead!", Color(1.0, 0.45, 0.30))
 			_add_combat_log("Adm. Vane: \"The Calm is behind us. Anchor the Anvil line — Steel Endures!\"", Color(0.4, 0.92, 1.0))
+		"acero_stage_4":
+			_add_combat_log("ACT I // STAGE 04: Iron Gate Tertius — Corsair fast raiders attempting to breach the canal!", Color(1.0, 0.65, 0.25))
+			_add_combat_log("Adm. Vane: \"Lock down the canal sluice! Deploy Pike-class torpedo escorts and seal the gorge!\"", Color(0.4, 0.92, 1.0))
+		"acero_stage_5":
+			_add_combat_log("ACT II // STAGE 05: Siege of the Smuggler's Atoll — Heavy pirate fort detected in hollow caldera!", Color(1.0, 0.55, 0.20))
+			_add_combat_log("Adm. Tarek: \"Bring up the Crucible Siege Monitors! Pulverize their outer asteroid parapets!\"", Color(1.0, 0.75, 0.30))
+		"acero_stage_6":
+			_add_combat_log("ACT II // STAGE 06: The Choir Intercept — Vinculados 5-voice swarm wing engaging at Mach vectors!", Color(0.75, 0.45, 1.0))
+			_add_combat_log("Adm. Vane: \"Maintain defensive flak screening. Focus fire on the swarm leader!\"", Color(0.4, 0.92, 1.0))
+		"acero_stage_7":
+			_add_combat_log("ACT II // STAGE 07: Operation Obsidian Anvil — Escorting Fleet Arsenal Carrier Forge-01 through dead seeps!", Color(0.60, 0.75, 1.0))
+			_add_combat_log("Cmdr. Vance: \"Forge-01 engines cycling. Keep those corsair boarding skiffs off our flanks!\"", Color(0.8, 0.85, 0.95))
+		"acero_stage_8":
+			_add_combat_log("ACT II // STAGE 08: Clash at the Ferro-Magnetic Reef — Sensor telemetry completely scrambled!", Color(0.95, 0.35, 0.25))
+			_add_combat_log("Adm. Vane: \"Optical aiming only! Close to point-blank broadside range and blast them with steel!\"", Color(0.4, 0.92, 1.0))
+		"acero_stage_9":
+			_add_combat_log("ACT III // STAGE 09: Assault on Maelstrom Station — Corsair storm turbine fortress in the eye of the vortex!", Color(0.35, 0.85, 1.0))
+			_add_combat_log("Adm. Vane: \"Surge the reaction thrusters! Break their turbine pylons and seize the atmospheric collector!\"", Color(0.4, 0.92, 1.0))
+		"acero_stage_10":
+			_add_combat_log("ACT III // STAGE 10: Duel with the Colossus — Vinculados Mobile Armor Seraph-Prime detected!", Color(0.95, 0.40, 1.0))
+			_add_combat_log("Adm. Vane: \"A colossal mobile armor... All spinal batteries, link fire! Bring down the titan!\"", Color(0.4, 0.92, 1.0))
+		"acero_stage_11":
+			_add_combat_log("ACT III // STAGE 11: The Dying Tide — Final defense of the Great Sluice Dam!", Color(1.0, 0.40, 0.20))
+			_add_combat_log("Adm. Vane: \"The entire coalition fleet charges the dam. If the wall falls, the Star Sea bleeds out! HOLD THE LINE!\"", Color(0.4, 0.92, 1.0))
+		"acero_stage_12":
+			_add_combat_log("ACT III // STAGE 12: Apex of Steel — Supreme Flagship Imperator deploying into the Calm Singularity!", Color(1.0, 0.85, 0.35))
+			_add_combat_log("Grand Marshall Kurtz: \"Behold the pinnacle of Steel. We will dam entropy itself. STEEL ENDURES FOREVER!\"", Color(1.0, 0.70, 0.20))
+
+		# --- LOS VINCULADOS (STAGES 1 - 12) ---
 		"vinculados_stage_1":
-			_add_combat_log("ACT II // STAGE 01 [TUTORIAL]: Sanctuary Spire Psalm-4 — Imperial extraction incursion!", Color(0.85, 0.45, 1.0))
+			_add_combat_log("ACT I // STAGE 01 [TUTORIAL]: Sanctuary Spire Psalm-4 — Imperial extraction incursion!", Color(0.85, 0.45, 1.0))
 			_add_combat_log("Conductor Seraph-2: \"Imperial miners have brought heavy cruisers to drill the sacred Choir well. Protect the Sanctuary Spire!\"", Color(0.65, 0.88, 1.0))
 			_add_combat_log("Ace Kaelen-7: \"Harmonic link online. Our mobile suit wings out-turn their heavy ironclads. Slip into their rear quadrant for critical Stern Rakes!\"", Color(0.4, 0.92, 1.0))
 			_add_combat_log("🎓 TUTORIAL ACTIVE: Follow the guided instructions above. Press [N] for Next Step.", Color(0.35, 1.0, 0.75))
 		"vinculados_stage_2":
-			_add_combat_log("ACT II // STAGE 02: The Crystal Chasm — Acero armored column descending into the trench!", Color(0.85, 0.45, 1.0))
+			_add_combat_log("ACT I // STAGE 02: The Crystal Chasm — Acero armored column descending into the trench!", Color(0.85, 0.45, 1.0))
 			_add_combat_log("Conductor Seraph-2: \"We hold the upper celestial heights. Dive from altitude and strike their vulnerable topside deck armor!\"", Color(0.65, 0.88, 1.0))
 		"vinculados_stage_3":
-			_add_combat_log("ACT II // STAGE 03: Genesis Ring // Transcendence Threshold — Desperate enemy assault!", Color(0.95, 0.40, 1.0))
+			_add_combat_log("ACT I // STAGE 03: Genesis Ring // Transcendence Threshold — Desperate enemy assault!", Color(0.95, 0.40, 1.0))
 			_add_combat_log("Conductor Seraph-2: \"The Nous frame awakens! Protect the Genesis Ring until the resonance harmonizes!\"", Color(0.4, 0.92, 1.0))
+		"vinculados_stage_4":
+			_add_combat_log("ACT I // STAGE 04: Requiem of Outer Shrines — Psyche EW Diamond Wing taking point!", Color(0.55, 0.75, 1.0))
+			_add_combat_log("Ace Lyra-3: \"Diamond formation locked. Activating broad-spectrum sensor jamming. Their railguns cannot acquire us!\"", Color(0.65, 0.88, 1.0))
+		"vinculados_stage_5":
+			_add_combat_log("ACT II // STAGE 05: Awakening of Seraph-Prime — Colossal Mobile Armor awakening across the fracture rift!", Color(0.95, 0.45, 1.0))
+			_add_combat_log("Ascendant Mind Core: \"SOUL REACTOR CRITICAL... HARMONIC FUNNELS ACTIVE. ALL THREATS MARKED FOR TRANSCENDENCE.\"", Color(0.85, 0.35, 1.0))
+		"vinculados_stage_6":
+			_add_combat_log("ACT II // STAGE 06: Symphony of the 5-Voice Choir — Five harmonic vectors singing in unison!", Color(0.65, 0.90, 1.0))
+			_add_combat_log("Conductor Trio: \"Five voices, one frequency. Synchronize beam convergence and dissolve their cruiser screens!\"", Color(0.75, 0.95, 1.0))
+		"vinculados_stage_7":
+			_add_combat_log("ACT II // STAGE 07: The Calm Abyss Trench — Dead Éther void zone!", Color(0.45, 0.50, 0.65))
+			_add_combat_log("Ace Kaelen-7: \"The wind is dead here! Rely on internal soul-core reserve power! Don't let momentum stall!\"", Color(0.4, 0.92, 1.0))
+		"vinculados_stage_8":
+			_add_combat_log("ACT II // STAGE 08: Parley at the Astrolabe — Joint defensive pact with Corsair free captains!", Color(0.90, 0.80, 0.35))
+			_add_combat_log("Capt. Solano: \"Good to fight by your wings, mechas! Screen our galleons and we'll shatter their iron with broadsides!\"", Color(1.0, 0.85, 0.35))
+		"vinculados_stage_9":
+			_add_combat_log("ACT III // STAGE 09: Shattering the Sluice Dam — The Imperial dam choking the Éther must fall!", Color(0.85, 0.45, 1.0))
+			_add_combat_log("Ace Orin-9: \"Nous heavy choir cannons charged! Fire upon the dam gate hinges! Free the tide of the Star Sea!\"", Color(0.90, 0.60, 1.0))
+		"vinculados_stage_10":
+			_add_combat_log("ACT III // STAGE 10: Clash of Titans — Seraph-Prime vs Acero Supreme Juggernaut Imperator!", Color(1.0, 0.35, 0.35))
+			_add_combat_log("Ascendant Mind Core: \"COLOSSUS ENGAGED. AUTONOMOUS FUNNELS FORMING CORONA FORMATION.\"", Color(0.95, 0.40, 1.0))
+		"vinculados_stage_11":
+			_add_combat_log("ACT III // STAGE 11: The Calm Singularity — The edge of total entropy!", Color(0.70, 0.30, 0.90))
+			_add_combat_log("Conductor Seraph-2: \"The Calm is collapsing the sector! Channel all residual resonance into the Transcendence Gate!\"", Color(0.65, 0.88, 1.0))
+		"vinculados_stage_12":
+			_add_combat_log("ACT III // STAGE 12: Symphony of the Star Sea — All Choirs united for the Great Ascension!", Color(1.0, 0.90, 1.0))
+			_add_combat_log("Ace Kaelen-7: \"The gateway opens! Sing, pilots of the Choir! We cross beyond the dying wind into eternity!\"", Color(0.4, 0.92, 1.0))
+
+		# --- LA MAREA LIBRE (STAGES 1 - 12) ---
 		"marea_stage_1":
-			_add_combat_log("ACT III // STAGE 01 [TUTORIAL]: The Basalt Narrows — Imperial blockade bottling up the Haven!", Color(0.45, 0.95, 0.85))
+			_add_combat_log("ACT I // STAGE 01 [TUTORIAL]: The Basalt Narrows — Imperial blockade bottling up the Haven!", Color(0.45, 0.95, 0.85))
 			_add_combat_log("Capt. Solano: \"Unfurl the quantum sails, sea dogs! Catch the rapids of El Río del Viento, claim the Weather-Gauge [BARLOVENTO], and sweep their flanks with full broadsides!\"", Color(1.0, 0.85, 0.35))
 			_add_combat_log("🎓 TUTORIAL ACTIVE: Follow the guided instructions above. Press [N] for Next Step.", Color(0.35, 1.0, 0.75))
 		"marea_stage_2":
-			_add_combat_log("ACT III // STAGE 02: Raid on Foundry Vulcan-3 — Imperial ore bastions ripe for the taking!", Color(1.0, 0.75, 0.25))
+			_add_combat_log("ACT I // STAGE 02: Raid on Foundry Vulcan-3 — Imperial ore bastions ripe for the taking!", Color(1.0, 0.75, 0.25))
 			_add_combat_log("Capt. Solano: \"Slip behind the smelter platforms! Use their own defense towers as cover and pillage the ether reserves!\"", Color(1.0, 0.85, 0.35))
 		"marea_stage_3":
-			_add_combat_log("ACT III // STAGE 03: The Maelstrom of Barlovento — The Great Grand Sol Corona vortex!", Color(0.35, 0.95, 1.0))
+			_add_combat_log("ACT I // STAGE 03: The Maelstrom of Barlovento — The Great Grand Sol Corona vortex!", Color(0.35, 0.95, 1.0))
 			_add_combat_log("Capt. Solano: \"The wind howls like the birth of creation! All hands to the sails! Ride the Maelstrom and break their dreadnoughts!\"", Color(1.0, 0.85, 0.35))
+		"marea_stage_4":
+			_add_combat_log("ACT I // STAGE 04: The Free Trader Convoy — Imperial pickets hunting merchant void-clippers!", Color(0.85, 0.70, 0.30))
+			_add_combat_log("Capt. Solano: \"Form a screening wall! Deploy La Saeta to torpedo their lead corvettes before they open fire!\"", Color(1.0, 0.85, 0.35))
+		"marea_stage_5":
+			_add_combat_log("ACT II // STAGE 05: Prize of the 'Soberano' — Abandoned imperial super-galleon floating in asteroid graveyard!", Color(1.0, 0.80, 0.40))
+			_add_combat_log("Quartermaster Vael: \"There she sits—the grandest hull in the fleet! Grapple her decks and clear out the automated security!\"", Color(0.9, 0.75, 0.35))
+		"marea_stage_6":
+			_add_combat_log("ACT II // STAGE 06: The Dead Reef Ambush — Dense radar-dead basalt dust!", Color(0.55, 0.85, 0.75))
+			_add_combat_log("Capt. Moreau: \"Quiet running, engines cold. When the imperial ore convoy passes the reef gap... FULL BROADSIDE AMBUSH!\"", Color(0.8, 0.9, 0.7))
+		"marea_stage_7":
+			_add_combat_log("ACT II // STAGE 07: Siege of Fort Almirante — Imperial coastal defense citadel guarding the sea passage!", Color(1.0, 0.55, 0.20))
+			_add_combat_log("Commodore Marina: \"Bring El Trueno into firing position! Arc plasma mortar shells over the outer bastion!\"", Color(1.0, 0.75, 0.30))
+		"marea_stage_8":
+			_add_combat_log("ACT II // STAGE 08: The Ghost Flotilla — Luminous nebula fog and phantom derelicts!", Color(0.40, 0.90, 0.85))
+			_add_combat_log("Capt. Solano: \"Eyes sharp! Rogue drones are hiding among the wrecks! Stay in formation and surf the glowing currents!\"", Color(1.0, 0.85, 0.35))
+		"marea_stage_9":
+			_add_combat_log("ACT III // STAGE 09: The Triple Confluence — Three raging Éther rivers colliding at terminal velocity!", Color(0.35, 0.95, 1.0))
+			_add_combat_log("Capt. Solano: \"Maximum speed! Trim the sails for +30 knots! Out-sail their battle line and rake them from stem to stern!\"", Color(1.0, 0.85, 0.35))
+		"marea_stage_10":
+			_add_combat_log("ACT III // STAGE 10: Breaking the Iron Citadel — Assault on Acero's forward naval base!", Color(1.0, 0.60, 0.25))
+			_add_combat_log("Commodore Marina: \"All corsair squadrons converge! Crack their gantry gates and burn their drydocks!\"", Color(1.0, 0.75, 0.30))
+		"marea_stage_11":
+			_add_combat_log("ACT III // STAGE 11: Eye of Chaos — Maelstrom apex battle against both imperial armadas and the Calm!", Color(0.30, 0.90, 1.0))
+			_add_combat_log("Capt. Solano: \"The storm is tearing reality apart! But a true sailor dances with the whirlwind! TO GLORY!\"", Color(1.0, 0.85, 0.35))
+		"marea_stage_12":
+			_add_combat_log("ACT III // STAGE 12: The Sovereign Ocean — The entire Star Sea reclaimed for freedom!", Color(1.0, 0.90, 0.40))
+			_add_combat_log("Barbanegra: \"Unfurl the royal sails of the Soberano! As long as the wind blows, NO MAN OWNS THE SEA!\"", Color(1.0, 0.85, 0.35))
 		_:
 			_add_combat_log("Tactical link established. Outer Veil // Sector Psalm-4.", Color(0.4, 0.9, 1.0))
 			_add_combat_log("Tip: Hold [SHIFT + Left-Click/Drag] on the 3D plane to aim vector & speed.", Color(1.0, 0.85, 0.3))
@@ -1646,18 +1732,75 @@ func _build_stage_landmark() -> void:
 			_build_vinculados_sanctuary_spire()
 		"acero_stage_3":
 			_build_acero_calm_bastion()
+		"acero_stage_4":
+			_build_acero_sluice_station()
+		"acero_stage_5":
+			_build_marea_corsair_haven()
+		"acero_stage_6":
+			_build_vinculados_crystal_chasm()
+		"acero_stage_7":
+			_build_acero_calm_bastion()
+		"acero_stage_8":
+			_build_marea_foundry_complex()
+		"acero_stage_9":
+			_build_marea_wind_maelstrom()
+		"acero_stage_10":
+			_build_vinculados_genesis_ring()
+		"acero_stage_11":
+			_build_acero_calm_bastion()
+		"acero_stage_12":
+			_build_vinculados_genesis_ring()
+
 		"vinculados_stage_1":
 			_build_vinculados_sanctuary_spire()
 		"vinculados_stage_2":
 			_build_vinculados_crystal_chasm()
 		"vinculados_stage_3":
 			_build_vinculados_genesis_ring()
+		"vinculados_stage_4":
+			_build_vinculados_sanctuary_spire()
+		"vinculados_stage_5":
+			_build_vinculados_crystal_chasm()
+		"vinculados_stage_6":
+			_build_vinculados_sanctuary_spire()
+		"vinculados_stage_7":
+			_build_vinculados_crystal_chasm()
+		"vinculados_stage_8":
+			_build_marea_corsair_haven()
+		"vinculados_stage_9":
+			_build_acero_sluice_station()
+		"vinculados_stage_10":
+			_build_vinculados_genesis_ring()
+		"vinculados_stage_11":
+			_build_acero_calm_bastion()
+		"vinculados_stage_12":
+			_build_vinculados_genesis_ring()
+
 		"marea_stage_1":
 			_build_marea_corsair_haven()
 		"marea_stage_2":
 			_build_marea_foundry_complex()
 		"marea_stage_3":
 			_build_marea_wind_maelstrom()
+		"marea_stage_4":
+			_build_marea_corsair_haven()
+		"marea_stage_5":
+			_build_marea_foundry_complex()
+		"marea_stage_6":
+			_build_marea_corsair_haven()
+		"marea_stage_7":
+			_build_acero_sluice_station()
+		"marea_stage_8":
+			_build_vinculados_sanctuary_spire()
+		"marea_stage_9":
+			_build_marea_wind_maelstrom()
+		"marea_stage_10":
+			_build_acero_calm_bastion()
+		"marea_stage_11":
+			_build_marea_wind_maelstrom()
+		"marea_stage_12":
+			_build_marea_corsair_haven()
+
 		_:
 			_build_acero_sluice_station()
 
@@ -3001,7 +3144,210 @@ func _spawn_fleets() -> void:
 			boss_acero.max_hp = boss_acero.hp
 			_enemy_ships.append(boss_acero)
 			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-18.0, 7.0, -54.0), Vector3(0.0, 0.0, 4.0), 1))
-			_enemy_ships.append(_spawn("vinculados_suit", Vector3(18.0, 10.0, -50.0), Vector3(0.0, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(18.0, 10.0, -50.0), Vector3.ZERO, 1))
+
+		# --- ACERO EXPANSION (STAGES 4 - 12) ---
+		"acero_stage_4":
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(8.0, 3.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 56.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(-10.0, 4.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(6.0, 7.0, -50.0), Vector3(0.0, 0.0, 5.0), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(18.0, 2.0, -54.0), Vector3(0.0, 0.0, 4.5), 1))
+		"acero_stage_5":
+			_player_ships.append(_spawn("acero_monitor", Vector3(0.0, 4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-12.0, 6.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(14.0, 2.0, 52.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(-8.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("marea_bombard", Vector3(10.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.2), 1))
+		"acero_stage_6":
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(8.0, 6.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(20.0, 2.0, 52.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("vinculados_chorus", Vector3(0.0, 5.0, -52.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(-16.0, 8.0, -50.0), Vector3(0.0, 0.0, 5.2), 1))
+		"acero_stage_7":
+			_player_ships.append(_spawn("acero_carrier", Vector3(0.0, 3.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-12.0, 5.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(14.0, 7.0, 54.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(-10.0, 4.0, -54.0), Vector3(0.0, 0.0, 3.6), 1))
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(10.0, 8.0, -50.0), Vector3(0.0, 0.0, 4.6), 1))
+		"acero_stage_8":
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_monitor", Vector3(8.0, 3.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(18.0, 7.0, 54.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("vinculados_psyche", Vector3(0.0, 6.0, -50.0), Vector3(0.0, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(-14.0, 2.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
+		"acero_stage_9":
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 5.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 3.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_carrier", Vector3(20.0, 6.0, 60.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(-16.0, 4.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(16.0, 8.0, -48.0), Vector3(0.0, 0.0, 5.2), 1))
+		"acero_stage_10":
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 4.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_monitor", Vector3(8.0, 5.0, 55.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(20.0, 2.0, 52.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, -56.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(-16.0, 4.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+		"acero_stage_11":
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 5.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_carrier", Vector3(8.0, 3.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-20.0, 7.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(22.0, 4.0, 52.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(-10.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.6), 1))
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(10.0, 6.0, -58.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(22.0, 3.0, -50.0), Vector3(0.0, 0.0, 4.0), 1))
+		"acero_stage_12":
+			_player_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 5.0, 65.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-16.0, 4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_monitor", Vector3(16.0, 6.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_carrier", Vector3(30.0, 3.0, 60.0), Vector3.ZERO, 0))
+			var boss12 := _spawn("vinculados_colossus", Vector3(0.0, 8.0, -62.0), Vector3(0.0, 0.0, 3.8), 1)
+			boss12.hp = roundf(boss12.hp * 1.35)
+			boss12.max_hp = boss12.hp
+			_enemy_ships.append(boss12)
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(-20.0, 5.0, -58.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(20.0, 7.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+
+		# --- VINCULADOS EXPANSION (STAGES 4 - 12) ---
+		"vinculados_stage_4":
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 3.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_psyche", Vector3(-14.0, 6.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_suit", Vector3(14.0, 2.0, 50.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-8.0, 4.0, -54.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(12.0, 6.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
+		"vinculados_stage_5":
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 7.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(-16.0, 3.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(16.0, 9.0, 50.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(12.0, 4.0, -52.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(22.0, 6.0, -48.0), Vector3(0.0, 0.0, 4.2), 1))
+		"vinculados_stage_6":
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 4.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_chorus", Vector3(-14.0, 6.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(14.0, 3.0, 50.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(0.0, 3.0, -58.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-16.0, 5.0, -52.0), Vector3(0.0, 0.0, 3.6), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(16.0, 7.0, -50.0), Vector3(0.0, 0.0, 4.4), 1))
+		"vinculados_stage_7":
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_aegis", Vector3(-12.0, 6.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_suit", Vector3(12.0, 3.0, 50.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 4.0, -54.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(12.0, 5.0, -52.0), Vector3(0.0, 0.0, 3.0), 1))
+		"vinculados_stage_8":
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 4.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-14.0, 7.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(14.0, 3.0, 54.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(10.0, 4.0, -52.0), Vector3(0.0, 0.0, 3.8), 1))
+		"vinculados_stage_9":
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 4.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(-14.0, 8.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_chorus", Vector3(16.0, 3.0, 50.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(0.0, 4.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(-16.0, 6.0, -54.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(18.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
+		"vinculados_stage_10":
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(-16.0, 4.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_psyche", Vector3(16.0, 5.0, 52.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 5.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-18.0, 6.0, -54.0), Vector3(0.0, 0.0, 3.8), 1))
+		"vinculados_stage_11":
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 5.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_aegis", Vector3(-14.0, 7.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(14.0, 3.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(24.0, 9.0, 48.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 4.0, -58.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(12.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(-24.0, 6.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
+		"vinculados_stage_12":
+			var lead_col := _spawn("vinculados_colossus", Vector3(0.0, 8.0, 62.0), Vector3.ZERO, 0)
+			lead_col.hp = roundf(lead_col.hp * 1.30)
+			lead_col.max_hp = lead_col.hp
+			_player_ships.append(lead_col)
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(-18.0, 4.0, 65.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_chorus", Vector3(18.0, 6.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(30.0, 2.0, 52.0), Vector3.ZERO, 0))
+			var boss_jugg := _spawn("acero_juggernaut", Vector3(0.0, 5.0, -64.0), Vector3(0.0, 0.0, 3.2), 1)
+			boss_jugg.hp = roundf(boss_jugg.hp * 1.40)
+			boss_jugg.max_hp = boss_jugg.hp
+			_enemy_ships.append(boss_jugg)
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-20.0, 4.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(20.0, 6.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
+
+		# --- MAREA LIBRE EXPANSION (STAGES 4 - 12) ---
+		"marea_stage_4":
+			_player_ships.append(_spawn("marea_galleon", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(8.0, 3.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(18.0, 7.0, 52.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-8.0, 4.0, -54.0), Vector3(0.0, 0.0, 3.6), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(12.0, 5.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+		"marea_stage_5":
+			_player_ships.append(_spawn("marea_galleon", Vector3(-8.0, 5.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(6.0, 7.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(18.0, 2.0, 48.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(0.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(16.0, 4.0, -50.0), Vector3(0.0, 0.0, 4.0), 1))
+		"marea_stage_6":
+			_player_ships.append(_spawn("marea_frigate", Vector3(-6.0, 4.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(8.0, 7.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(18.0, 2.0, 48.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(0.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(-14.0, 5.0, -50.0), Vector3(0.0, 0.0, 4.4), 1))
+		"marea_stage_7":
+			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, 4.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(-14.0, 6.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(14.0, 3.0, 50.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 4.0, -56.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(12.0, 5.0, -52.0), Vector3(0.0, 0.0, 3.0), 1))
+		"marea_stage_8":
+			_player_ships.append(_spawn("marea_galleon", Vector3(-6.0, 4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(8.0, 7.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(20.0, 2.0, 50.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(0.0, 6.0, -52.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(-16.0, 8.0, -48.0), Vector3(0.0, 0.0, 5.0), 1))
+		"marea_stage_9":
+			_player_ships.append(_spawn("marea_galleon", Vector3(0.0, 6.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(-14.0, 4.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(14.0, 8.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(24.0, 2.0, 48.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 4.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(10.0, 6.0, -54.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(22.0, 3.0, -50.0), Vector3(0.0, 0.0, 4.8), 1))
+		"marea_stage_10":
+			_player_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_bombard", Vector3(-14.0, 3.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(14.0, 7.0, 54.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(0.0, 4.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-18.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(18.0, 3.0, -52.0), Vector3(0.0, 0.0, 3.0), 1))
+		"marea_stage_11":
+			_player_ships.append(_spawn("marea_leviathan", Vector3(0.0, 7.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(-16.0, 4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(16.0, 8.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(28.0, 2.0, 50.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(0.0, 4.0, -60.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("vinculados_colossus", Vector3(-18.0, 8.0, -56.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(18.0, 5.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
+		"marea_stage_12":
+			var flagship_lev := _spawn("marea_leviathan", Vector3(0.0, 7.0, 65.0), Vector3.ZERO, 0)
+			flagship_lev.hp = roundf(flagship_lev.hp * 1.35)
+			flagship_lev.max_hp = flagship_lev.hp
+			_player_ships.append(flagship_lev)
+			_player_ships.append(_spawn("marea_galleon", Vector3(-18.0, 4.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(18.0, 8.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(30.0, 2.0, 50.0), Vector3.ZERO, 0))
+			var boss_kurtz := _spawn("acero_juggernaut", Vector3(0.0, 5.0, -64.0), Vector3(0.0, 0.0, 3.2), 1)
+			boss_kurtz.hp = roundf(boss_kurtz.hp * 1.45)
+			boss_kurtz.max_hp = boss_kurtz.hp
+			_enemy_ships.append(boss_kurtz)
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-20.0, 4.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(20.0, 6.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
 		_:
 			# Fallback Sandbox
 			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 2.0, 58.0), Vector3.ZERO, 0))
@@ -3215,24 +3561,47 @@ func _build_hud() -> void:
 
 	_stage_title_label = Label.new()
 	match LoreDB.current_stage_id:
-		"acero_stage_1":
-			_stage_title_label.text = "ACT I // STAGE 01 [TUTORIAL]: SLUICE WELL-09"
-		"acero_stage_2":
-			_stage_title_label.text = "ACT I // STAGE 02: RESONANCE SPIRE"
-		"acero_stage_3":
-			_stage_title_label.text = "ACT I // STAGE 03: THE CALM THRESHOLD"
-		"vinculados_stage_1":
-			_stage_title_label.text = "ACT II // STAGE 01 [TUTORIAL]: SANCTUARY SPIRE PSALM-4"
-		"vinculados_stage_2":
-			_stage_title_label.text = "ACT II // STAGE 02: THE CRYSTAL CHASM"
-		"vinculados_stage_3":
-			_stage_title_label.text = "ACT II // STAGE 03: GENESIS RING // TRANSCENDENCE"
-		"marea_stage_1":
-			_stage_title_label.text = "ACT III // STAGE 01 [TUTORIAL]: THE BASALT NARROWS"
-		"marea_stage_2":
-			_stage_title_label.text = "ACT III // STAGE 02: RAID ON FOUNDRY VULCAN-3"
-		"marea_stage_3":
-			_stage_title_label.text = "ACT III // STAGE 03: THE MAELSTROM OF BARLOVENTO"
+		# --- ARMADA OF ACERO (12 STAGES) ---
+		"acero_stage_1": _stage_title_label.text = "ACT I // STAGE 01 [TUTORIAL]: SLUICE WELL-09"
+		"acero_stage_2": _stage_title_label.text = "ACT I // STAGE 02: RESONANCE SPIRE"
+		"acero_stage_3": _stage_title_label.text = "ACT I // STAGE 03: THE CALM THRESHOLD"
+		"acero_stage_4": _stage_title_label.text = "ACT I // STAGE 04: IRON GATE TERTIUS"
+		"acero_stage_5": _stage_title_label.text = "ACT II // STAGE 05: SIEGE OF SMUGGLER'S ATOLL"
+		"acero_stage_6": _stage_title_label.text = "ACT II // STAGE 06: THE CHOIR INTERCEPT"
+		"acero_stage_7": _stage_title_label.text = "ACT II // STAGE 07: OPERATION OBSIDIAN ANVIL"
+		"acero_stage_8": _stage_title_label.text = "ACT II // STAGE 08: FERRO-MAGNETIC REEF"
+		"acero_stage_9": _stage_title_label.text = "ACT III // STAGE 09: ASSAULT ON MAELSTROM STATION"
+		"acero_stage_10": _stage_title_label.text = "ACT III // STAGE 10: DUEL WITH THE COLOSSUS"
+		"acero_stage_11": _stage_title_label.text = "ACT III // STAGE 11: THE DYING TIDE"
+		"acero_stage_12": _stage_title_label.text = "ACT III // STAGE 12: APEX OF STEEL // CALM CITADEL"
+
+		# --- LOS VINCULADOS (12 STAGES) ---
+		"vinculados_stage_1": _stage_title_label.text = "ACT I // STAGE 01 [TUTORIAL]: SANCTUARY SPIRE PSALM-4"
+		"vinculados_stage_2": _stage_title_label.text = "ACT I // STAGE 02: THE CRYSTAL CHASM"
+		"vinculados_stage_3": _stage_title_label.text = "ACT I // STAGE 03: GENESIS RING // TRANSCENDENCE"
+		"vinculados_stage_4": _stage_title_label.text = "ACT I // STAGE 04: REQUIEM OF OUTER SHRINES"
+		"vinculados_stage_5": _stage_title_label.text = "ACT II // STAGE 05: AWAKENING OF SERAPH-PRIME"
+		"vinculados_stage_6": _stage_title_label.text = "ACT II // STAGE 06: SYMPHONY OF 5-VOICE CHOIR"
+		"vinculados_stage_7": _stage_title_label.text = "ACT II // STAGE 07: THE CALM ABYSS TRENCH"
+		"vinculados_stage_8": _stage_title_label.text = "ACT II // STAGE 08: PARLEY AT THE ASTROLABE"
+		"vinculados_stage_9": _stage_title_label.text = "ACT III // STAGE 09: SHATTERING THE SLUICE DAM"
+		"vinculados_stage_10": _stage_title_label.text = "ACT III // STAGE 10: CLASH OF TITANS"
+		"vinculados_stage_11": _stage_title_label.text = "ACT III // STAGE 11: THE CALM SINGULARITY"
+		"vinculados_stage_12": _stage_title_label.text = "ACT III // STAGE 12: SYMPHONY OF THE STAR SEA"
+
+		# --- LA MAREA LIBRE (12 STAGES) ---
+		"marea_stage_1": _stage_title_label.text = "ACT I // STAGE 01 [TUTORIAL]: THE BASALT NARROWS"
+		"marea_stage_2": _stage_title_label.text = "ACT I // STAGE 02: RAID ON FOUNDRY VULCAN-3"
+		"marea_stage_3": _stage_title_label.text = "ACT I // STAGE 03: THE MAELSTROM OF BARLOVENTO"
+		"marea_stage_4": _stage_title_label.text = "ACT I // STAGE 04: THE FREE TRADER CONVOY"
+		"marea_stage_5": _stage_title_label.text = "ACT II // STAGE 05: PRIZE OF THE 'SOBERANO'"
+		"marea_stage_6": _stage_title_label.text = "ACT II // STAGE 06: THE DEAD REEF AMBUSH"
+		"marea_stage_7": _stage_title_label.text = "ACT II // STAGE 07: SIEGE OF FORT ALMIRANTE"
+		"marea_stage_8": _stage_title_label.text = "ACT II // STAGE 08: THE GHOST FLOTILLA"
+		"marea_stage_9": _stage_title_label.text = "ACT III // STAGE 09: THE TRIPLE CONFLUENCE"
+		"marea_stage_10": _stage_title_label.text = "ACT III // STAGE 10: BREAKING THE IRON CITADEL"
+		"marea_stage_11": _stage_title_label.text = "ACT III // STAGE 11: EYE OF CHAOS"
+		"marea_stage_12": _stage_title_label.text = "ACT III // STAGE 12: THE SOVEREIGN OCEAN"
 		_:
 			_stage_title_label.text = "TACTICAL ENGAGEMENT // STAR SEA"
 	_stage_title_label.add_theme_font_size_override("font_size", 10)
@@ -3532,21 +3901,7 @@ func _check_stage_objectives() -> void:
 		_show_mission_defeat()
 
 func _get_next_stage_id() -> String:
-	match LoreDB.current_stage_id:
-		"acero_stage_1":
-			return "acero_stage_2"
-		"acero_stage_2":
-			return "acero_stage_3"
-		"vinculados_stage_1":
-			return "vinculados_stage_2"
-		"vinculados_stage_2":
-			return "vinculados_stage_3"
-		"marea_stage_1":
-			return "marea_stage_2"
-		"marea_stage_2":
-			return "marea_stage_3"
-		_:
-			return ""
+	return SaveManager.get_next_stage_id(LoreDB.current_stage_id)
 
 func _show_mission_victory() -> void:
 	AudioManager.play_sfx("shockwave", 0.0)
@@ -3583,21 +3938,11 @@ func _show_mission_victory() -> void:
 	var next_id := _get_next_stage_id()
 	if _victory_next_btn != null:
 		_victory_next_btn.visible = (next_id != "")
-		match next_id:
-			"acero_stage_2":
-				_victory_next_btn.text = "▶ DEPLOY STAGE 02: RESONANCE SPIRE"
-			"acero_stage_3":
-				_victory_next_btn.text = "▶ DEPLOY STAGE 03: CALM THRESHOLD"
-			"vinculados_stage_2":
-				_victory_next_btn.text = "▶ DEPLOY STAGE 02: CRYSTAL CHASM"
-			"vinculados_stage_3":
-				_victory_next_btn.text = "▶ DEPLOY STAGE 03: GENESIS RING"
-			"marea_stage_2":
-				_victory_next_btn.text = "▶ DEPLOY STAGE 02: FOUNDRY VULCAN-3"
-			"marea_stage_3":
-				_victory_next_btn.text = "▶ DEPLOY STAGE 03: THE MAELSTROM"
-			_:
-				_victory_next_btn.text = "▶ DEPLOY NEXT STAGE"
+		if next_id != "":
+			var num_str := next_id.get_slice("_", 2)
+			_victory_next_btn.text = "▶ DEPLOY NEXT STAGE %s" % num_str.to_upper()
+		else:
+			_victory_next_btn.text = "▶ DEPLOY NEXT STAGE"
 
 	if _victory_overlay != null:
 		_victory_overlay.visible = true
