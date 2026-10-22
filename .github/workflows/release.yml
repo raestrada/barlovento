@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release Tag (e.g. v0.3.0-alpha)'
+        description: 'Release Tag (e.g. v0.4.0-alpha)'
         required: false
-        default: 'v0.3.0-alpha'
+        default: 'v0.4.0-alpha'
 
 permissions:
   contents: write
@@ -31,14 +31,14 @@ jobs:
           prerelease: true
           generate_release_notes: true
           body: |
-            ## 🚀 BARLOVENTO v0.3.0-alpha Build
+            ## 🚀 BARLOVENTO v0.4.0-alpha Build
 
             ### ✨ Highlights:
-            - **⚔ Stages 1, 2 & 3 Active Across All 3 Factions:** Play through 9 complete distinct campaign missions for Armada of Acero, The Vinculados, and La Marea Libre!
-            - **🌌 Dynamic Strategic Naval Charts:** Grid topologies scaling from 8×10 narrow canyon gorges to 12×10 oceanic storm charts with spires, rings, maelstroms, and Calm fronts.
-            - **🤖 Mecha Squad Formations & Colossal Mobile Armor:** Vinculados agile 3-unit wings, 4-unit EW diamond squads, 5-unit choral swarms, and the colossal Mobile Armor *Seraph-Prime* with autonomous funnels.
-            - **🏔 3D Battlefield Landmarks & Altitude Tactics:** Fight around Bastion-7, the Crystal Chasm (+16m altitude dive attacks), the rotating Genesis Ring, Smelter Vulcan-3, and the Eye of the Maelstrom.
-            - **🏅 Campaign Save & Veteran Ace Progression:** Persistent promotions carry forward between stages.
+            - **⚔ Full 36-Stage Campaign (12 per Faction):** Play through all 12 stages across the Armada of Acero, The Vinculados, and La Marea Libre, from introductory tutorials through the final clímax against The Calm!
+            - **🎨 9 Cinematic Act Briefing Artworks (16:9):** Dedicated concept art illustrations for Act I, Act II, and Act III for all three civilizations.
+            - **🤖 Complete Expanded Unit Rosters:** Command the Colossus Mobile Armor *Seraph-Prime* with fin funnels, the Supreme Juggernaut *CNS Imperator*, the Heavy Siege Monitor *Crucible*, and the Colossal *Void Leviathan*.
+            - **🌌 Dynamic Strategic Naval Charts:** Grid topologies scaling up to 16×12 sectors with Calm fronts, conduits, spires, and vortices.
+            - **🏅 Campaign Save & Veteran Ace Progression:** Persistent promotions carry forward between all 12 stages.
 
             ### 🎮 Quick Start:
             1. Download `Barlovento.zip` attached below.

@@ -9,9 +9,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/raestrada/barlovento/releases/download/v0.3.0-alpha/Barlovento.zip"><img src="https://img.shields.io/badge/Download_Build-Windows_64--bit-0284c7?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Build" /></a>
+  <a href="https://github.com/raestrada/barlovento/releases/download/v0.4.0-alpha/Barlovento.zip"><img src="https://img.shields.io/badge/Download_Build-Windows_64--bit-0284c7?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Build" /></a>
   <a href="https://raestrada.github.io/barlovento/"><img src="https://img.shields.io/badge/Official_Site-GitHub_Pages-38bdf8?style=for-the-badge&logo=github" alt="Official Site" /></a>
-  <img src="https://img.shields.io/badge/Tutorials-Active_All_Factions-10b981?style=for-the-badge" alt="Tutorials Active" />
+  <img src="https://img.shields.io/badge/Campaign-36_Stages_Active-10b981?style=for-the-badge" alt="36 Stages Active" />
   <img src="https://img.shields.io/badge/Engine-Godot_4.7.2_Forward%2B-478cbf?style=for-the-badge&logo=godotengine&logoColor=white" alt="Godot 4.7.2" />
   <img src="https://img.shields.io/badge/Pipeline-100%25_Agentic_LLM-10b981?style=for-the-badge" alt="100% Agentic" />
 </p>
@@ -22,10 +22,10 @@
 </p>
 
 > [!IMPORTANT]
-> **🎓 Interactive Tutorials are now LIVE!**
-> The introductory training mission (Act I // Stage 01) is active for all three civilizations—**The Armada of Acero**, **The Vinculados**, and **The Free Tide**—featuring a guided **5-step Tactical Academy guide**, Newtonian maneuvering drills, active directional armor absorption, and rebalanced training duels.
+> **⚔ Full 36-Stage Campaign & Act Briefing Art are now LIVE in v0.4.0-alpha!**
+> Play through all 12 stages per civilization (36 stages total)—**The Armada of Acero**, **The Vinculados**, and **The Free Tide**—featuring complete expanded unit rosters (*Mobile Armor Seraph-Prime*, *Colossus Juggernaut Imperator*, *Void Leviathan*), 16:9 Act Briefing art, and strategic navigational charts up to 16×12 grids.
 >
-> 🚀 **[Download Windows Alpha Build (Barlovento.zip)](https://github.com/raestrada/barlovento/releases/download/v0.3.0-alpha/Barlovento.zip)** • [View GitHub Releases](https://github.com/raestrada/barlovento/releases)
+> 🚀 **[Download Windows Alpha Build (Barlovento.zip)](https://github.com/raestrada/barlovento/releases/download/v0.4.0-alpha/Barlovento.zip)** • [View GitHub Releases](https://github.com/raestrada/barlovento/releases)
 
 <p align="center">
   <a href="https://raestrada.github.io/barlovento/"><b>Explore the Interactive Web Experience & Watch the Cinematic Prologue &rarr;</b></a>
