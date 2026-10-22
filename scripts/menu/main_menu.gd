@@ -1028,6 +1028,7 @@ func _populate_vinculados_stage_briefing(stage_id: String) -> void:
             if _launch_stage_btn != null: _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
 
         "vinculados_stage_8", "vinculados_stage_9", "vinculados_stage_10", "vinculados_stage_11":
+            _briefing_art_rect.texture = load("res://assets/ships/vinculados/mobile_armor_colossus.png")
             _commander_portrait_rect.texture = load("res://assets/heroes/ace_orin.png")
             _commander_name_lbl.text = "ACE PILOT ORIN-9"
             _commander_role_lbl.text = "Seraph Mobile Armor Commander // High Choir"
@@ -1042,6 +1043,7 @@ func _populate_vinculados_stage_briefing(stage_id: String) -> void:
             if _launch_stage_btn != null: _launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
 
         "vinculados_stage_12":
+            _briefing_art_rect.texture = load("res://assets/ships/vinculados/mobile_armor_colossus.png")
             _commander_portrait_rect.texture = load("res://assets/heroes/ace_orin.png")
             _commander_name_lbl.text = "HIGH CONDUCTOR & ACE ORIN-9"
             _commander_role_lbl.text = "Transcendence Choir // The Apex Harmonizer"
