@@ -5,6 +5,8 @@ const SPEED_STEP := 8.0
 const PITCH_LIMIT := 1.15
 const ENGAGEMENT_RANGE := 42.0
 
+const StoryTransitionOverlay = preload("res://scripts/ui/story_transition_overlay.gd")
+
 var _player_ships: Array[Ship] = []
 var _enemy_ships: Array[Ship] = []
 var _selected_ship: Ship
@@ -44,7 +46,7 @@ var _ace_panel: AcePanel
 var _help_overlay: Control
 var _victory_overlay: Control
 var _defeat_overlay: Control
-var _story_overlay: StoryTransitionOverlay
+var _story_overlay: Control
 var _hud_theme: Theme
 var _ether_particles: Node3D
 var _asteroid_root: Node3D
