@@ -111,3 +111,19 @@ godot --headless --path . --import        # import assets
 
 Run these after structural changes. Gameplay verification needs a human/agent
 running the editor until an automated test setup exists.
+
+---
+
+## Symphonic Audio Architecture
+
+BARLOVENTO features a dynamic, context-aware orchestral soundtrack composed of public domain and open-license symphonic masterpieces performed by world-class ensembles (United States Air Force Band and Skidmore College Orchestra):
+
+- **Main Menu, Briefings & Prologue:** Gustav Holst — *The Planets: Venus, the Bringer of Peace* (serene, deep-space celestial harmony).
+- **The Armada of Acero (Faction Theme):** Gustav Holst — *The Planets: Mars, the Bringer of War* (driving 5/4 military march, brutalist steel warships).
+- **The Vinculados (Faction Theme):** Gustav Holst — *The Planets: Uranus, the Magician* (mystical 4-note brass fanfare, psychic choir and agile mecha).
+- **The Free Tide / Marea Libre (Faction Theme):** Gustav Holst — *The Planets: Jupiter, the Bringer of Jollity* (heroic nautical swagger, soaring horn themes, void privateers).
+- **Ace Tactical Combat Phase:** Gustav Holst — *The Planets: Mercury, the Winged Messenger* (virtuosic, high-speed 6/8 agility for close-range dogfights).
+- **Act 3 Calm Singularity Climax:** Antonín Dvořák — *Symphony No. 9 "From the New World" - IV. Allegro con fuoco* (apocalyptic brass crescendo).
+- **Victory & Defeat Cues:** Bespoke brass fanfare on mission accomplished and somber brass elegy on flagship loss.
+- **Dynamic Crossfade & Controls:** `AudioManager` automatically crossfades tracks over 0.8s-1.0s without clipping. Players can cycle symphonic tracks on the fly by pressing `[M]`.
+

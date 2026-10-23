@@ -109,7 +109,7 @@ func _ready() -> void:
 	_build_hud()
 	_set_selected(_player_ships[0])
 
-	AudioManager.play_battle_music(-10.0)
+	AudioManager.play_battle_music(-10.0, LoreDB.player_faction, LoreDB.current_stage_id)
 	AudioManager.start_ambient(-26.0)
 
 	TurnManager.phase_changed.connect(_on_phase_changed)
@@ -338,6 +338,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			_cycle_hostile_target()
 		elif event.is_action_pressed("intercept_target"):
 			_intercept_target()
+		elif event is InputEventKey and event.keycode == KEY_M:
+			var track_title := AudioManager.next_battle_track(-10.0)
+			_add_combat_log("♪ NOW PLAYING: %s" % track_title, Color(0.65, 0.9, 1.0))
 		elif event is InputEventKey and event.keycode == KEY_Y:
 			if _ace_panel != null:
 				_ace_panel.toggle_weapon_arcs()
@@ -4113,6 +4116,11 @@ func _on_phase_changed(_phase: int) -> void:
 	var in_ace := TurnManager.is_in_ace()
 	var resolving := TurnManager.is_resolving()
 
+	if in_ace:
+		AudioManager.play_ace_tactical_music(-10.0)
+	else:
+		AudioManager.play_battle_music(-10.0, LoreDB.player_faction, LoreDB.current_stage_id)
+
 	if _turn_label_phase != null:
 		_turn_label_phase.text = "ACE PHASE" if in_ace else "ADMIRAL PHASE"
 
@@ -4200,6 +4208,8 @@ func _show_mission_victory() -> void:
 	else:
 		_add_combat_log("MISSION ACCOMPLISHED: SECTOR SECURED!", Color(0.3, 1.0, 0.6))
 
+	AudioManager.play_victory_fanfare(-5.0)
+
 	if _victory_sub_label != null and not promo_lines.is_empty():
 		_victory_sub_label.text += "\n\nVETERAN ACE PROMOTIONS (SAVED TO CAMPAIGN):\n" + "\n".join(promo_lines)
 
@@ -4223,6 +4233,7 @@ func _show_mission_victory() -> void:
 func _show_mission_defeat() -> void:
 	AudioManager.play_sfx("shockwave", 0.0)
 	AudioManager.play_sfx("explosion_big", 0.0)
+	AudioManager.play_defeat_cue(-5.0)
 	_add_combat_log("MISSION FAILED: FLAGSHIP DESTROYED", Color(1.0, 0.3, 0.3))
 	if _defeat_overlay != null:
 		_defeat_overlay.visible = true
@@ -4482,6 +4493,8 @@ Space              Execute simultaneous WEGO turn
 2. TARGET: Click any enemy in 3D or press [C] to lock target.
 3. STANCE: Choose Attack (fire lasers during round) or Evasive Drift (+35% defense).
 4. RESOLVE: Press SPACE to execute the round! All ships burn thrusters, drift, and open fire simultaneously.
+U                  Toggle Auto-Pilot AI on/off for selected ship
+M                  Cycle Symphonic Soundtrack (Holst / Dvorak)
 
 CAMERA & BATTLEFIELD:
 Left/Middle Drag   Pan battlefield plane
