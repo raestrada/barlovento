@@ -340,6 +340,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event is InputEventKey and event.keycode == KEY_Z:
 			if _ace_panel != null and _ace_panel.visible:
 				_ace_panel.reset_all_ap()
+		elif event is InputEventKey and event.keycode == KEY_U:
+			if TurnManager.is_in_ace():
+				_on_toggle_auto_pilot()
 		elif event is InputEventKey and event.keycode == KEY_T:
 			if _is_tutorial_stage and _tutorial_banner != null:
 				_tutorial_banner.visible = not _tutorial_banner.visible
@@ -470,10 +473,105 @@ func _execute_current_phase() -> void:
 		_execute_ace_round()
 
 func _execute_ace_round() -> void:
+	_plan_friendly_ai_orders()
 	_plan_ai_tactical_orders()
 	AudioManager.play_sfx("ui_click", -10.0)
 	_add_combat_log(">>> EXECUTING TACTICAL ROUND %d (ALL UNITS ENGAGING) <<<" % TurnManager.ace_round, Color(0.35, 1.0, 0.75))
 	TurnManager.start_ace_resolve()
+
+func _plan_friendly_ai_orders() -> void:
+	for ally in _player_ships:
+		if ally.is_destroyed():
+			continue
+		if ally.is_auto_pilot:
+			_plan_friendly_ship_ai(ally)
+
+func _clear_round_combat_metas(ship: Ship) -> void:
+	if ship == null:
+		return
+	ship.remove_meta("prow_angle_active")
+	ship.remove_meta("flak_screen_active")
+	ship.remove_meta("precision_boost")
+	ship.remove_meta("resonance_pierce")
+	ship.remove_meta("evasive_boost")
+	ship.remove_meta("chain_shot_active")
+	ship.remove_meta("harpoon_active")
+	ship.remove_meta("broadside_active")
+
+func _plan_friendly_ship_ai(ship: Ship) -> void:
+	if ship == null or ship.is_destroyed():
+		return
+
+	# 1. Target: tunnel vision on closest enemy threat
+	var target := _nearest_enemy_for(ship)
+	if target == null or target.is_destroyed():
+		return
+	ship.target_ship = target
+
+	# 2. Heading: center of mass, direct line toward target (no intentional stern rake hunting)
+	var to_target := target.global_position - ship.global_position
+	if to_target.length_squared() > 0.01:
+		_set_order_heading(ship, to_target.normalized())
+
+	# 3. Speed: conservative positioning
+	var dist := ship.state.position.distance_to(target.state.position)
+	if dist > ship.weapon_range:
+		ship.order.target_speed = ship.state.max_speed * 0.60
+	elif dist > 16.0:
+		ship.order.target_speed = 3.5
+	else:
+		ship.order.target_speed = 1.5
+
+	# 4. Stance: defensive when battered, fire when healthy
+	if ship.hp < ship.max_hp * 0.35:
+		ship.stance = Ship.Stance.EVASIVE
+	else:
+		ship.stance = Ship.Stance.FIRE
+
+	# 5. Conservative AP spending (max 2 AP, 1 support action):
+	_clear_round_combat_metas(ship)
+	var fac := ship.faction
+	if ship.hp < ship.max_hp * 0.35:
+		match fac:
+			"acero":
+				ship.set_meta("flak_screen_active", true)
+			"vinculados":
+				ship.set_meta("evasive_boost", true)
+			"marea_libre":
+				ship.set_meta("evasive_boost", true)
+	else:
+		match fac:
+			"acero":
+				if dist > 25.0:
+					ship.set_meta("prow_angle_active", true)
+				else:
+					ship.set_meta("broadside_active", true)
+			"vinculados":
+				if dist > 28.0:
+					ship.set_meta("precision_boost", true)
+				else:
+					ship.set_meta("resonance_pierce", true)
+			"marea_libre":
+				if dist > 25.0:
+					ship.set_meta("chain_shot_active", true)
+				else:
+					ship.set_meta("broadside_active", true)
+
+func _on_toggle_auto_pilot() -> void:
+	if _selected_ship == null or _selected_ship.is_destroyed():
+		return
+	_selected_ship.is_auto_pilot = not _selected_ship.is_auto_pilot
+	if _selected_ship.is_auto_pilot:
+		_plan_friendly_ship_ai(_selected_ship)
+		AudioManager.play_sfx("ui_click", -6.0)
+		_add_combat_log("🤖 %s: Tactical Autopilot ENGAGED (Support Mode)." % _selected_ship.ship_name, Color(0.4, 0.95, 0.7))
+	else:
+		_clear_round_combat_metas(_selected_ship)
+		AudioManager.play_sfx("ui_hover", -6.0)
+		_add_combat_log("🤖 %s: Tactical Autopilot DISENGAGED (Manual Control)." % _selected_ship.ship_name, Color(0.7, 0.85, 0.95))
+	if _ace_panel != null:
+		_ace_panel.refresh()
+	_refresh_fleet_panel()
 
 func _predict_target_pos(target: Ship, lead_time: float) -> Vector3:
 	return target.state.position + target.state.velocity * lead_time
@@ -686,6 +784,8 @@ func _on_ace_fire_moment() -> void:
 	_check_stage_objectives()
 
 func _on_ace_resolve_finished() -> void:
+	for p in _player_ships:
+		_clear_round_combat_metas(p)
 	_refresh_fleet_panel()
 	_add_combat_log("Tactical round %d resolved. Re-assessing tactical vectors." % (TurnManager.ace_round - 1), Color(0.35, 0.95, 1.0))
 	_advance_calm_wavefront()
@@ -3822,6 +3922,7 @@ func _build_hud() -> void:
 	_ace_panel.execute_round_pressed.connect(_execute_ace_round)
 	_ace_panel.cycle_target_pressed.connect(_cycle_hostile_target)
 	_ace_panel.intercept_pressed.connect(_intercept_target)
+	_ace_panel.toggle_auto_pilot_pressed.connect(_on_toggle_auto_pilot)
 	_ace_panel.ability_used.connect(_on_ace_ability_used)
 	_ace_panel.ability_toggled.connect(_on_ace_ability_toggled)
 	_ace_panel.reset_ap_pressed.connect(func() -> void:

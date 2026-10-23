@@ -18,6 +18,7 @@ signal pitch_up
 signal pitch_down
 signal speed_up
 signal toggle_weapon_arcs_pressed
+signal toggle_auto_pilot_pressed
 signal speed_down
 signal stop_pressed
 
@@ -58,6 +59,7 @@ var _pill_buttons: Array[Button] = []
 var _btn_reset_ap: Button
 var _btn_resolve: Button
 var _arcs_btn: Button
+var _auto_btn: Button
 var _turbo_btn: Button
 
 # Faction-Tailored 5-Slot Ability Decks
@@ -131,6 +133,8 @@ func _unhandled_input(event: InputEvent) -> void:
                 toggle_ability_by_slot(4)
             KEY_Z:
                 reset_all_ap()
+            KEY_U:
+                toggle_auto_pilot_pressed.emit()
             KEY_TAB:
                 _toggle_turbo()
 
@@ -215,6 +219,9 @@ func _build_ui() -> void:
     helm_row.add_child(_make_helm_btn("-SPD [S]", func() -> void: speed_down.emit()))
     helm_row.add_child(_make_helm_btn("+SPD [W]", func() -> void: speed_up.emit()))
     helm_row.add_child(_make_helm_btn("TARGET [C]", func() -> void: cycle_target_pressed.emit()))
+    _auto_btn = _make_helm_btn("🤖 AUTO [U]: OFF", func() -> void: toggle_auto_pilot_pressed.emit())
+    _auto_btn.custom_minimum_size = Vector2(98, 22)
+    helm_row.add_child(_auto_btn)
     _arcs_btn = _make_helm_btn("🎯 ARCS [Y]: OFF", func() -> void: toggle_weapon_arcs())
     helm_row.add_child(_arcs_btn)
     _turbo_btn = _make_helm_btn("⚡ TURBO [TAB]: OFF", func() -> void: _toggle_turbo())
@@ -483,7 +490,8 @@ func set_fleet(allies: Array[Ship], selected: Ship, enemies: Array[Ship] = [], l
             var a := allies[i]
             var b := Button.new()
             var short_pilot := a.pilot_name if a.pilot_name != "" else a.ship_name
-            b.text = "★ %d: %s" % [i + 1, short_pilot]
+            var auto_tag := " [IA]" if a.is_auto_pilot else ""
+            b.text = "★ %d: %s%s" % [i + 1, short_pilot, auto_tag]
             b.custom_minimum_size = Vector2(86, 22)
             b.add_theme_font_size_override("font_size", 9)
             b.focus_mode = Control.FOCUS_NONE
@@ -537,6 +545,29 @@ func refresh() -> void:
 
     if _armor_widget != null:
         _armor_widget.ship = ship
+
+    if _auto_btn != null:
+        var is_auto := ship.is_auto_pilot
+        _auto_btn.text = "🤖 AUTO [U]: ON" if is_auto else "🤖 AUTO [U]: OFF"
+        var col := HudWidgets.COL_GREEN if is_auto else Color(0.70, 0.85, 0.95, 0.7)
+        _auto_btn.add_theme_color_override("font_color", col)
+
+    if _unit_tabs_hbox != null:
+        var tabs := _unit_tabs_hbox.get_children()
+        for i in range(mini(tabs.size(), player_ships.size())):
+            var tb := tabs[i] as Button
+            var a := player_ships[i]
+            if tb != null and a != null and is_instance_valid(a):
+                var short_pilot := a.pilot_name if a.pilot_name != "" else a.ship_name
+                var auto_tag := " [IA]" if a.is_auto_pilot else ""
+                tb.text = "★ %d: %s%s" % [i + 1, short_pilot, auto_tag]
+                if a.is_destroyed():
+                    tb.disabled = true
+                    tb.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 0.5))
+                elif a == ship:
+                    tb.add_theme_color_override("font_color", HudWidgets.COL_GREEN)
+                else:
+                    tb.add_theme_color_override("font_color", HudWidgets.COL_TEXT_MAIN)
 
     if _ally_portrait_rect != null:
         _ally_portrait_rect.texture = _get_portrait(ship.ship_id)

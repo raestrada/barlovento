@@ -38,6 +38,7 @@ var armor_stern: float = 65.0
 var unit_code: String = "UNIT_01"
 var veteran_rank: int = 0
 var use_2d_callout: bool = true
+var is_auto_pilot: bool = false
 
 var is_evading: bool = false
 var is_animating_burn: bool = false
