@@ -63,8 +63,10 @@ static func hit_chance(shooter: Ship, target: Ship) -> float:
     var chance := 0.92
     if shooter.has_meta("tutorial_enemy") and bool(shooter.get_meta("tutorial_enemy")):
         chance = 0.70  # Forgiving baseline for tutorial training opponents
-    if target.is_evading or target.stance == Ship.Stance.EVASIVE:
-        chance -= 0.30
+    if target.is_evading or target.stance == Ship.Stance.EVASIVE or (target.has_meta("evasive_boost") and bool(target.get_meta("evasive_boost"))):
+        chance -= 0.35
+    if target.has_meta("flak_screen_active") and bool(target.get_meta("flak_screen_active")):
+        chance -= 0.25
     var dist := shooter.state.position.distance_to(target.state.position)
     var ratio := dist / maxf(shooter.weapon_range, 1.0)
     if ratio > 0.72:
@@ -73,7 +75,7 @@ static func hit_chance(shooter: Ship, target: Ship) -> float:
         chance += 0.12
     if shooter.has_meta("precision_boost") and bool(shooter.get_meta("precision_boost")):
         chance += 0.25
-    return clampf(chance, 0.20, 0.99)
+    return clampf(chance, 0.15, 0.99)
 
 static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
     var quadrant := get_hit_quadrant(shooter, target)
@@ -130,10 +132,23 @@ static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
         if target.has_meta("formation_armor_mult"):
             dmg /= maxf(float(target.get_meta("formation_armor_mult")), 0.1)
 
+        # Tactical ability damage modifiers
+        if shooter.has_meta("broadside_active") and bool(shooter.get_meta("broadside_active")):
+            dmg *= 1.25
+        if shooter.has_meta("resonance_pierce") and bool(shooter.get_meta("resonance_pierce")):
+            dmg *= 1.30
+        if target.has_meta("prow_angle_active") and bool(target.get_meta("prow_angle_active")) and quadrant == "BOW":
+            dmg *= 0.60
+
         # Directional Armor mitigation: intact heavy plate absorbs kinetic & thermal impact
         var armor_val := target.get_quadrant_armor(quadrant)
+        if shooter.has_meta("resonance_pierce") and bool(shooter.get_meta("resonance_pierce")):
+            armor_val *= 0.5
         var armor_factor := clampf(1.0 - (armor_val / 280.0), 0.58, 1.0)
         dmg *= armor_factor
+
+        if shooter.has_meta("chain_shot_active") and bool(shooter.get_meta("chain_shot_active")):
+            target.order.target_speed = maxf(target.order.target_speed - 3.5, 0.0)
 
         result["damage"] = maxf(roundf(dmg), 4.0)
         target.take_directional_damage(result["damage"], quadrant)
@@ -163,3 +178,64 @@ static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
             AudioManager.play_sfx("laser_heavy", -12.0)
 
     return result
+
+static func predict_fire_solution(shooter: Ship, target: Ship) -> Dictionary:
+    var result := {
+        "can_fire": false,
+        "in_range": false,
+        "in_arc": false,
+        "hit_chance": 0.0,
+        "quadrant": "BOW",
+        "weather_gauge": false,
+        "critical": false,
+        "projected_damage": 0.0,
+        "status_text": "NO TARGET"
+    }
+    if shooter == null or target == null or target.is_destroyed():
+        return result
+
+    result["in_range"] = in_range(shooter, target)
+    result["in_arc"] = in_arc(shooter, target)
+    result["can_fire"] = result["in_range"] and result["in_arc"]
+    result["quadrant"] = get_hit_quadrant(shooter, target)
+    result["weather_gauge"] = has_weather_gauge(shooter, target)
+    result["critical"] = (result["quadrant"] == "STERN")
+
+    if not result["can_fire"]:
+        if not result["in_range"]:
+            var dist := shooter.state.position.distance_to(target.state.position)
+            result["status_text"] = "OUT OF RANGE (%.0fm / %.0fm)" % [dist, shooter.weapon_range]
+        elif not result["in_arc"]:
+            result["status_text"] = "BEARING MISALIGNED [OUT OF ARC]"
+        return result
+
+    var chance := hit_chance(shooter, target)
+    result["hit_chance"] = chance
+
+    var dmg := shooter.weapon_damage
+    if result["weather_gauge"]:
+        dmg *= 1.15
+
+    match result["quadrant"]:
+        "BOW":
+            var bow_mult := 0.65 if target.faction == "acero" else 0.78
+            dmg *= bow_mult
+        "STERN":
+            dmg *= 1.40
+        "PORT", "STARBOARD":
+            if shooter.faction == "marea_libre":
+                dmg *= 1.18
+
+    if shooter.has_meta("resonance_pierce") and bool(shooter.get_meta("resonance_pierce")):
+        var armor_val := target.get_quadrant_armor(result["quadrant"]) * 0.5
+        var armor_factor := clampf(1.0 - (armor_val / 280.0), 0.75, 1.0)
+        dmg *= armor_factor * 1.30
+    else:
+        var armor_val := target.get_quadrant_armor(result["quadrant"])
+        var armor_factor := clampf(1.0 - (armor_val / 280.0), 0.58, 1.0)
+        dmg *= armor_factor
+
+    result["projected_damage"] = maxf(roundf(dmg), 4.0)
+    result["status_text"] = "FIRING SOLUTION LOCKED"
+    return result
+

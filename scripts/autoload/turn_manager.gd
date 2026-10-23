@@ -10,10 +10,13 @@ signal ace_fire_moment
 var phase: Phase = Phase.ADMIRAL_PLAN
 var turn_number: int = 1
 var ace_round: int = 1
+var turbo_mode: bool = false
+
+signal turbo_mode_changed(is_turbo: bool)
 
 @export var admiral_resolution_window: float = 6.0
 @export var admiral_time_scale: float = 3.0
-@export var ace_resolution_window: float = 3.5
+@export var ace_resolution_window: float = 2.2
 @export var ace_time_scale: float = 1.0
 
 var _resolve_time_left: float = 0.0
@@ -21,6 +24,13 @@ var _fire_moment_triggered: bool = false
 
 func _ready() -> void:
     PhysicsSim.time_scale = 1.0
+
+func toggle_turbo_mode() -> bool:
+    turbo_mode = not turbo_mode
+    if phase == Phase.ACE_RESOLVE:
+        PhysicsSim.time_scale = 2.0 if turbo_mode else ace_time_scale
+    turbo_mode_changed.emit(turbo_mode)
+    return turbo_mode
 
 func _process(delta: float) -> void:
     match phase:
@@ -35,8 +45,8 @@ func _process(delta: float) -> void:
         Phase.ACE_RESOLVE:
             _resolve_time_left -= delta * PhysicsSim.time_scale
 
-            # Trigger simultaneous weapon broadside / laser fire at mid-maneuver
-            if not _fire_moment_triggered and _resolve_time_left <= (ace_resolution_window * 0.65):
+            # Trigger simultaneous weapon broadside / laser fire early at 0.8s into maneuver
+            if not _fire_moment_triggered and _resolve_time_left <= (ace_resolution_window - 0.8):
                 _fire_moment_triggered = true
                 ace_fire_moment.emit()
 
@@ -59,7 +69,7 @@ func start_ace_resolve() -> void:
         return
     _resolve_time_left = ace_resolution_window
     _fire_moment_triggered = false
-    PhysicsSim.time_scale = ace_time_scale
+    PhysicsSim.time_scale = 2.0 if turbo_mode else ace_time_scale
     _set_phase(Phase.ACE_RESOLVE)
 
 func start_ace_mode() -> void:

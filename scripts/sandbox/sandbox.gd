@@ -320,7 +320,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if not TurnManager.is_resolving():
-		if event.is_action_pressed("cycle"):
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			if TurnManager.is_in_ace():
+				_handle_right_click_aim(event.position)
+		elif event.is_action_pressed("cycle"):
 			_cycle_selection()
 		elif event.is_action_pressed("stop"):
 			if _selected_ship != null:
@@ -353,6 +356,49 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif event is InputEventKey and event.keycode == KEY_X:
 				_tutorial_banner.visible = false
 				_add_combat_log("🎓 Tutorial guide dismissed. Press [T] to re-open.", Color(0.4, 0.9, 1.0))
+
+func _handle_right_click_aim(screen_pos: Vector2) -> void:
+	if _selected_ship == null or _selected_ship.is_destroyed():
+		return
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+
+	var clicked_enemy: Ship = null
+	var min_dist_px := 48.0
+	for enemy in _enemy_ships:
+		if enemy.is_destroyed():
+			continue
+		var unprojected := cam.unproject_position(enemy.global_position)
+		var d := screen_pos.distance_to(unprojected)
+		if d < min_dist_px:
+			min_dist_px = d
+			clicked_enemy = enemy
+
+	if clicked_enemy != null:
+		_ace_target = clicked_enemy
+		_selected_ship.target_ship = clicked_enemy
+		var to_tgt := clicked_enemy.global_position - _selected_ship.global_position
+		_set_order_heading(_selected_ship, to_tgt.normalized())
+		if _ace_panel != null:
+			_ace_panel.target = clicked_enemy
+		AudioManager.play_sfx("ui_hover", -6.0)
+		_spawn_impact_flash(clicked_enemy.global_position, Color(1.0, 0.45, 0.25, 0.75))
+		_add_combat_log("🎯 Target solution locked on %s (%s)!" % [clicked_enemy.pilot_name, clicked_enemy.ship_name], Color(0.35, 1.0, 0.75))
+	else:
+		var ray_origin := cam.project_ray_origin(screen_pos)
+		var ray_dir := cam.project_ray_normal(screen_pos)
+		if absf(ray_dir.y) > 0.001:
+			var plane_y := _selected_ship.global_position.y
+			var t := (plane_y - ray_origin.y) / ray_dir.y
+			if t > 0.0:
+				var hit_pos := ray_origin + ray_dir * t
+				var dir := hit_pos - _selected_ship.global_position
+				dir.y = 0.0
+				if dir.length_squared() > 1.0:
+					_set_order_heading(_selected_ship, dir.normalized())
+					AudioManager.play_sfx("ui_click", -10.0)
+					_spawn_impact_flash(hit_pos, Color(0.3, 0.85, 1.0, 0.5))
 
 func _zoom_to_selected_ship() -> void:
 	if _selected_ship == null or _camera_rig == null:
@@ -858,54 +904,147 @@ func _on_ace_ability_toggled(ability_name: String, is_active: bool) -> void:
 	if _selected_ship == null or _selected_ship.is_destroyed():
 		return
 	match ability_name:
-		"oar_burst":
+		# Acero Abilities
+		"prow_angle":
 			if is_active:
-				_selected_ship.order.target_speed = clampf(_selected_ship.order.target_speed + 4.0, 0.0, _selected_ship.state.max_speed)
+				_selected_ship.set_meta("prow_angle_active", true)
+				if _ace_target != null:
+					_set_order_heading(_selected_ship, (_ace_target.global_position - _selected_ship.global_position).normalized())
+				AudioManager.play_sfx("ui_hover", -6.0)
+				_add_combat_log("🛡 %s: Prow Armor Angled toward target! (+40%% Bow Absorption)" % _selected_ship.ship_name, Color(1.0, 0.85, 0.35))
+			else:
+				_selected_ship.remove_meta("prow_angle_active")
+				_add_combat_log("↩ %s: Prow Angle disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+
+		"flak_screen":
+			if is_active:
+				_selected_ship.set_meta("flak_screen_active", true)
+				AudioManager.play_sfx("laser_heavy", -10.0)
+				_add_combat_log("💥 %s: Point-Defense Flak Screen active! (-25%% Incoming Enemy Hit Chance)" % _selected_ship.ship_name, Color(1.0, 0.70, 0.30))
+			else:
+				_selected_ship.remove_meta("flak_screen_active")
+				_add_combat_log("↩ %s: Flak Screen disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+
+		"furnace_burn":
+			if is_active:
+				_selected_ship.order.target_speed = clampf(_selected_ship.order.target_speed + 4.5, 0.0, _selected_ship.state.max_speed)
+				AudioManager.play_sfx("engine", -6.0)
+				_add_combat_log("🔥 %s: Emergency Furnace Burn! (+4.5 m/s surge)" % _selected_ship.ship_name, Color(1.0, 0.55, 0.20))
+			else:
+				_selected_ship.order.target_speed = clampf(_selected_ship.order.target_speed - 4.5, 0.0, _selected_ship.state.max_speed)
+				_add_combat_log("↩ %s: Furnace Burn disarmed (-4.5 m/s)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+
+		# Vinculados Abilities
+		"snap_pivot":
+			if is_active:
+				if _ace_target != null:
+					_set_order_heading(_selected_ship, (_ace_target.global_position - _selected_ship.global_position).normalized())
 				AudioManager.play_sfx("engine", -8.0)
-				_add_combat_log("⚡ %s: Oar Burst armed! (+4 m/s target speed)" % _selected_ship.ship_name, Color(0.35, 0.95, 1.0))
+				_add_combat_log("⚡ %s: Vernier Snap-Pivot executed! Torso locked on target." % _selected_ship.ship_name, Color(0.35, 0.95, 1.0))
 			else:
-				_selected_ship.order.target_speed = clampf(_selected_ship.order.target_speed - 4.0, 0.0, _selected_ship.state.max_speed)
-				_add_combat_log("↩ %s: Oar Burst disarmed (-4 m/s)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
-		"trim_sails":
+				_add_combat_log("↩ %s: Snap-Pivot disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+
+		"soul_lock":
 			if is_active:
-				_intercept_target()
-				_add_combat_log("💨 %s: Trim Sails armed (Intercept heading locked)" % _selected_ship.ship_name, Color(0.35, 0.95, 1.0))
-			else:
-				_add_combat_log("↩ %s: Trim Sails disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
-		"broadside":
-			if is_active:
-				_selected_ship.stance = Ship.Stance.FIRE
 				_selected_ship.set_meta("precision_boost", true)
 				AudioManager.play_sfx("ui_hover", -6.0)
-				_add_combat_log("🎯 %s: Broadside Salvo armed (+25%% Accuracy, FIRE Stance)" % _selected_ship.ship_name, Color(0.35, 1.0, 0.85))
+				_add_combat_log("✨ %s: Neural Soul Lock established! (+25%% Hit Accuracy)" % _selected_ship.ship_name, Color(0.85, 0.45, 1.0))
 			else:
-				_selected_ship.stance = Ship.Stance.NEUTRAL
 				_selected_ship.remove_meta("precision_boost")
-				_add_combat_log("↩ %s: Broadside Salvo disarmed (NEUTRAL Stance)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
-			_refresh_fleet_panel()
-		"rcs_burn":
+				_add_combat_log("↩ %s: Soul Lock disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+
+		"beam_lance":
+			if is_active:
+				_selected_ship.set_meta("resonance_pierce", true)
+				AudioManager.play_sfx("laser_pulse", -6.0)
+				_add_combat_log("⚔ %s: Resonance Beam Lance charged! (Pierces 50%% Target Armor & +30%% DMG)" % _selected_ship.ship_name, Color(0.35, 0.95, 1.0))
+			else:
+				_selected_ship.remove_meta("resonance_pierce")
+				_add_combat_log("↩ %s: Beam Lance disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+
+		"phase_dodge":
 			if is_active:
 				_selected_ship.stance = Ship.Stance.EVASIVE
 				_selected_ship.set_meta("evasive_boost", true)
 				AudioManager.play_sfx("engine", -8.0)
-				_add_combat_log("💨 %s: RCS Burn armed (+35%% Evasion, EVASIVE Stance)" % _selected_ship.ship_name, Color(0.4, 0.9, 1.0))
+				_add_combat_log("💨 %s: High-G Phase Dodge armed! (+35%% Evasion)" % _selected_ship.ship_name, Color(0.40, 0.95, 1.0))
 			else:
 				_selected_ship.stance = Ship.Stance.NEUTRAL
 				_selected_ship.remove_meta("evasive_boost")
-				_add_combat_log("↩ %s: RCS Burn disarmed (NEUTRAL Stance)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_add_combat_log("↩ %s: Phase Dodge disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 			_refresh_fleet_panel()
+
+		# Marea Libre Abilities
+		"trim_sails":
+			if is_active:
+				if _selected_ship.ether != null:
+					var cur := _selected_ship.ether.current_at(_selected_ship.global_position)
+					if cur.length_squared() > 0.01:
+						_set_order_heading(_selected_ship, cur.normalized())
+				_selected_ship.order.target_speed = clampf(_selected_ship.order.target_speed + 3.5, 0.0, _selected_ship.state.max_speed)
+				AudioManager.play_sfx("ui_hover", -6.0)
+				_add_combat_log("💨 %s: Quantum Sails Trimmed! (+3.5 m/s free speed along wind gradient)" % _selected_ship.ship_name, Color(0.35, 1.0, 0.85))
+			else:
+				_selected_ship.order.target_speed = clampf(_selected_ship.order.target_speed - 3.5, 0.0, _selected_ship.state.max_speed)
+				_add_combat_log("↩ %s: Sails re-centered" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+
+		"oar_sweep":
+			if is_active:
+				var flat_fwd := Vector3(_selected_ship.state.forward.x, 0.0, _selected_ship.state.forward.z).normalized()
+				var swept := flat_fwd.rotated(Vector3.UP, deg_to_rad(45.0))
+				_set_order_heading(_selected_ship, swept)
+				AudioManager.play_sfx("engine", -8.0)
+				_add_combat_log("⚓ %s: Éther Oar Sweep! (Sharp 45° hull pivot for broadside alignment)" % _selected_ship.ship_name, Color(0.95, 0.85, 0.35))
+			else:
+				_add_combat_log("↩ %s: Oar Sweep finished" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+
+		"chain_shot":
+			if is_active:
+				_selected_ship.set_meta("chain_shot_active", true)
+				AudioManager.play_sfx("laser_cannon", -6.0)
+				_add_combat_log("⛓ %s: Plasma Chain-Shot loaded! (Disrupts target propulsion on hit)" % _selected_ship.ship_name, Color(0.95, 0.75, 0.30))
+			else:
+				_selected_ship.remove_meta("chain_shot_active")
+				_add_combat_log("↩ %s: Chain-Shot disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+
+		"harpoon":
+			if is_active:
+				_selected_ship.set_meta("harpoon_active", true)
+				if _ace_target != null:
+					_intercept_target()
+				AudioManager.play_sfx("ui_hover", -6.0)
+				_add_combat_log("🪝 %s: Boarding Harpoon armed! (Tethers to locked target)" % _selected_ship.ship_name, Color(0.95, 0.65, 0.25))
+			else:
+				_selected_ship.remove_meta("harpoon_active")
+				_add_combat_log("↩ %s: Harpoon disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+
+		# Common Shared Abilities
+		"broadside":
+			if is_active:
+				_selected_ship.stance = Ship.Stance.FIRE
+				_selected_ship.set_meta("precision_boost", true)
+				_selected_ship.set_meta("broadside_active", true)
+				AudioManager.play_sfx("ui_hover", -6.0)
+				_add_combat_log("🎯 %s: Heavy Broadside Battery armed (+25%% Kinetic DMG, FIRE Stance)" % _selected_ship.ship_name, Color(0.35, 1.0, 0.85))
+			else:
+				_selected_ship.stance = Ship.Stance.NEUTRAL
+				_selected_ship.remove_meta("precision_boost")
+				_selected_ship.remove_meta("broadside_active")
+				_add_combat_log("↩ %s: Broadside disarmed (NEUTRAL Stance)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+			_refresh_fleet_panel()
+
 		"shield_pulse":
 			if is_active:
 				_selected_ship.shield_hp = minf(_selected_ship.shield_hp + 40.0, _selected_ship.max_shield_hp)
 				_selected_ship.hp = minf(_selected_ship.hp + 20.0, _selected_ship.max_hp)
 				_selected_ship.refresh_after_load()
 				AudioManager.play_sfx("shield", -8.0)
-				_add_combat_log("🛡 %s: Deflector barriers overcharged (+40 SHLD / +20 HULL)" % _selected_ship.ship_name, Color(0.3, 1.0, 0.6))
+				_add_combat_log("🛡 %s: Deflector barriers & bulkheads reinforced (+40 SHLD / +20 HULL)" % _selected_ship.ship_name, Color(0.3, 1.0, 0.6))
 			else:
 				_selected_ship.shield_hp = maxf(_selected_ship.shield_hp - 40.0, 0.0)
 				_selected_ship.hp = maxf(_selected_ship.hp - 20.0, 1.0)
 				_selected_ship.refresh_after_load()
-				_add_combat_log("↩ %s: Deflector Overcharge disarmed (-40 SHLD / -20 HULL)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_add_combat_log("↩ %s: Barrier reinforcement disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 			_refresh_fleet_panel()
 
 func _on_ace_ability_used(ability_name: String) -> void:
