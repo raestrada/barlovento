@@ -12,6 +12,12 @@
 - `assets/heroes/ace_orin.png` — Ace Pilot Orin-9 (The Vinculados, *Nous Heavy Assault*)
 - `assets/heroes/ace_tarek.png` — Fleet Admiral Tarek (Armada of Acero, *CNS Crucible*)
 - `assets/heroes/ace_marina.png` — Commodore Marina "La Tormenta" (The Free Tide, *El Huracán*)
+- `assets/heroes/ace_barbanegra.png` — Supreme Corsair Admiral Barbanegra (The Free Tide, *Soberano del Mar*)
+- `assets/heroes/ace_kurtz.png` — Grand Marshall Kurtz (Armada of Acero, *CNS Imperator*)
+- `assets/heroes/ace_seraph.png` — Conductor Seraph-2 (The Vinculados, *Sanktuario Albor*)
+- `assets/heroes/ace_lyra.png` — Ace Pilot Lyra-3 (The Vinculados, *Psyche-01 Diamond*)
+- `assets/heroes/ace_jax.png` — Bosun Jax (The Free Tide, *La Saeta*)
+- `assets/heroes/ace_vance.png` — Fleet Commander Vance (Armada of Acero, *CNS Forge-01*)
 
 **Aspect ratio:** 1:1 (Square HUD / Roster Portrait)
 

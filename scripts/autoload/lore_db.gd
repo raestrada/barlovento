@@ -55,7 +55,7 @@ func _register_ships() -> void:
         950.0, 4800.0, 3600.0, 320.0, 11.0,
         420.0, 48.0, 30.0, 60.0,
         Color(0.58, 0.56, 0.52), Vector3(3.6, 2.5, 12.0),
-        "res://assets/heroes/ace_vane.png", "Arsenal-Class Mobile Fleet Bastion"
+        "res://assets/heroes/ace_vance.png", "Arsenal-Class Mobile Fleet Bastion"
     ))
     _add_ship(_make_def(
         "acero_lancer", "CNS Halberd", "Lt. Silas", "acero",
@@ -69,7 +69,7 @@ func _register_ships() -> void:
         1600.0, 7500.0, 5200.0, 260.0, 9.5,
         600.0, 68.0, 62.0, 65.0,
         Color(0.75, 0.70, 0.65), Vector3(4.5, 3.2, 16.0),
-        "res://assets/heroes/ace_vane.png", "Colossus-Class Supreme Fortress Flagship"
+        "res://assets/heroes/ace_kurtz.png", "Colossus-Class Supreme Fortress Flagship"
     ))
 
     # --- THE VINCULADOS (Principle: Soul / Resonance — Mobile Suit Platoons & Carrier Ark) ---
@@ -78,7 +78,7 @@ func _register_ships() -> void:
         460.0, 4400.0, 3600.0, 420.0, 19.0,
         250.0, 52.0, 36.0, 65.0,
         Color(0.88, 0.92, 1.0), Vector3(3.2, 1.8, 10.2),
-        "res://assets/heroes/ace_kaelen.png", "Cradle-Class Carrier Ark"
+        "res://assets/heroes/ace_seraph.png", "Cradle-Class Carrier Ark"
     ))
     _add_ship(_make_def(
         "vinculados_suit", "Eidolon Ace Wing", "Ace Kaelen-7", "vinculados",
@@ -106,7 +106,7 @@ func _register_ships() -> void:
         68.0, 2400.0, 2600.0, 1050.0, 32.0,
         140.0, 42.0, 22.0, 92.0,
         Color(0.45, 0.60, 0.95), Vector3(2.8, 1.2, 5.2),
-        "res://assets/heroes/ace_mirei.png", "Psyche 4-Unit EW Diamond Platoon"
+        "res://assets/heroes/ace_lyra.png", "Psyche 4-Unit EW Diamond Platoon"
     ))
     _add_ship(_make_def(
         "vinculados_chorus", "Chorus Swarm Echelon", "Conductor Trio", "vinculados",
@@ -164,7 +164,7 @@ func _register_ships() -> void:
         140.0, 3400.0, 2800.0, 780.0, 28.0,
         120.0, 38.0, 24.0, 90.0,
         Color(0.72, 0.42, 0.18), Vector3(1.5, 1.8, 5.4),
-        "res://assets/heroes/ace_vael.png", "Cúter Stealth Torpedo Boarder"
+        "res://assets/heroes/ace_jax.png", "Cúter Stealth Torpedo Boarder"
     ))
     _add_ship(_make_def(
         "marea_bombard", "El Trueno", "Master Gunner Rico", "marea_libre",
@@ -178,7 +178,7 @@ func _register_ships() -> void:
         580.0, 4200.0, 3400.0, 360.0, 20.0,
         450.0, 54.0, 42.0, 98.0,
         Color(0.90, 0.60, 0.28), Vector3(3.4, 4.0, 12.5),
-        "res://assets/heroes/ace_solano.png", "Soberano-Class Corsair Mega-Galleon"
+        "res://assets/heroes/ace_barbanegra.png", "Soberano-Class Corsair Mega-Galleon"
     ))
 
 func _make_def(

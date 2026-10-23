@@ -64,3 +64,31 @@ This document defines the canonical prompts for the key Act Briefing panoramic i
 - **Style:** Painterly sci-fi concept art, epic naval battle inside a cosmic tempest, Barlovento storm surfing.
 - **Palette:** Blinding golden-orange solar prominences of the Great Sol Corona, swirling turquoise and cyan tidal currents, gleaming brass and dark iron.
 - **Subject:** The colossal Corsair flagship *El Gran Leviatán* leading the entire Free Tide armada into the heart of the Maelstrom of Barlovento. The massive 6-sail void leviathan surfs the vortex crest with all quantum sails taut, catching the stellar wind to claim the Weather-Gauge [BARLOVENTO]. Its twin deck bombards and massive 3-tier broadside batteries fire synchronized salvos of plasma chain-shot, tearing through the imperial dreadnought line against the backdrop of the swirling solar corona.
+
+---
+
+## Landmark Campaign Mission Panoramas
+
+### Acero Landmark — Foundry Bastion Smelters (`assets/briefings/acero_forge.png`)
+- **Ratio:** 16:9
+- **Subject:** Acero industrial refinery complex Vulcan-3. Colossal cylindrical smelting chimneys pouring liquid orange slag into space containment basins, flanked by massive riveted gantry towers and heavy mooring clamps where battlecruisers resupply.
+
+### Acero Landmark — The Great Iron Dam (`assets/briefings/acero_dam.png`)
+- **Ratio:** 16:9
+- **Subject:** The monumental Iron Dam spanning a 50-kilometer tear in the Star Sea. Enormous hydraulic gate pylons forged from black gunmetal lock down the dying ether currents, with glowing orange heat radiators and lines of anchored dreadnoughts holding back the dead silence of the Calm Singularity.
+
+### Vinculados Landmark — The Genesis Ring (`assets/briefings/vinculados_genesis.png`)
+- **Ratio:** 16:9
+- **Subject:** The celestial Genesis Ring megastructure floating amidst a vibrant violet and cyan nebula. Giant levitating harmonic tuning rings rotate silently around an inner crystalline focal sphere that emits concentric pulse-waves of resonant sound and light, protected by hovering mobile suits.
+
+### Vinculados Landmark — The Great Ascension (`assets/briefings/vinculados_ascension.png`)
+- **Ratio:** 16:9
+- **Subject:** The Transcendence Gate at the apex of the Star Sea. An immense doorway of blinding white and lilac dimensional resonance piercing through the pitch-black void of the Calm, with mobile suits and carrier arks dissolving into radiant streams of harmonic starlight as they cross over.
+
+### Marea Libre Landmark — The Maelstrom of Barlovento (`assets/briefings/marea_maelstrom.png`)
+- **Ratio:** 16:9
+- **Subject:** The great swirling hurricane of quantum wind known as the Maelstrom of Barlovento. Golden coronal solar flares illuminate an enormous funnel of turquoise ether currents, where corsair void-galleons heel at extreme angles as they surf the storm wall under billowing quantum sails.
+
+### Marea Libre Landmark — Prize of the 'Soberano' (`assets/briefings/marea_soberano.png`)
+- **Ratio:** 16:9
+- **Subject:** The legendary derelict imperial super-galleon *Soberano del Mar* trapped in a shattered basalt asteroid reef. Its massive six-deck hull of dark iron and brass glows under amber inspection lights, with agile corsair cutters and boarding skiffs tethered to its weathered gantries as they re-ignite its dormant quantum drives.
