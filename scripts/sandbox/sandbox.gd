@@ -44,6 +44,7 @@ var _ace_panel: AcePanel
 var _help_overlay: Control
 var _victory_overlay: Control
 var _defeat_overlay: Control
+var _story_overlay: StoryTransitionOverlay
 var _hud_theme: Theme
 var _ether_particles: Node3D
 var _asteroid_root: Node3D
@@ -246,7 +247,10 @@ func _ready() -> void:
 
 	# Auto-save initial tactical state at start of stage
 	_save_battle_state(true)
-	_open_admiral_chart()
+	if _story_overlay != null:
+		_story_overlay.show_intro(LoreDB.current_stage_id)
+	else:
+		_open_admiral_chart()
 
 func _physics_process(delta: float) -> void:
 	if not TurnManager.is_resolving():
@@ -4013,12 +4017,36 @@ func _build_hud() -> void:
 	add_child(roster_layer)
 	roster_layer.add_child(_roster_modal)
 
+	# 7. Anime / Mini-Manga Story Transition Overlay
+	_story_overlay = StoryTransitionOverlay.new()
+	_story_overlay.theme = _hud_theme
+	var story_layer := CanvasLayer.new()
+	story_layer.layer = 28
+	add_child(story_layer)
+	story_layer.add_child(_story_overlay)
+	_story_overlay.story_completed.connect(_on_story_completed)
+
 	_refresh_fleet_panel()
 	_build_help_overlay(layer)
 	_build_victory_overlay(layer)
 	_build_defeat_overlay(layer)
 	_build_tutorial_banner()
 	_disable_button_focus(layer)
+
+func _on_story_completed() -> void:
+	if not _mission_completed:
+		_open_admiral_chart()
+	else:
+		_return_to_stage_briefing()
+
+func _return_to_stage_briefing() -> void:
+	var next_id := _get_next_stage_id()
+	if next_id != "":
+		LoreDB.return_to_briefing_stage_id = next_id
+		LoreDB.current_stage_id = next_id
+	else:
+		LoreDB.return_to_briefing_stage_id = LoreDB.current_stage_id
+	get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
 
 func _refresh_fleet_panel() -> void:
 	if _order_panel != null:
@@ -4176,15 +4204,20 @@ func _show_mission_victory() -> void:
 		_victory_sub_label.text += "\n\nVETERAN ACE PROMOTIONS (SAVED TO CAMPAIGN):\n" + "\n".join(promo_lines)
 
 	var next_id := _get_next_stage_id()
+	if next_id != "":
+		SaveManager.unlock_stage(next_id)
+
 	if _victory_next_btn != null:
 		_victory_next_btn.visible = (next_id != "")
 		if next_id != "":
 			var num_str := next_id.get_slice("_", 2)
-			_victory_next_btn.text = "▶ DEPLOY NEXT STAGE %s" % num_str.to_upper()
+			_victory_next_btn.text = "▶ PROCEED TO STAGE %s BRIEFING" % num_str.to_upper()
 		else:
-			_victory_next_btn.text = "▶ DEPLOY NEXT STAGE"
+			_victory_next_btn.text = "▶ PROCEED TO BRIEFING"
 
-	if _victory_overlay != null:
+	if _story_overlay != null:
+		_story_overlay.show_outro(LoreDB.current_stage_id)
+	elif _victory_overlay != null:
 		_victory_overlay.visible = true
 
 func _show_mission_defeat() -> void:
@@ -4260,21 +4293,20 @@ func _build_victory_overlay(layer: CanvasLayer) -> void:
 	vbox.add_child(btn_row)
 
 	_victory_next_btn = Button.new()
-	_victory_next_btn.text = "▶ DEPLOY NEXT STAGE"
+	_victory_next_btn.text = "▶ PROCEED TO NEXT BRIEFING"
 	_victory_next_btn.custom_minimum_size = Vector2(240, 38)
 	_victory_next_btn.visible = (_get_next_stage_id() != "")
 	_victory_next_btn.pressed.connect(func() -> void:
-		var nxt := _get_next_stage_id()
-		if nxt != "":
-			LoreDB.current_stage_id = nxt
-			get_tree().reload_current_scene()
+		_return_to_stage_briefing()
 	)
 	btn_row.add_child(_victory_next_btn)
 
 	var menu_btn := Button.new()
-	menu_btn.text = "◀ CAMPAIGN MENU"
+	menu_btn.text = "◀ CAMPAIGN BRIEFING"
 	menu_btn.custom_minimum_size = Vector2(180, 38)
-	menu_btn.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn"))
+	menu_btn.pressed.connect(func() -> void:
+		_return_to_stage_briefing()
+	)
 	btn_row.add_child(menu_btn)
 
 	var replay_btn := Button.new()
@@ -4328,9 +4360,12 @@ func _build_defeat_overlay(layer: CanvasLayer) -> void:
 	vbox.add_child(btn_row)
 
 	var menu_btn := Button.new()
-	menu_btn.text = "◀ RETURN TO CAMPAIGN MENU"
+	menu_btn.text = "◀ RETURN TO BRIEFING"
 	menu_btn.custom_minimum_size = Vector2(230, 38)
-	menu_btn.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn"))
+	menu_btn.pressed.connect(func() -> void:
+		LoreDB.return_to_briefing_stage_id = LoreDB.current_stage_id
+		get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
+	)
 	btn_row.add_child(menu_btn)
 
 	var retry_btn := Button.new()

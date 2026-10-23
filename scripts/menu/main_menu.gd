@@ -58,7 +58,26 @@ func _ready() -> void:
     AudioManager.play_menu_music(-11.0)
     AudioManager.start_ambient(-24.0)
 
-    _switch_view(MenuView.TITLE)
+    if LoreDB.return_to_briefing_stage_id != "":
+        var target_stage := LoreDB.return_to_briefing_stage_id
+        LoreDB.return_to_briefing_stage_id = ""
+        var fac := "acero"
+        if target_stage.begins_with("vinculados"):
+            fac = "vinculados"
+        elif target_stage.begins_with("marea"):
+            fac = "marea_libre"
+        _selected_faction = fac
+        _focused_faction = fac
+        LoreDB.selected_faction = fac
+        if fac == "acero":
+            _populate_acero_stage_briefing(target_stage)
+        elif fac == "vinculados":
+            _populate_vinculados_stage_briefing(target_stage)
+        elif fac == "marea_libre":
+            _populate_marea_stage_briefing(target_stage)
+        _switch_view(MenuView.BRIEFING)
+    else:
+        _switch_view(MenuView.TITLE)
 
 func _process(delta: float) -> void:
     _anim_time += delta

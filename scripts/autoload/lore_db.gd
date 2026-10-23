@@ -4,6 +4,7 @@ const FACTIONS := ["acero", "vinculados", "marea_libre"]
 
 var selected_faction: String = "acero"
 var current_stage_id: String = "acero_stage_1"
+var return_to_briefing_stage_id: String = ""
 
 var _ships: Dictionary = {}
 
