@@ -9,9 +9,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/raestrada/barlovento/releases/download/v0.4.0-alpha/Barlovento.zip"><img src="https://img.shields.io/badge/Download_Build-Windows_64--bit-0284c7?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Build" /></a>
+  <a href="https://github.com/raestrada/barlovento/releases/download/v0.5.0-alpha/Barlovento.zip"><img src="https://img.shields.io/badge/Download_Build-Windows_64--bit-0284c7?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Build" /></a>
   <a href="https://raestrada.github.io/barlovento/"><img src="https://img.shields.io/badge/Official_Site-GitHub_Pages-38bdf8?style=for-the-badge&logo=github" alt="Official Site" /></a>
-  <img src="https://img.shields.io/badge/Campaign-36_Stages_Active-10b981?style=for-the-badge" alt="36 Stages Active" />
+  <img src="https://img.shields.io/badge/Campaign-36_Epic_Stages-10b981?style=for-the-badge" alt="36 Epic Stages" />
   <img src="https://img.shields.io/badge/Engine-Godot_4.7.2_Forward%2B-478cbf?style=for-the-badge&logo=godotengine&logoColor=white" alt="Godot 4.7.2" />
   <img src="https://img.shields.io/badge/Pipeline-100%25_Agentic_LLM-10b981?style=for-the-badge" alt="100% Agentic" />
 </p>
@@ -22,10 +22,10 @@
 </p>
 
 > [!IMPORTANT]
-> **⚔ Full 36-Stage Campaign & Act Briefing Art are now LIVE in v0.4.0-alpha!**
-> Play through all 12 stages per civilization (36 stages total)—**The Armada of Acero**, **The Vinculados**, and **The Free Tide**—featuring complete expanded unit rosters (*Mobile Armor Seraph-Prime*, *Colossus Juggernaut Imperator*, *Void Leviathan*), 16:9 Act Briefing art, and strategic navigational charts up to 16×12 grids.
+> **⚔ Grand Fleet Multi-Front Warfare & 36-Stage Overhaul LIVE in v0.5.0-alpha!**
+> Command massive armadas with up to **15 player warships and mobile suit platoons against 16 enemy units**, deployed across multi-front tactical formations (Center Battlelines, Port Flanks, Starboard Pincers, and High-Altitude Dives). Fight across varied celestial topographies—dense Basalt Gorges, orbital Caldera Reefs, tactical Asteroid Archipelago cover, and open void arenas—featuring authentic 3D Gundam Mobile Armor (*Seraph-Prime* with beam funnels), 16:9 Act Briefings, and secret Developer / God Mode (`Ctrl+Shift+D`).
 >
-> 🚀 **[Download Windows Alpha Build (Barlovento.zip)](https://github.com/raestrada/barlovento/releases/download/v0.4.0-alpha/Barlovento.zip)** • [View GitHub Releases](https://github.com/raestrada/barlovento/releases)
+> 🚀 **[Download Windows Alpha Build (Barlovento.zip)](https://github.com/raestrada/barlovento/releases/download/v0.5.0-alpha/Barlovento.zip)** • [View GitHub Releases](https://github.com/raestrada/barlovento/releases)
 
 <p align="center">
   <a href="https://raestrada.github.io/barlovento/"><b>Explore the Interactive Web Experience & Watch the Cinematic Prologue &rarr;</b></a>
@@ -98,17 +98,17 @@ The Star Sea is saturated with **the Éther** (the "wind")—a field of dark ene
   </tr>
   <tr>
     <td align="center">
-      <img src="assets/ships/acero/dreadnought_concept.png" alt="Armada of Acero Dreadnought" width="100%"/><br/>
+      <img src="assets/factions/card_acero.png" alt="Armada of Acero" width="100%"/><br/>
       <b>Doctrine &bull; Steel</b><br/>
       <em>"Dam and control the wind."</em>
     </td>
     <td align="center">
-      <img src="assets/ships/vinculados/suit_concept.png" alt="Vinculados Mobile Suit" width="100%"/><br/>
+      <img src="assets/factions/card_vinculados.png" alt="The Vinculados" width="100%"/><br/>
       <b>Doctrine &bull; Soul</b><br/>
       <em>"Transcend before the silence."</em>
     </td>
     <td align="center">
-      <img src="assets/ships/marea-libre/galleon_concept.png" alt="Free Tide Void Galleon" width="100%"/><br/>
+      <img src="assets/factions/card_marea.png" alt="The Free Tide" width="100%"/><br/>
       <b>Doctrine &bull; Wind</b><br/>
       <em>"Re-awaken the dying sea."</em>
     </td>

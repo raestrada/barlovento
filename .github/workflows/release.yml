@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release Tag (e.g. v0.4.0-alpha)'
+        description: 'Release Tag (e.g. v0.5.0-alpha)'
         required: false
-        default: 'v0.4.0-alpha'
+        default: 'v0.5.0-alpha'
 
 permissions:
   contents: write
@@ -31,14 +31,15 @@ jobs:
           prerelease: true
           generate_release_notes: true
           body: |
-            ## 🚀 BARLOVENTO v0.4.0-alpha Build
+            ## 🚀 BARLOVENTO v0.5.0-alpha Build — Grand Fleet & Multi-Front Warfare Overhaul
 
             ### ✨ Highlights:
-            - **⚔ Full 36-Stage Campaign (12 per Faction):** Play through all 12 stages across the Armada of Acero, The Vinculados, and La Marea Libre, from introductory tutorials through the final clímax against The Calm!
-            - **🎨 9 Cinematic Act Briefing Artworks (16:9):** Dedicated concept art illustrations for Act I, Act II, and Act III for all three civilizations.
-            - **🤖 Complete Expanded Unit Rosters:** Command the Colossus Mobile Armor *Seraph-Prime* with fin funnels, the Supreme Juggernaut *CNS Imperator*, the Heavy Siege Monitor *Crucible*, and the Colossal *Void Leviathan*.
-            - **🌌 Dynamic Strategic Naval Charts:** Grid topologies scaling up to 16×12 sectors with Calm fronts, conduits, spires, and vortices.
-            - **🏅 Campaign Save & Veteran Ace Progression:** Persistent promotions carry forward between all 12 stages.
+            - **⚔ Grand Fleet Warfare & Multi-Front Scaling (Up to 15 vs 16 Ships):** All 36 campaign stages across the 3 civilizations have been overhauled from introductory tactical duels to epic fleet battles with up to 15 player units divided into distinct tactical battle groups (Center Line, Port Strike Wings, Starboard Flanks, High-Altitude Dive Vectors, and Rear Station Defense).
+            - **🌌 Varied Battle Topography & Off-Center Landmarks:** Battles take place across diverse celestial terrain: dense Basalt Gorges, orbital Caldera Reefs, tactical Asteroid Archipelago cover, and vast Open Void dogfight zones with rear defense stations and deep fortress assaults.
+            - **🤖 Authentic 3D Gundam Mobile Armor & Platoons:** Complete visual overhaul of the Vinculados *Seraph-Prime* Colossus Mobile Armor, *Aegis* Anchor, and *Cradle* Carrier Ark with sculpted head anatomies, golden V-fins, pulsing chest soul reactors, 4 seraph shield-binder wings, and beam funnels.
+            - **🎨 Complete AAA Visual Suite:** Dedicated 16:9 stage briefings, panoramic 3D landmarks, faction selection cards, Ace hero portraits, and three-faction key art splash.
+            - **🛠 Developer / God Mode Console (`Ctrl+Shift+D`):** Instant debug panel with damage immunity (God Mode), stage jumping across all 36 stages, AP manipulation, and real-time victory triggers.
+            - **🎵 Multi-Track Symphonic OST:** High-fidelity classical and symphonic space themes dynamically scoring each faction's campaign.
 
             ### 🎮 Quick Start:
             1. Download `Barlovento.zip` attached below.

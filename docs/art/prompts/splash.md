@@ -28,3 +28,4 @@ RATIO: 16:9
 | Asset | File | Ratio | Version | Date | Note |
 | --- | --- | --- | --- | --- | --- |
 | Three-faction cover | assets/splash/cover.png | 16:9 | v3 | 2026-10-13 | Free Tide galley: large sails + éther-oars (supersedes v2) |
+| Three-faction cover (AAA) | assets/splash/cover.png | 16:9 | v4 | 2026-10-23 | Monumental AAA key art: Anvil Dreadnought charging spinal batteries, Vinculados Seraph-Prime mobile armor with beam funnels & golden V-fin, Soberano del Mar void-galleon, and The Calm void horizon. |

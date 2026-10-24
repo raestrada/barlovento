@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BARLOVENTO: El Último Viento — Fight for the Weather Gauge</title>
+  <title>BARLOVENTO: El Último Viento — 3D Space Naval Strategy</title>
   <meta name="description" content="BARLOVENTO: El Último Viento is a 3D turn-based space strategy game combining Newtonian naval inertia, simultaneous fleet planning, and agile Gundam-style hero aces." />
   <meta property="og:title" content="BARLOVENTO: El Último Viento — Fight for the Weather Gauge" />
   <meta property="og:description" content="A 3D space strategy game where naval warfare meets space. Simultaneous Admiral fleet plotting, turn-based Ace combat, and three asymmetric civilizations fighting for the dying wind." />
@@ -14,8 +14,8 @@
   <style>
     :root {
       --bg-dark: #03080e;
-      --bg-surface: rgba(8, 18, 30, 0.78);
-      --bg-card: rgba(12, 26, 44, 0.65);
+      --bg-surface: rgba(8, 18, 30, 0.82);
+      --bg-card: rgba(12, 26, 44, 0.72);
       --border-cyan: rgba(56, 189, 248, 0.22);
       --border-cyan-glow: rgba(56, 189, 248, 0.55);
       --text-main: #f1f5f9;
@@ -23,7 +23,9 @@
       --cyan: #38bdf8;
       --cyan-bright: #67e8f9;
       --amber: #f59e0b;
+      --amber-glow: rgba(245, 158, 11, 0.4);
       --violet: #c084fc;
+      --violet-glow: rgba(192, 132, 252, 0.4);
       --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
@@ -74,14 +76,14 @@
       top: 0;
       z-index: 100;
       backdrop-filter: blur(16px);
-      background: rgba(3, 8, 14, 0.85);
+      background: rgba(3, 8, 14, 0.88);
       border-bottom: 1px solid var(--border-cyan);
     }
 
     .nav-container {
-      max-width: 1280px;
+      max-width: 1360px;
       margin: 0 auto;
-      padding: 0.85rem 1.5rem;
+      padding: 0.85rem 1.8rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -90,7 +92,7 @@
     .brand-logo {
       height: 38px;
       display: block;
-      filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.4));
+      filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.45));
       transition: transform 0.3s ease;
     }
 
@@ -100,16 +102,16 @@
 
     nav {
       display: flex;
-      gap: 1.8rem;
+      gap: 1.6rem;
       align-items: center;
     }
 
     nav a {
       color: var(--text-muted);
       text-decoration: none;
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 500;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
       transition: color 0.2s ease;
     }
 
@@ -138,131 +140,149 @@
       transform: translateY(-1px);
     }
 
+    /* Main Container */
+    main {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
     /* Hero Section */
     .hero {
-      max-width: 1200px;
-      margin: 2.5rem auto 4rem;
-      padding: 0 1.5rem;
+      margin: 2.8rem auto 4.5rem;
       text-align: center;
     }
 
     .hero-tagline {
-      font-size: 0.9rem;
+      font-size: 0.92rem;
       font-weight: 700;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
-      letter-spacing: 0.3em;
       color: var(--cyan);
       margin-bottom: 0.8rem;
       display: inline-block;
-      padding: 0.35rem 1rem;
-      background: rgba(56, 189, 248, 0.08);
-      border: 1px solid var(--border-cyan);
-      border-radius: 9999px;
+      text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
     }
 
     .hero-title {
-      font-size: clamp(2rem, 5vw, 3.8rem);
+      font-size: clamp(2.4rem, 5.5vw, 4.4rem);
       font-weight: 800;
-      line-height: 1.15;
-      margin-bottom: 1.2rem;
+      line-height: 1.12;
+      margin-bottom: 1.4rem;
       background: linear-gradient(180deg, #ffffff 30%, #94a3b8 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
     }
 
     .hero-desc {
-      font-size: clamp(1.05rem, 2vw, 1.3rem);
+      font-size: clamp(1.05rem, 1.8vw, 1.25rem);
       color: var(--text-muted);
-      max-width: 820px;
-      margin: 0 auto 1.8rem;
+      max-width: 860px;
+      margin: 0 auto 2.2rem;
       line-height: 1.7;
     }
 
-    .tutorial-announcement {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.8rem;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.45);
-      padding: 0.45rem 1.2rem;
-      border-radius: 9999px;
-      margin-bottom: 1.8rem;
-      font-size: 0.92rem;
-      color: #a7f3d0;
-      box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    .hero-desc b {
+      color: #fff;
     }
 
-    .announcement-badge {
+    .update-announcement {
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      background: rgba(14, 165, 233, 0.12);
+      border: 1px solid var(--border-cyan-glow);
+      padding: 0.65rem 1.4rem;
+      border-radius: 9999px;
+      margin-bottom: 2.2rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.2);
+    }
+
+    .update-badge {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: #03080e;
       font-weight: 800;
+      font-size: 0.78rem;
       letter-spacing: 0.08em;
-      color: #34d399;
-      font-size: 0.82rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+    }
+
+    .update-text {
+      color: var(--text-main);
+      font-size: 0.94rem;
+      font-weight: 500;
     }
 
     .hero-actions {
       display: flex;
-      gap: 1.2rem;
       justify-content: center;
-      align-items: center;
-      margin-bottom: 2.8rem;
+      gap: 1.2rem;
       flex-wrap: wrap;
+      margin-bottom: 3.5rem;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
       color: #03080e !important;
+      padding: 0.95rem 2.2rem;
+      border-radius: 8px;
       font-weight: 700;
-      padding: 0.85rem 1.8rem;
-      border-radius: 9999px;
+      font-size: 1.05rem;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
-      gap: 0.6rem;
-      font-size: 1.05rem;
-      box-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
+      gap: 0.65rem;
+      box-shadow: 0 0 28px rgba(56, 189, 248, 0.45);
       transition: all 0.25s ease;
     }
 
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 0 35px rgba(56, 189, 248, 0.7);
+      box-shadow: 0 0 40px rgba(56, 189, 248, 0.75);
     }
 
     .btn-secondary {
-      background: rgba(15, 23, 42, 0.65);
+      background: rgba(15, 23, 42, 0.85);
+      color: #f1f5f9 !important;
       border: 1px solid var(--border-cyan);
-      color: var(--cyan-bright) !important;
+      padding: 0.95rem 2rem;
+      border-radius: 8px;
       font-weight: 600;
-      padding: 0.85rem 1.6rem;
-      border-radius: 9999px;
+      font-size: 1.05rem;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
-      font-size: 1.05rem;
+      gap: 0.5rem;
       transition: all 0.25s ease;
+      backdrop-filter: blur(8px);
     }
 
     .btn-secondary:hover {
-      background: rgba(56, 189, 248, 0.12);
+      background: rgba(30, 41, 59, 0.95);
       border-color: var(--cyan);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
     }
 
-    /* Cinematic Video Showcase */
+    /* Video Showcase */
     .video-showcase {
-      position: relative;
-      max-width: 1040px;
+      max-width: 1120px;
       margin: 0 auto;
-      border-radius: 16px;
+      border-radius: 14px;
       overflow: hidden;
       border: 1px solid var(--border-cyan-glow);
-      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 40px rgba(56, 189, 248, 0.25);
-      background: #02060b;
+      box-shadow: 0 0 50px rgba(56, 189, 248, 0.2);
+      background: #000;
     }
 
     .video-wrapper {
       position: relative;
-      padding-top: 56.25%; /* 16:9 ratio */
+      padding-top: 56.25%;
       width: 100%;
     }
 
@@ -277,86 +297,79 @@
     }
 
     .video-caption {
-      background: rgba(8, 18, 30, 0.92);
-      border-top: 1px solid var(--border-cyan);
-      padding: 0.85rem 1.4rem;
+      background: rgba(3, 8, 14, 0.95);
+      padding: 0.9rem 1.5rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      border-top: 1px solid var(--border-cyan);
       font-size: 0.88rem;
       color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 0.5rem;
     }
 
     .video-badge {
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      color: var(--cyan);
+      color: var(--cyan-bright);
       font-weight: 600;
     }
 
-    .video-badge::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--cyan);
-      box-shadow: 0 0 8px var(--cyan);
-    }
-
-    /* Core Pillars Section */
-    section {
-      max-width: 1200px;
-      margin: 6rem auto;
-      padding: 0 1.5rem;
-    }
-
+    /* Section Headers */
     .section-header {
       text-align: center;
-      margin-bottom: 3.5rem;
+      margin: 5.5rem 0 3.2rem;
     }
 
     .section-eyebrow {
-      text-transform: uppercase;
       font-size: 0.85rem;
-      letter-spacing: 0.25em;
-      color: var(--cyan);
       font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cyan);
       margin-bottom: 0.5rem;
     }
 
     .section-title {
-      font-size: clamp(1.8rem, 3.5vw, 2.7rem);
+      font-size: clamp(2rem, 3.5vw, 2.9rem);
       font-weight: 800;
+      letter-spacing: -0.01em;
+      margin-bottom: 1rem;
       color: #fff;
     }
 
     .section-subtitle {
+      font-size: 1.1rem;
       color: var(--text-muted);
-      max-width: 650px;
-      margin: 0.8rem auto 0;
-      font-size: 1.05rem;
+      max-width: 760px;
+      margin: 0 auto;
+      line-height: 1.6;
     }
 
-    /* Dual Phase Cards */
+    /* Dual Phase Grid */
     .dual-phase-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 2rem;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.8rem;
+      margin-bottom: 4rem;
     }
 
     .phase-card {
-      background: var(--bg-card);
+      background: var(--bg-surface);
       border: 1px solid var(--border-cyan);
-      border-radius: 14px;
+      border-radius: 12px;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
       backdrop-filter: blur(12px);
-      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
     .phase-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--cyan);
+      transform: translateY(-5px);
+      border-color: var(--border-cyan-glow);
       box-shadow: 0 12px 30px rgba(56, 189, 248, 0.18);
     }
 
@@ -369,20 +382,23 @@
     }
 
     .phase-body {
-      padding: 1.8rem;
+      padding: 1.6rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
 
     .phase-num {
-      color: var(--cyan);
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 700;
-      letter-spacing: 0.2em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
+      color: var(--cyan);
       margin-bottom: 0.4rem;
     }
 
     .phase-name {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       font-weight: 700;
       color: #fff;
       margin-bottom: 0.8rem;
@@ -391,134 +407,249 @@
     .phase-desc {
       color: var(--text-muted);
       font-size: 0.95rem;
-      line-height: 1.6;
+      line-height: 1.65;
     }
 
-    /* Three Factions Showcase */
+    /* Factions Grid */
     .factions-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
       gap: 2rem;
+      margin-bottom: 4rem;
     }
 
     .faction-card {
-      background: var(--bg-card);
+      background: var(--bg-surface);
       border-radius: 14px;
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-cyan);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
       flex-direction: column;
-      transition: all 0.3s ease;
+      backdrop-filter: blur(12px);
     }
 
-    .faction-card.acero {
-      border-color: rgba(245, 158, 11, 0.35);
-    }
     .faction-card.acero:hover {
-      box-shadow: 0 12px 35px rgba(245, 158, 11, 0.25);
+      transform: translateY(-6px);
       border-color: var(--amber);
+      box-shadow: 0 14px 35px var(--amber-glow);
     }
 
-    .faction-card.vinculados {
-      border-color: rgba(192, 132, 252, 0.35);
-    }
     .faction-card.vinculados:hover {
-      box-shadow: 0 12px 35px rgba(192, 132, 252, 0.25);
+      transform: translateY(-6px);
       border-color: var(--violet);
+      box-shadow: 0 14px 35px var(--violet-glow);
     }
 
-    .faction-card.marea {
-      border-color: rgba(56, 189, 248, 0.35);
-    }
     .faction-card.marea:hover {
-      box-shadow: 0 12px 35px rgba(56, 189, 248, 0.25);
-      border-color: var(--cyan);
+      transform: translateY(-6px);
+      border-color: var(--cyan-bright);
+      box-shadow: 0 14px 35px rgba(103, 232, 249, 0.35);
     }
 
     .faction-img {
       width: 100%;
-      height: 240px;
+      height: 290px;
       object-fit: cover;
       display: block;
-      background: #050b14;
+      border-bottom: 1px solid var(--border-cyan);
     }
 
     .faction-content {
       padding: 1.8rem;
-      flex-grow: 1;
+      flex: 1;
       display: flex;
       flex-direction: column;
     }
 
     .faction-badge {
       display: inline-block;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.18em;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      padding: 0.25rem 0.75rem;
+      padding: 0.3rem 0.75rem;
       border-radius: 9999px;
       margin-bottom: 0.8rem;
       width: fit-content;
     }
 
     .acero .faction-badge {
-      background: rgba(245, 158, 11, 0.12);
-      color: var(--amber);
-      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: rgba(245, 158, 11, 0.18);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
     }
 
     .vinculados .faction-badge {
-      background: rgba(192, 132, 252, 0.12);
-      color: var(--violet);
-      border: 1px solid rgba(192, 132, 252, 0.3);
+      background: rgba(192, 132, 252, 0.18);
+      color: #e9d5ff;
+      border: 1px solid rgba(192, 132, 252, 0.4);
     }
 
     .marea .faction-badge {
-      background: rgba(56, 189, 248, 0.12);
-      color: var(--cyan);
-      border: 1px solid rgba(56, 189, 248, 0.3);
+      background: rgba(56, 189, 248, 0.18);
+      color: #bae6fd;
+      border: 1px solid rgba(56, 189, 248, 0.4);
     }
 
     .faction-title {
-      font-size: 1.35rem;
-      font-weight: 700;
+      font-size: 1.6rem;
+      font-weight: 800;
       color: #fff;
       margin-bottom: 0.6rem;
     }
 
     .faction-doctrine {
-      font-size: 0.9rem;
       font-style: italic;
       color: #cbd5e1;
+      font-size: 0.95rem;
       margin-bottom: 1rem;
+      line-height: 1.5;
     }
 
     .faction-desc {
       color: var(--text-muted);
-      font-size: 0.92rem;
-      line-height: 1.6;
+      font-size: 0.93rem;
+      line-height: 1.65;
+    }
+
+    /* Hero Aces Grid */
+    .aces-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 4rem;
+    }
+
+    .ace-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-cyan);
+      border-radius: 12px;
+      padding: 1.4rem 1.1rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .ace-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--cyan);
+      box-shadow: 0 8px 24px rgba(56, 189, 248, 0.22);
+    }
+
+    .ace-portrait {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 1rem;
+      border: 2px solid var(--cyan);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+      display: block;
+    }
+
+    .ace-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.25rem;
+    }
+
+    .ace-role {
+      font-size: 0.78rem;
+      color: var(--cyan-bright);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+
+    .ace-ship {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+    }
+
+    /* Cinematic Panoramic Theater */
+    .theater-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 1.6rem;
+      margin-bottom: 4rem;
+    }
+
+    .theater-card {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-cyan);
+      background: #000;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+    }
+
+    .theater-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-cyan-glow);
+      box-shadow: 0 10px 30px rgba(56, 189, 248, 0.25);
+    }
+
+    .theater-img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+
+    .theater-card:hover .theater-img {
+      transform: scale(1.04);
+    }
+
+    .theater-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(3, 8, 14, 0.95) 80%);
+      padding: 1.2rem;
+    }
+
+    .theater-tag {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--cyan-bright);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.2rem;
+    }
+
+    .theater-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
     }
 
     /* Features Grid */
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.6rem;
+      margin-bottom: 4.5rem;
     }
 
     .feature-card {
-      background: var(--bg-card);
+      background: var(--bg-surface);
       border: 1px solid var(--border-cyan);
       border-radius: 12px;
-      padding: 1.8rem;
-      transition: all 0.3s ease;
+      padding: 1.6rem;
+      backdrop-filter: blur(8px);
+      transition: all 0.25s ease;
     }
 
     .feature-card:hover {
       border-color: var(--cyan);
       transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(56, 189, 248, 0.15);
     }
 
     .feature-icon {
@@ -536,94 +667,60 @@
 
     .feature-desc {
       color: var(--text-muted);
-      font-size: 0.9rem;
-      line-height: 1.55;
+      font-size: 0.92rem;
+      line-height: 1.6;
     }
 
-    /* Technology Banner */
+    /* Tech Banner */
     .tech-banner {
-      background: linear-gradient(135deg, rgba(8, 24, 42, 0.85), rgba(3, 10, 18, 0.95));
+      background: var(--bg-surface);
       border: 1px solid var(--border-cyan);
-      border-radius: 16px;
-      padding: 3rem 2rem;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-around;
-      align-items: center;
+      border-radius: 14px;
+      padding: 2.2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 2rem;
       text-align: center;
+      margin-bottom: 5rem;
+      backdrop-filter: blur(12px);
     }
 
     .tech-item h4 {
-      font-size: 2rem;
+      font-size: 1.5rem;
       font-weight: 800;
       color: var(--cyan-bright);
-      margin-bottom: 0.2rem;
+      margin-bottom: 0.35rem;
     }
 
     .tech-item p {
       color: var(--text-muted);
       font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
+      font-weight: 500;
     }
 
-    /* Call to Action */
+    /* CTA Section */
     .cta-section {
       text-align: center;
-      padding: 5rem 1.5rem 6rem;
-      background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.12) 0%, rgba(3, 8, 14, 0) 70%);
+      padding: 4.5rem 1.5rem;
+      background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.12) 0%, transparent 70%);
+      border: 1px solid var(--border-cyan);
+      border-radius: 16px;
+      margin-bottom: 5rem;
+      backdrop-filter: blur(16px);
     }
 
     .cta-logo {
-      max-width: 320px;
-      margin: 0 auto 1.5rem;
-      display: block;
-      filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.45));
+      height: 48px;
+      margin-bottom: 1.4rem;
+      filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.45));
     }
 
     .cta-buttons {
       display: flex;
-      gap: 1.2rem;
       justify-content: center;
-      flex-wrap: wrap;
+      gap: 1.2rem;
       margin-top: 2rem;
-    }
-
-    .btn-primary {
-      background: var(--cyan);
-      color: #03080e;
-      padding: 0.9rem 2rem;
-      border-radius: 9999px;
-      font-size: 1.05rem;
-      font-weight: 700;
-      text-decoration: none;
-      box-shadow: 0 0 25px rgba(56, 189, 248, 0.45);
-      transition: all 0.25s ease;
-    }
-
-    .btn-primary:hover {
-      background: var(--cyan-bright);
-      box-shadow: 0 0 35px rgba(56, 189, 248, 0.7);
-      transform: translateY(-2px);
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-cyan);
-      color: #fff;
-      padding: 0.9rem 2rem;
-      border-radius: 9999px;
-      font-size: 1.05rem;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.25s ease;
-    }
-
-    .btn-secondary:hover {
-      background: rgba(56, 189, 248, 0.15);
-      border-color: var(--cyan);
-      transform: translateY(-2px);
+      flex-wrap: wrap;
     }
 
     /* Footer */
@@ -632,8 +729,8 @@
       padding: 2.5rem 1.5rem;
       text-align: center;
       color: var(--text-muted);
-      font-size: 0.88rem;
-      background: rgba(2, 6, 11, 0.95);
+      font-size: 0.9rem;
+      background: rgba(3, 8, 14, 0.92);
     }
 
     footer a {
@@ -646,6 +743,9 @@
     }
 
     @media (max-width: 768px) {
+      .nav-container {
+        padding: 0.8rem 1rem;
+      }
       .brand-logo {
         height: 30px;
       }
@@ -654,6 +754,9 @@
       }
       .hero {
         margin: 1.8rem auto 3rem;
+      }
+      .aces-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
   </style>
@@ -668,10 +771,12 @@
         <img class="brand-logo" src="assets/brand/logo.png" alt="BARLOVENTO Wordmark" />
       </a>
       <nav>
-        <a href="#prologue">Prologue Video</a>
+        <a href="#prologue">Prologue</a>
         <a href="#gameplay">Gameplay</a>
         <a href="#factions">Civilizations</a>
-        <a href="#tech">Technology</a>
+        <a href="#aces">Hero Aces</a>
+        <a href="#theater">3D Theater</a>
+        <a href="#tech">Tech</a>
         <a class="btn-github" href="https://github.com/raestrada/barlovento" target="_blank" rel="noopener">
           <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
           View on GitHub
@@ -686,16 +791,16 @@
       <span class="hero-tagline">El Último Viento &bull; Fight for the Weather Gauge</span>
       <h1 class="hero-title">Space is an ocean.<br/>And its tide is going out.</h1>
       <p class="hero-desc">
-        <b>BARLOVENTO: El Último Viento</b> &mdash; A tactical war you fight twice, with two different minds. Plot fleet vectors on the 80-quadrant strategic naval chart as an <b>Admiral</b>, then master Newtonian inertia, broadside arcs, and Gundam-style hero aces in 3D <b>Ace Combat</b>.
+        <b>BARLOVENTO: El Último Viento</b> &mdash; A tactical war you fight twice, with two different minds. Command massive battlelines on the strategic naval chart as an <b>Admiral</b>, then master Newtonian inertia, broadside ballistics, and Gundam-style hero aces in 3D <b>Ace Combat</b>.
       </p>
 
-      <div class="tutorial-announcement">
-        <span class="announcement-badge">★ NEW UPDATE v0.4.0-alpha</span>
-        <span class="announcement-text">Full 36-Stage Campaign for All 3 Factions &bull; 9 Cinematic Act Briefing Artworks &bull; Mobile Armor &amp; Expanded Rosters &bull; Dynamic Grids up to 16×12</span>
+      <div class="update-announcement">
+        <span class="update-badge">★ NEW RELEASE v0.5.0-alpha</span>
+        <span class="update-text">Full 36-Stage Grand Fleet Overhaul &bull; Battles up to 15 vs 16 Ships &bull; 3D Gundam Mobile Armor &bull; Secret God Mode (Ctrl+Shift+D)</span>
       </div>
 
       <div class="hero-actions">
-        <a class="btn-primary" href="https://github.com/raestrada/barlovento/releases/download/v0.4.0-alpha/Barlovento.zip">
+        <a class="btn-primary" href="https://github.com/raestrada/barlovento/releases/download/v0.5.0-alpha/Barlovento.zip">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           Download Windows Alpha (.zip)
         </a>
@@ -704,7 +809,7 @@
         </a>
       </div>
 
-      <!-- Video Player Showcase -->
+      <!-- Video Player Showcase with New AAA Key Art Poster -->
       <div id="prologue" class="video-showcase">
         <div class="video-wrapper">
           <video controls playsinline preload="metadata" poster="assets/splash/cover.png">
@@ -715,7 +820,7 @@
         </div>
         <div class="video-caption">
           <span class="video-badge">Official Cinematic Prologue (1080p Full HD)</span>
-          <span>Original Orchestral Master &bull; Gustav Holst Adaptation</span>
+          <span>Original Orchestral Master &bull; Gustav Holst Adaptation &bull; Real 48 kHz Acoustic Soundscape</span>
         </div>
       </div>
     </section>
@@ -726,40 +831,40 @@
         <div class="section-eyebrow">Core Design Pillar</div>
         <h2 class="section-title">One Battle. Two Minds.</h2>
         <p class="section-subtitle">
-          Most strategy games make you choose: the grand view or the tactical duel. BARLOVENTO demands mastery of both.
+          Most strategy games make you choose: the grand view or the tactical duel. BARLOVENTO demands mastery of both across massive multi-front battlefields.
         </p>
       </div>
 
       <div class="dual-phase-grid">
         <article class="phase-card">
-          <img class="phase-media" src="assets/screenshots/screen_admiral_chart.png" alt="Phase 1: 10×8 Strategic Admiral Chart &amp; Tactical Academy" />
+          <img class="phase-media" src="assets/screenshots/screen_admiral_chart.png" alt="Phase 1: Strategic Admiral Chart" />
           <div class="phase-body">
-            <div class="phase-num">Phase 1 &bull; 10×8 Strategic Chart</div>
+            <div class="phase-num">Phase 1 &bull; Strategic Vector Planning</div>
             <h3 class="phase-name">The Approach (Admiral Phase)</h3>
             <p class="phase-desc">
-              Plot fleet waypoints across 80 quadrants (A1–J8). Contest Éther Conduits (⚡ +1 AP / +15% Speed), surf Barlovento streams (» +15% Acc / +12% DMG), and execute tactical formations while following the 5-step Tactical Academy guide.
+              Plot simultaneous fleet vectors across dynamic sector charts scaling up to 16×12 grids. Contest Éther Conduits (⚡ +1 AP / +15% Speed), surf Barlovento wind streams, and divide your forces into independent task groups before firing guns.
             </p>
           </div>
         </article>
 
         <article class="phase-card">
-          <img class="phase-media" src="assets/screenshots/screen_ace_combat.png" alt="Phase 2: 3D Ace Tactical Combat &amp; AP System" />
+          <img class="phase-media" src="assets/screenshots/screen_ace_combat.png" alt="Phase 2: 3D Ace Tactical Combat" />
           <div class="phase-body">
             <div class="phase-num">Phase 2 &bull; 3D Turn-Based Tactics</div>
             <h3 class="phase-name">The Engagement (Ace Phase)</h3>
             <p class="phase-desc">
-              Master Newtonian inertia and vector drift in a 3D sphere. Allocate Action Points (AP) for broadside salvos, oar bursts, and shields. Mitigate incoming fire with live directional armor integrity across Bow, Flanks, and Stern.
+              Master Newtonian inertia, orbital momentum, and vector drift in a 3D sphere. Allocate Action Points (AP) for rolling broadsides, beam funnels, and retro-burns while angling sloped armor against kinetic salvos.
             </p>
           </div>
         </article>
 
         <article class="phase-card">
-          <img class="phase-media" src="assets/screenshots/screen_main_menu.png" alt="Campaign Roster &amp; Faction Academy" />
+          <img class="phase-media" src="assets/screenshots/screen_main_menu.png" alt="Grand Fleet Multi-Front Warfare" />
           <div class="phase-body">
-            <div class="phase-num">Civilizations &bull; Permadeath Campaign</div>
-            <h3 class="phase-name">Three Asymmetric Campaigns</h3>
+            <div class="phase-num">Epic Scale &bull; 36 Campaign Stages</div>
+            <h3 class="phase-name">Grand Fleet Multi-Front Warfare</h3>
             <p class="phase-desc">
-              Experience the Star Sea from three unique perspectives. Play guided tutorial stages for The Armada of Acero, The Vinculados, and The Free Tide, developing hero aces with persistent veteran progression.
+              Clash in monumental battles commanding up to 15 warships and mobile suits against 16 enemy battle groups. Coordinate center flagships, port flanking wings, starboard harriers, and rear station defenses simultaneously.
             </p>
           </div>
         </article>
@@ -779,42 +884,158 @@
       <div class="factions-grid">
         <!-- Acero -->
         <article class="faction-card acero">
-          <img class="faction-img" src="assets/ships/acero/dreadnought_concept.png" alt="Armada of Acero Dreadnought" />
+          <img class="faction-img" src="assets/factions/card_acero.png" alt="The Armada of Acero" />
           <div class="faction-content">
             <span class="faction-badge">Steel &bull; Dam the Wind</span>
             <h3 class="faction-title">The Armada of Acero</h3>
             <p class="faction-doctrine">"The wind is not sacred. It is fuel. When the sea dies, we forge dams of steel."</p>
             <p class="faction-desc">
-              A hard-science industrial war navy. Massive chamfered dreadnoughts, superficial triple-turret batteries, reinforced ramming prows, and crushing broadside ballistics designed to control space through sheer tonnage and discipline.
+              A hard-science industrial war empire. Massive gunmetal Anvil Dreadnoughts, Hammer Battlecruisers, and the supreme Juggernaut Imperator. Crushing broadside ballistics and triple-battery spinal casemates designed to dominate space through tonnage and unyielding discipline.
             </p>
           </div>
         </article>
 
         <!-- Vinculados -->
         <article class="faction-card vinculados">
-          <img class="faction-img" src="assets/ships/vinculados/suit_concept.png" alt="Vinculados Resonance Mobile Suit" />
+          <img class="faction-img" src="assets/factions/card_vinculados.png" alt="The Vinculados" />
           <div class="faction-content">
             <span class="faction-badge">Soul &bull; Transcend the Wind</span>
             <h3 class="faction-title">The Vinculados</h3>
             <p class="faction-doctrine">"Our minds are tuned to the hum of the void. We will transcend before the silence."</p>
             <p class="faction-desc">
-              Elite mystical pilots neurally bonded to the vacuum. Deploy agile 3-mecha Mobile Suit Platoons operating alongside the Cradle Carrier Ark (Pegasus archetype) with white ceramic armor, harmonic crests, pulsing magenta soul cores, resonance barriers, and beam rifles executing lethal stern rakes.
+              Elite mystical pilots neurally linked to the vacuum. Command agile Eidolon, Nous, and Anima Mobile Suit Platoons operating alongside Cradle Carrier Arks and the colossal Seraph-Prime Mobile Armor with golden V-fin crests, 4 seraph wing-binders, and autonomous beam funnels.
             </p>
           </div>
         </article>
 
         <!-- Marea Libre -->
         <article class="faction-card marea">
-          <img class="faction-img" src="assets/ships/marea-libre/galleon_concept.png" alt="Free Tide Void Galleon" />
+          <img class="faction-img" src="assets/factions/card_marea.png" alt="The Free Tide" />
           <div class="faction-content">
             <span class="faction-badge">Wind &bull; Awaken the Sea</span>
-            <h3 class="faction-title">The Free Tide</h3>
+            <h3 class="faction-title">The Free Tide (Marea Libre)</h3>
             <p class="faction-doctrine">"To bind the wind is to choke it. Unfurl the quantum canvas and ride the storm."</p>
             <p class="faction-desc">
-              Steampunk nomad corsairs who sail the Éther currents directly. Ornate void-caravels with curved mahogany timbers, burnished brass strakes, glowing void-oars, and billowing turquoise quantum sails that gain speed where others drift helpless.
+              Steampunk nomad corsairs who sail the Éther currents directly. Weathered void-galleons with dark mahogany timbers, burnished brass strakes, glowing mechanical energy oars, and billowing semi-rigid turquoise quantum membrane sails that catch the stellar storm where others drift helpless.
             </p>
           </div>
         </article>
+      </div>
+    </section>
+
+    <!-- Hero Ace Squadrons -->
+    <section id="aces">
+      <div class="section-header">
+        <div class="section-eyebrow">Squadron Command</div>
+        <h2 class="section-title">Legendary Hero Aces</h2>
+        <p class="section-subtitle">
+          Command elite commanders and ace pilots whose veteran promotions carry forward throughout the 36-stage campaign.
+        </p>
+      </div>
+
+      <div class="aces-grid">
+        <div class="ace-card">
+          <img class="ace-portrait" src="assets/heroes/ace_vane.png" alt="Admiral Vane" />
+          <h4 class="ace-name">Adm. Vane</h4>
+          <div class="ace-role">Iron Line Commander</div>
+          <div class="ace-ship">CNS Iron Bastion (Dreadnought)</div>
+        </div>
+
+        <div class="ace-card">
+          <img class="ace-portrait" src="assets/heroes/ace_kurtz.png" alt="Grand Marshall Kurtz" />
+          <h4 class="ace-name">Marshall Kurtz</h4>
+          <div class="ace-role">Supreme Siege Master</div>
+          <div class="ace-ship">CNS Imperator (Juggernaut)</div>
+        </div>
+
+        <div class="ace-card">
+          <img class="ace-portrait" src="assets/heroes/ace_kaelen.png" alt="Ace Kaelen-7" />
+          <h4 class="ace-name">Ace Kaelen-7</h4>
+          <div class="ace-role">Neural Vanguard Duelist</div>
+          <div class="ace-ship">Eidolon Mobile Suit Platoon</div>
+        </div>
+
+        <div class="ace-card">
+          <img class="ace-portrait" src="assets/heroes/ace_seraph.png" alt="Conductor Seraph-2" />
+          <h4 class="ace-name">Conductor Seraph</h4>
+          <div class="ace-role">Carrier Operations Conductor</div>
+          <div class="ace-ship">Sanktuario Albor (Carrier Ark)</div>
+        </div>
+
+        <div class="ace-card">
+          <img class="ace-portrait" src="assets/heroes/ace_marina.png" alt="Commodore Marina" />
+          <h4 class="ace-name">Commodore Marina</h4>
+          <div class="ace-role">Corsair Strike Commodore</div>
+          <div class="ace-ship">El Gavilán (Heavy Frigate)</div>
+        </div>
+
+        <div class="ace-card">
+          <img class="ace-portrait" src="assets/heroes/ace_barbanegra.png" alt="Barbanegra" />
+          <h4 class="ace-name">Barbanegra</h4>
+          <div class="ace-role">Supreme Corsair Sovereign</div>
+          <div class="ace-ship">Soberano del Mar (Mega-Galleon)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panoramic 3D Cinematic Theater -->
+    <section id="theater">
+      <div class="section-header">
+        <div class="section-eyebrow">Varied Battlefields &amp; Scenery</div>
+        <h2 class="section-title">Cinematic Theater &amp; Landmarks</h2>
+        <p class="section-subtitle">
+          Every stage features unique topography: Basalt Gorges, orbital rings, tactical archipelago cover, and rear bastions.
+        </p>
+      </div>
+
+      <div class="theater-grid">
+        <div class="theater-card">
+          <img class="theater-img" src="assets/factions/acero_stage1_briefing.png" alt="Sluice Station Well-09" />
+          <div class="theater-overlay">
+            <div class="theater-tag">Stage 1 &bull; Acero Campaign</div>
+            <div class="theater-title">Defense of Sluice Station Well-09</div>
+          </div>
+        </div>
+
+        <div class="theater-card">
+          <img class="theater-img" src="assets/briefings/acero_forge.png" alt="Ore Smelter Complex Vulcan-3" />
+          <div class="theater-overlay">
+            <div class="theater-tag">Stage 8 &bull; Industrial Trench</div>
+            <div class="theater-title">Assault on Smelter Complex Vulcan-3</div>
+          </div>
+        </div>
+
+        <div class="theater-card">
+          <img class="theater-img" src="assets/briefings/acero_dam.png" alt="The Iron Dam Singularity" />
+          <div class="theater-overlay">
+            <div class="theater-tag">Stage 11 &bull; Event Horizon</div>
+            <div class="theater-title">The Iron Dam &bull; Calm Fracture Rift</div>
+          </div>
+        </div>
+
+        <div class="theater-card">
+          <img class="theater-img" src="assets/briefings/vinculados_genesis.png" alt="Celestial Genesis Ring" />
+          <div class="theater-overlay">
+            <div class="theater-tag">Stage 3 &bull; Vinculados Campaign</div>
+            <div class="theater-title">Resonance of the Genesis Ring</div>
+          </div>
+        </div>
+
+        <div class="theater-card">
+          <img class="theater-img" src="assets/ships/vinculados/mobile_armor_colossus.png" alt="Mobile Armor Colossus Seraph-Prime" />
+          <div class="theater-overlay">
+            <div class="theater-tag">Stage 12 &bull; Climax Mobile Armor</div>
+            <div class="theater-title">Colossus Seraph-Prime &bull; 16 Beam Funnels</div>
+          </div>
+        </div>
+
+        <div class="theater-card">
+          <img class="theater-img" src="assets/briefings/marea_maelstrom.png" alt="Maelstrom of Barlovento" />
+          <div class="theater-overlay">
+            <div class="theater-tag">Stage 9 &bull; Weather-Gauge Storm</div>
+            <div class="theater-title">The Cosmic Maelstrom of Barlovento</div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -829,7 +1050,7 @@
         <div class="feature-card">
           <div class="feature-icon">&#x2693;</div>
           <h4 class="feature-name">True Newtonian Drift</h4>
-          <p class="feature-desc">No magical brakes or instant turns. Every ship fights its own momentum vector. Drift is not a visual effect—it is your greatest tactical weapon.</p>
+          <p class="feature-desc">No magical brakes or instant turns. Every ship fights its own momentum vector. Drift is not a visual effect—it is an active tactical weapon.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">&#x2727;</div>
@@ -839,12 +1060,12 @@
         <div class="feature-card">
           <div class="feature-icon">&#x27a1;</div>
           <h4 class="feature-name">The Weather Gauge [Barlovento]</h4>
-          <p class="feature-desc">Sail along the cyan Éther currents to seize the upwind advantage: +12% hit accuracy and +18% damage on port &amp; starboard broadsides.</p>
+          <p class="feature-desc">Sail along cyan Éther currents to seize the upwind advantage: +15% hit accuracy and +18% damage on port &amp; starboard broadsides.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">&#x2694;</div>
-          <h4 class="feature-name">Per-Facing Armor &amp; Arcs</h4>
-          <p class="feature-desc">Ships feature localized directional armor integrity, broadside batteries, and fixed weapon cones. Angling vulnerable flanks away from fire decides survival.</p>
+          <h4 class="feature-name">Directional Armor &amp; Arcs</h4>
+          <p class="feature-desc">Ships feature localized armor integrity across Bow, Port, Starboard, and Stern quadrants. Angling sloped prow armor absorbs kinetic fire; stern rakes inflict critical breaches.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">&#x2601;</div>
@@ -852,9 +1073,9 @@
           <p class="feature-desc">A dynamic, encroaching boundary of dead vacuum that expands each campaign turn. Ships caught inside lose wind boost, power, and drift to their graves.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">&#x2605;</div>
-          <h4 class="feature-name">Hero Aces &amp; Roster</h4>
-          <p class="feature-desc">Command elite squadron leaders like Admiral Vane, Ace Kaelen-7, and Captain Solano. Veteran aces earn promotions (+HP/+DMG) that persist across stages.</p>
+          <div class="feature-icon">&#x2699;</div>
+          <h4 class="feature-name">Secret Developer Console</h4>
+          <p class="feature-desc">Press <kbd>Ctrl+Shift+D</kbd> anywhere in-game to toggle the Dev Menu: God Mode damage immunity, direct stage jumping across all 36 stages, AP boosts, and win triggers.</p>
         </div>
       </div>
     </section>
@@ -871,12 +1092,12 @@
           <p>Algorithmic PBR Lofting</p>
         </div>
         <div class="tech-item">
-          <h4>48 kHz PCM</h4>
-          <p>Mastered Symphonic Score</p>
+          <h4>48 kHz Master</h4>
+          <p>Symphonic Classical Score</p>
         </div>
         <div class="tech-item">
           <h4>100% LLM</h4>
-          <p>Reproducible Code & Architecture</p>
+          <p>Autonomous Agent Architecture</p>
         </div>
       </div>
     </section>
@@ -885,12 +1106,12 @@
     <section class="cta-section">
       <img class="cta-logo" src="assets/brand/logo.png" alt="BARLOVENTO" />
       <h2 style="font-size: 2.2rem; margin-bottom: 0.8rem; color: #fff;">Take the Weather Gauge.</h2>
-      <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto; font-size: 1.1rem;">
-        Follow development, explore the comprehensive lore bible, or contribute to the next evolution of space naval strategy.
+      <p style="color: var(--text-muted); max-width: 620px; margin: 0 auto; font-size: 1.1rem;">
+        Play the complete 36-stage campaign, command monumental fleets across the Star Sea, or explore the comprehensive game design bible.
       </p>
       <div class="cta-buttons">
-        <a class="btn-primary" href="https://github.com/raestrada/barlovento" target="_blank" rel="noopener">Star on GitHub</a>
-        <a class="btn-secondary" href="docs/DESIGN.md">Read the Lore & Game Design</a>
+        <a class="btn-primary" href="https://github.com/raestrada/barlovento/releases/download/v0.5.0-alpha/Barlovento.zip">Download Windows Build (.zip)</a>
+        <a class="btn-secondary" href="https://github.com/raestrada/barlovento" target="_blank" rel="noopener">Star on GitHub</a>
       </div>
     </section>
   </main>
@@ -898,10 +1119,10 @@
   <!-- Footer -->
   <footer>
     <p style="margin-bottom: 0.5rem;">
-      <b>BARLOVENTO</b> &bull; Developed by <a href="https://github.com/raestrada" target="_blank" rel="noopener">Rodrigo Estrada (raestrada)</a>
+      <b>BARLOVENTO: El Último Viento</b> &bull; Created by <a href="https://github.com/raestrada" target="_blank" rel="noopener">Rodrigo Estrada (raestrada)</a>
     </p>
-    <p style="color: #64748b; font-size: 0.82rem;">
-      Engineered with Godot 4.7.2 &bull; All media generated and mastered end-to-end &bull; <em>"In the dying sea... to drift is to die."</em>
+    <p style="color: #64748b; font-size: 0.84rem;">
+      Engineered with Godot 4.7.2 Forward+ &bull; 100% LLM Agentic Production &bull; <em>"In the dying sea... to drift is to die."</em>
     </p>
   </footer>
 </body>
