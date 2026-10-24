@@ -2638,12 +2638,12 @@ func _build_vinculados_sanctuary_spire(pos: Vector3 = Vector3(36.0, 8.0, -35.0),
 	station_lbl.position = Vector3(0.0, 52.0, 0.0)
 	_stage_landmark_root.add_child(station_lbl)
 
-func _build_marea_corsair_haven() -> void:
+func _build_marea_corsair_haven(pos: Vector3 = Vector3(-26.0, 0.0, 4.0), rot: Vector3 = Vector3(0.0, 20.0, 0.0)) -> void:
 	# Sprawling Void-Pirate Haven carved into a colossal hollowed Basalt Asteroid Reef
 	_stage_landmark_root = Node3D.new()
 	_stage_landmark_root.name = "CorsairHavenBarlovento"
-	_stage_landmark_root.position = Vector3(-26.0, 0.0, 4.0)
-	_stage_landmark_root.rotation_degrees = Vector3(0.0, 20.0, 0.0)
+	_stage_landmark_root.position = pos
+	_stage_landmark_root.rotation_degrees = rot
 	add_child(_stage_landmark_root)
 
 	var timber_mat := StandardMaterial3D.new()
@@ -2834,12 +2834,12 @@ func _build_marea_corsair_haven() -> void:
 	station_lbl.position = Vector3(0.0, 24.5, 0.0)
 	_stage_landmark_root.add_child(station_lbl)
 
-func _build_acero_calm_bastion() -> void:
+func _build_acero_calm_bastion(pos: Vector3 = Vector3(-28.0, 0.0, 8.0), rot: Vector3 = Vector3(0.0, 30.0, 0.0)) -> void:
 	# Colossal Acero Forward Defense Bastion ("Bastion-7") facing the Calm wavefront
 	_stage_landmark_root = Node3D.new()
 	_stage_landmark_root.name = "CalmThresholdBastion"
-	_stage_landmark_root.position = Vector3(-28.0, 0.0, 8.0)
-	_stage_landmark_root.rotation_degrees = Vector3(0.0, 30.0, 0.0)
+	_stage_landmark_root.position = pos
+	_stage_landmark_root.rotation_degrees = rot
 	add_child(_stage_landmark_root)
 
 	var hull_tex: Texture2D = load("res://assets/ships/acero/acero_hull.png")
@@ -2953,12 +2953,12 @@ func _build_acero_calm_bastion() -> void:
 	station_lbl.position = Vector3(0.0, 13.0, 0.0)
 	_stage_landmark_root.add_child(station_lbl)
 
-func _build_vinculados_crystal_chasm() -> void:
+func _build_vinculados_crystal_chasm(pos: Vector3 = Vector3(-25.0, 0.0, 5.0), rot: Vector3 = Vector3(0.0, 20.0, 0.0)) -> void:
 	# Colossal Twin Crystal Monoliths & Levitating Resonance Ring
 	_stage_landmark_root = Node3D.new()
 	_stage_landmark_root.name = "VinculadosCrystalChasm"
-	_stage_landmark_root.position = Vector3(-25.0, 0.0, 5.0)
-	_stage_landmark_root.rotation_degrees = Vector3(0.0, 20.0, 0.0)
+	_stage_landmark_root.position = pos
+	_stage_landmark_root.rotation_degrees = rot
 	add_child(_stage_landmark_root)
 
 	var ceramic := StandardMaterial3D.new()
@@ -3050,11 +3050,12 @@ func _build_vinculados_crystal_chasm() -> void:
 	station_lbl.position = Vector3(0.0, 26.0, 0.0)
 	_stage_landmark_root.add_child(station_lbl)
 
-func _build_vinculados_genesis_ring() -> void:
+func _build_vinculados_genesis_ring(pos: Vector3 = Vector3(-28.0, 4.0, 5.0), rot: Vector3 = Vector3(0.0, 0.0, 0.0)) -> void:
 	# Colossal Dual-Gimbal Genesis Resonance Ring & Soul Core
 	_stage_landmark_root = Node3D.new()
 	_stage_landmark_root.name = "VinculadosGenesisRing"
-	_stage_landmark_root.position = Vector3(-28.0, 4.0, 5.0)
+	_stage_landmark_root.position = pos
+	_stage_landmark_root.rotation_degrees = rot
 	add_child(_stage_landmark_root)
 
 	var ceramic := StandardMaterial3D.new()
@@ -3134,12 +3135,12 @@ func _build_vinculados_genesis_ring() -> void:
 	station_lbl.position = Vector3(0.0, 20.0, 0.0)
 	_stage_landmark_root.add_child(station_lbl)
 
-func _build_marea_foundry_complex() -> void:
+func _build_marea_foundry_complex(pos: Vector3 = Vector3(-26.0, 2.0, 6.0), rot: Vector3 = Vector3(0.0, 15.0, 0.0)) -> void:
 	# Heavy Industrial Smelter Platform Vulcan-3 being raided
 	_stage_landmark_root = Node3D.new()
 	_stage_landmark_root.name = "FoundryVulcan3"
-	_stage_landmark_root.position = Vector3(-26.0, 2.0, 6.0)
-	_stage_landmark_root.rotation_degrees = Vector3(0.0, 15.0, 0.0)
+	_stage_landmark_root.position = pos
+	_stage_landmark_root.rotation_degrees = rot
 	add_child(_stage_landmark_root)
 
 	var iron_mat := StandardMaterial3D.new()
@@ -3221,11 +3222,12 @@ func _build_marea_foundry_complex() -> void:
 	station_lbl.position = Vector3(0.0, 14.0, 0.0)
 	_stage_landmark_root.add_child(station_lbl)
 
-func _build_marea_wind_maelstrom() -> void:
+func _build_marea_wind_maelstrom(pos: Vector3 = Vector3(-28.0, 0.0, 4.0), rot: Vector3 = Vector3(0.0, 0.0, 0.0)) -> void:
 	# Colossal Astrolabe Eye of the Maelstrom Collector Spire
 	_stage_landmark_root = Node3D.new()
 	_stage_landmark_root.name = "MaelstromEyeSpire"
-	_stage_landmark_root.position = Vector3(-28.0, 0.0, 4.0)
+	_stage_landmark_root.position = pos
+	_stage_landmark_root.rotation_degrees = rot
 	add_child(_stage_landmark_root)
 
 	var brass_mat := StandardMaterial3D.new()
