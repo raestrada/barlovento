@@ -112,7 +112,7 @@ static func populate_acero(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "acero_dreadnought", "CNS Iron Bastion", "Anvil-Class Dreadnought • Adm. Vane", "HP 380 | RNG 58m | Forward & Broadside Batteries")
             add_squadron_row(menu._squadron_vbox, "acero_battlecruiser", "CNS Hammer of Anvil", "Hammer-Class Battlecruiser • Capt. Korr", "HP 260 | RNG 52m | Twin Spinal Railguns")
             add_squadron_row(menu._squadron_vbox, "acero_corvette", "CNS Vanguard-03", "Chisel-Class Escort Corvette • Lt. Drake", "HP 150 | RNG 44m | High-Speed Flank Screen")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
 
         "acero_stage_2":
             menu._briefing_title_lbl.text = "ACT I // STAGE 02: AMBUSH AT THE RESONANCE SPIRE"
@@ -122,7 +122,7 @@ static func populate_acero(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "acero_dreadnought", "CNS Iron Bastion", "Anvil-Class Dreadnought • Adm. Vane", "HP 380 | RNG 58m | Forward & Broadside Batteries")
             add_squadron_row(menu._squadron_vbox, "acero_battlecruiser", "CNS Hammer of Anvil", "Hammer-Class Battlecruiser • Capt. Korr", "HP 260 | RNG 52m | Twin Spinal Railguns")
             add_squadron_row(menu._squadron_vbox, "acero_corvette", "CNS Vanguard-03", "Chisel-Class Escort Corvette • Lt. Drake", "HP 150 | RNG 44m | High-Speed Flank Screen")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 02"
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 02"
 
         "acero_stage_3":
             menu._briefing_title_lbl.text = "ACT I // STAGE 03: BASTION OF THE CALM THRESHOLD"
@@ -132,7 +132,7 @@ static func populate_acero(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "acero_dreadnought", "CNS Iron Bastion", "Anvil-Class Dreadnought • Adm. Vane", "HP 380 | RNG 58m | Forward & Broadside Batteries")
             add_squadron_row(menu._squadron_vbox, "acero_battlecruiser", "CNS Hammer of Anvil", "Hammer-Class Battlecruiser • Capt. Korr", "HP 260 | RNG 52m | Twin Spinal Railguns")
             add_squadron_row(menu._squadron_vbox, "acero_corvette", "CNS Vanguard-03", "Chisel-Class Escort Corvette • Lt. Drake", "HP 150 | RNG 44m | High-Speed Flank Screen")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 03"
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 03"
 
         "acero_stage_4":
             menu._briefing_title_lbl.text = "ACT I // STAGE 04: THE CRUCIBLE OF FIRE"
@@ -142,7 +142,7 @@ static func populate_acero(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "acero_dreadnought", "CNS Iron Bastion", "Anvil-Class Dreadnought • Adm. Vane", "HP 380 | RNG 58m | Forward & Broadside Batteries")
             add_squadron_row(menu._squadron_vbox, "acero_battlecruiser", "CNS Hammer of Anvil", "Hammer-Class Battlecruiser • Capt. Korr", "HP 260 | RNG 52m | Twin Spinal Railguns")
             add_squadron_row(menu._squadron_vbox, "acero_corvette", "CNS Vanguard-03", "Chisel-Class Escort Corvette • Lt. Drake", "HP 150 | RNG 44m | High-Speed Flank Screen")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 04"
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 04"
 
         "acero_stage_5", "acero_stage_6", "acero_stage_7", "acero_stage_8":
             menu._commander_portrait_rect.texture = load("res://assets/heroes/ace_tarek.png")
@@ -156,7 +156,7 @@ static func populate_acero(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "acero_dreadnought", "CNS Iron Bastion", "Anvil-Class Dreadnought • Adm. Vane", "HP 380 | RNG 58m | Forward & Broadside Batteries")
             add_squadron_row(menu._squadron_vbox, "acero_battlecruiser", "CNS Hammer of Anvil", "Hammer-Class Battlecruiser • Capt. Korr", "HP 260 | RNG 52m | Twin Spinal Railguns")
             add_squadron_row(menu._squadron_vbox, "acero_corvette", "CNS Vanguard-03", "Chisel-Class Escort Corvette • Lt. Drake", "HP 150 | RNG 44m | High-Speed Flank Screen")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
 
         "acero_stage_9", "acero_stage_10", "acero_stage_11":
             menu._commander_portrait_rect.texture = load("res://assets/heroes/ace_tarek.png")
@@ -170,7 +170,7 @@ static func populate_acero(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "acero_monitor", "CNS Crucible", "Crucible-Class Heavy Siege Monitor • Adm. Tarek", "HP 310 | RNG 64m | Heavy Plasma Mortar")
             add_squadron_row(menu._squadron_vbox, "acero_carrier", "CNS Forge-01", "Arsenal-Class Mobile Fleet Bastion • Cmdr. Vance", "HP 420 | RNG 48m | Fleet Defense & Flak Bastion")
             add_squadron_row(menu._squadron_vbox, "acero_battlecruiser", "CNS Hammer of Anvil", "Hammer-Class Battlecruiser • Capt. Korr", "HP 260 | RNG 52m | Twin Spinal Railguns")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
 
         "acero_stage_12":
             menu._commander_portrait_rect.texture = load("res://assets/heroes/ace_vane.png")
@@ -184,7 +184,7 @@ static func populate_acero(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "acero_dreadnought", "CNS Iron Bastion", "Anvil-Class Dreadnought • Adm. Vane", "HP 380 | RNG 58m | Forward & Broadside Batteries")
             add_squadron_row(menu._squadron_vbox, "acero_monitor", "CNS Crucible", "Crucible-Class Heavy Siege Monitor • Adm. Tarek", "HP 310 | RNG 64m | Heavy Plasma Mortar")
             add_squadron_row(menu._squadron_vbox, "acero_carrier", "CNS Forge-01", "Arsenal-Class Mobile Fleet Bastion • Cmdr. Vance", "HP 420 | RNG 48m | Fleet Defense & Flak Bastion")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH FINAL STAGE 12"
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH FINAL STAGE 12"
 
         _:
             menu._briefing_title_lbl.text = "%s // STAGE %02d: %s" % [act_str, cur_num, stage_titles[cur_num - 1]]
@@ -194,7 +194,7 @@ static func populate_acero(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "acero_dreadnought", "CNS Iron Bastion", "Anvil-Class Dreadnought • Adm. Vane", "HP 380 | RNG 58m | Forward & Broadside Batteries")
             add_squadron_row(menu._squadron_vbox, "acero_battlecruiser", "CNS Hammer of Anvil", "Hammer-Class Battlecruiser • Capt. Korr", "HP 260 | RNG 52m | Twin Spinal Railguns")
             add_squadron_row(menu._squadron_vbox, "acero_corvette", "CNS Vanguard-03", "Chisel-Class Escort Corvette • Lt. Drake", "HP 150 | RNG 44m | High-Speed Flank Screen")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
 
 static func populate_vinculados(menu: Control, stage_id: String) -> void:
     LoreDB.current_stage_id = stage_id
@@ -266,7 +266,7 @@ static func populate_vinculados(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "vinculados_cradle", "Sanktuario Albor", "Cradle-Class Carrier Ark • Conductor Seraph-2", "HP 250 | SPD 19 m/s | Spinal Resonance Mega-Beam & PD Lasers")
             add_squadron_row(menu._squadron_vbox, "vinculados_suit", "Eidolon Ace Wing", "Eidolon Mobile Suit Platoon • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Trio Formation, Beam Carbine & Shield")
             add_squadron_row(menu._squadron_vbox, "vinculados_anima", "Anima-01 Interceptor Wing", "Anima Strike Platoon • Ace Mirei-4", "HP 115 | SPD 36 m/s | High-Speed Echelon Trio & Flank Intercept")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
 
         "vinculados_stage_2":
             menu._briefing_title_lbl.text = "ACT II // STAGE 02: DIVE INTO THE CRYSTAL CHASM"
@@ -276,7 +276,7 @@ static func populate_vinculados(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "vinculados_cradle", "Sanktuario Albor", "Cradle-Class Carrier Ark • Conductor Seraph-2", "HP 250 | SPD 19 m/s | Spinal Resonance Mega-Beam & PD Lasers")
             add_squadron_row(menu._squadron_vbox, "vinculados_suit", "Eidolon Ace Wing", "Eidolon Mobile Suit Platoon • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Trio Formation, Beam Carbine & Shield")
             add_squadron_row(menu._squadron_vbox, "vinculados_anima", "Anima-01 Interceptor Wing", "Anima Strike Platoon • Ace Mirei-4", "HP 115 | SPD 36 m/s | High-Speed Echelon Trio & Flank Intercept")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 02"
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 02"
 
         "vinculados_stage_3":
             menu._commander_portrait_rect.texture = load("res://assets/heroes/ace_vael.png")
@@ -289,7 +289,7 @@ static func populate_vinculados(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "vinculados_cradle", "Sanktuario Albor", "Cradle-Class Carrier Ark • Conductor Seraph-2", "HP 250 | SPD 19 m/s | Spinal Resonance Mega-Beam & PD Lasers")
             add_squadron_row(menu._squadron_vbox, "vinculados_nous", "Nous Transcendent Frame", "Prototype Transcendent Ace Frame • Ace Vael-09", "HP 220 | SPD 32 m/s | Autonomous Fin Funnels & Mega-Buster Beam")
             add_squadron_row(menu._squadron_vbox, "vinculados_suit", "Eidolon Ace Wing", "Eidolon Mobile Suit Platoon • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Trio Formation, Beam Carbine & Shield")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 03"
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 03"
 
         "vinculados_stage_4", "vinculados_stage_5", "vinculados_stage_6", "vinculados_stage_7":
             menu._commander_portrait_rect.texture = load("res://assets/heroes/ace_vael.png")
@@ -303,7 +303,7 @@ static func populate_vinculados(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "vinculados_psyche", "Psyche Heavy Frame", "Psycho-Resonance Frame • Ace Vael-09", "HP 240 | SPD 28 m/s | Heavy Resonance Beam Lance")
             add_squadron_row(menu._squadron_vbox, "vinculados_suit", "Eidolon Ace Wing", "Eidolon Mobile Suit Platoon • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Trio Formation, Beam Carbine & Shield")
             add_squadron_row(menu._squadron_vbox, "vinculados_anima", "Anima-01 Interceptor Wing", "Anima Strike Platoon • Ace Mirei-4", "HP 115 | SPD 36 m/s | High-Speed Echelon Trio")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
 
         "vinculados_stage_8", "vinculados_stage_9", "vinculados_stage_10", "vinculados_stage_11":
             menu._briefing_art_rect.texture = load("res://assets/ships/vinculados/mobile_armor_colossus.png")
@@ -318,7 +318,7 @@ static func populate_vinculados(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "vinculados_cradle", "Sanktuario Albor", "Cradle-Class Carrier Ark • Conductor Seraph-2", "HP 250 | SPD 19 m/s | Spinal Resonance Mega-Beam")
             add_squadron_row(menu._squadron_vbox, "vinculados_suit", "Eidolon Ace Wing", "Eidolon Mobile Suit Platoon • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Trio Formation, Beam Carbine & Shield")
             add_squadron_row(menu._squadron_vbox, "vinculados_chorus", "Chorus Screen Wing", "Light Mecha Flotilla • Ace Vael-09", "HP 130 | SPD 34 m/s | Quad Light Drone Formation")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
 
         "vinculados_stage_12":
             menu._briefing_art_rect.texture = load("res://assets/ships/vinculados/mobile_armor_colossus.png")
@@ -333,7 +333,7 @@ static func populate_vinculados(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "vinculados_cradle", "Sanktuario Albor", "Cradle-Class Carrier Ark • Conductor Seraph-2", "HP 250 | SPD 19 m/s | Spinal Resonance Mega-Beam")
             add_squadron_row(menu._squadron_vbox, "vinculados_psyche", "Psyche Heavy Frame", "Psycho-Resonance Frame • Ace Vael-09", "HP 240 | SPD 28 m/s | Heavy Resonance Beam Lance")
             add_squadron_row(menu._squadron_vbox, "vinculados_suit", "Eidolon Ace Wing", "Eidolon Mobile Suit Platoon • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Trio Formation, Beam Carbine & Shield")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH FINAL STAGE 12"
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH FINAL STAGE 12"
 
         _:
             menu._briefing_title_lbl.text = "%s // STAGE %02d: %s" % [act_str, cur_num, stage_titles[cur_num - 1]]
@@ -343,7 +343,7 @@ static func populate_vinculados(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "vinculados_cradle", "Sanktuario Albor", "Cradle-Class Carrier Ark • Conductor Seraph-2", "HP 250 | SPD 19 m/s | Spinal Mega-Beam")
             add_squadron_row(menu._squadron_vbox, "vinculados_suit", "Eidolon Ace Wing", "Eidolon Mobile Suit Platoon • Ace Kaelen-7", "HP 160 | SPD 30 m/s | Trio Formation")
             add_squadron_row(menu._squadron_vbox, "vinculados_anima", "Anima-01 Interceptor Wing", "Anima Strike Platoon • Ace Mirei-4", "HP 115 | SPD 36 m/s | Echelon Trio")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
 
 static func populate_marea(menu: Control, stage_id: String) -> void:
     LoreDB.current_stage_id = stage_id
@@ -415,7 +415,7 @@ static func populate_marea(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "marea_galleon", "Viento Rojo", "Corsair Void-Galleon • Capt. Solano", "HP 300 | RNG 50m | Quantum Sails & Broadsides")
             add_squadron_row(menu._squadron_vbox, "marea_raider", "La Descarada", "Corsair Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
             add_squadron_row(menu._squadron_vbox, "marea_brigantine", "Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH TUTORIAL STAGE 01"
 
         "marea_stage_2":
             menu._briefing_title_lbl.text = "ACT III // STAGE 02: RAID ON FOUNDRY COMPLEX VULCAN-3"
@@ -425,7 +425,7 @@ static func populate_marea(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "marea_galleon", "Viento Rojo", "Corsair Void-Galleon • Capt. Solano", "HP 300 | RNG 50m | Quantum Sails & Broadsides")
             add_squadron_row(menu._squadron_vbox, "marea_brigantine", "Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
             add_squadron_row(menu._squadron_vbox, "marea_raider", "La Descarada", "Corsair Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 02"
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 02"
 
         "marea_stage_3":
             menu._briefing_title_lbl.text = "ACT III // STAGE 03: THE MAELSTROM OF BARLOVENTO"
@@ -436,7 +436,7 @@ static func populate_marea(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "marea_brigantine", "Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
             add_squadron_row(menu._squadron_vbox, "marea_raider", "La Descarada", "Corsair Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
             add_squadron_row(menu._squadron_vbox, "marea_raider", "Viento Furioso", "Corsair Strike Raider • Bosun Drake", "HP 210 | RNG 46m | High-Velocity Skirmisher")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 03"
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE 03"
 
         "marea_stage_4", "marea_stage_5", "marea_stage_6", "marea_stage_7":
             menu._commander_portrait_rect.texture = load("res://assets/heroes/ace_marina.png")
@@ -450,7 +450,7 @@ static func populate_marea(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "marea_frigate", "Sirena Libre", "Quantum Frigate • Capt. Moreau", "HP 220 | RNG 48m | High-Velocity Broadside Frigate")
             add_squadron_row(menu._squadron_vbox, "marea_cutter", "Flecha Veloz", "Corsair Cutter • Bosun Drake", "HP 140 | RNG 40m | Agile Flank Skirmisher")
             add_squadron_row(menu._squadron_vbox, "marea_brigantine", "Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
 
         "marea_stage_8", "marea_stage_9", "marea_stage_10", "marea_stage_11":
             menu._commander_portrait_rect.texture = load("res://assets/heroes/ace_marina.png")
@@ -464,7 +464,7 @@ static func populate_marea(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "marea_bombard", "Voz del Trueno", "Heavy Corsair Bombard • Quartermaster Vael", "HP 290 | RNG 62m | Long-Range Plasma Siege Mortar")
             add_squadron_row(menu._squadron_vbox, "marea_frigate", "Sirena Libre", "Quantum Frigate • Cmdr. Marina", "HP 220 | RNG 48m | Broadside Batteries")
             add_squadron_row(menu._squadron_vbox, "marea_cutter", "Flecha Veloz", "Corsair Cutter • Bosun Drake", "HP 140 | RNG 40m | Fast Screen")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
 
         "marea_stage_12":
             menu._commander_portrait_rect.texture = load("res://assets/heroes/ace_solano.png")
@@ -478,7 +478,7 @@ static func populate_marea(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "marea_galleon", "Viento Rojo", "Corsair Void-Galleon • Cmdr. Marina", "HP 360 | RNG 50m | Quantum Sails & Broadsides")
             add_squadron_row(menu._squadron_vbox, "marea_bombard", "Voz del Trueno", "Heavy Corsair Bombard • Quartermaster Vael", "HP 290 | RNG 62m | Heavy Siege Mortar")
             add_squadron_row(menu._squadron_vbox, "marea_brigantine", "Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH FINAL STAGE 12"
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH FINAL STAGE 12"
 
         _:
             menu._briefing_title_lbl.text = "%s // STAGE %02d: %s" % [act_str, cur_num, stage_titles[cur_num - 1]]
@@ -488,5 +488,5 @@ static func populate_marea(menu: Control, stage_id: String) -> void:
             add_squadron_row(menu._squadron_vbox, "marea_galleon", "Viento Rojo", "Corsair Void-Galleon • Capt. Solano", "HP 300 | RNG 50m | Quantum Sails & Broadsides")
             add_squadron_row(menu._squadron_vbox, "marea_raider", "La Descarada", "Corsair Raider Galleon • Quartermaster Vael", "HP 210 | RNG 46m | Fast Broadside Raider")
             add_squadron_row(menu._squadron_vbox, "marea_brigantine", "Brisa Negra", "Corsair Void-Brigantine • Capt. Moreau", "HP 180 | RNG 44m | Harpoon Outrider")
-            if _launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
+            if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
 
