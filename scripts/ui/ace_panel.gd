@@ -152,9 +152,15 @@ func _build_ui() -> void:
     ally_header.add_theme_color_override("font_color", HudWidgets.COL_GREEN)
     left_vbox.add_child(ally_header)
 
+    var ally_tabs_scroll := ScrollContainer.new()
+    ally_tabs_scroll.custom_minimum_size = Vector2(0, 26)
+    ally_tabs_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    ally_tabs_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+    left_vbox.add_child(ally_tabs_scroll)
+
     _unit_tabs_hbox = HBoxContainer.new()
     _unit_tabs_hbox.add_theme_constant_override("separation", 4)
-    left_vbox.add_child(_unit_tabs_hbox)
+    ally_tabs_scroll.add_child(_unit_tabs_hbox)
 
     var left_row := HBoxContainer.new()
     left_row.add_theme_constant_override("separation", 6)
@@ -311,10 +317,16 @@ func _build_ui() -> void:
     enemy_header.add_theme_color_override("font_color", Color(1.0, 0.45, 0.32))
     right_vbox.add_child(enemy_header)
 
+    var enemy_tabs_scroll := ScrollContainer.new()
+    enemy_tabs_scroll.custom_minimum_size = Vector2(0, 26)
+    enemy_tabs_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    enemy_tabs_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+    right_vbox.add_child(enemy_tabs_scroll)
+
     _enemy_tabs_hbox = HBoxContainer.new()
     _enemy_tabs_hbox.alignment = BoxContainer.ALIGNMENT_END
     _enemy_tabs_hbox.add_theme_constant_override("separation", 4)
-    right_vbox.add_child(_enemy_tabs_hbox)
+    enemy_tabs_scroll.add_child(_enemy_tabs_hbox)
 
     var enemy_card := PanelContainer.new()
     var enemy_style := StyleBoxFlat.new()

@@ -1721,22 +1721,29 @@ func _build_ether_flow() -> void:
 		p.look_at(pos + norm, up)
 
 func _build_asteroid_field() -> void:
+	if _asteroid_root != null and is_instance_valid(_asteroid_root):
+		_asteroid_root.queue_free()
+
 	_asteroid_root = Node3D.new()
-	_asteroid_root.name = "StarSeaReefs"
+	_asteroid_root.name = "AsteroidField"
 	add_child(_asteroid_root)
 
-	var is_marea := (LoreDB.current_stage_id == "marea_stage_1")
-	var is_vinc := (LoreDB.current_stage_id in ["vinculados_stage_1", "acero_stage_2"])
+	var is_marea := LoreDB.player_faction == "marea_libre"
+	var is_vinc := LoreDB.player_faction == "vinculados"
+	var stage_id := LoreDB.current_stage_id
 
 	var rock_mat := StandardMaterial3D.new()
+	rock_mat.albedo_texture = load("res://assets/backgrounds/asteroid_rock.png")
 	if is_vinc:
-		rock_mat.albedo_color = Color(0.24, 0.26, 0.35)
-		rock_mat.roughness = 0.65
+		rock_mat.albedo_color = Color(0.42, 0.44, 0.58)
+		rock_mat.metallic = 0.35
+		rock_mat.roughness = 0.70
 	elif is_marea:
-		rock_mat.albedo_color = Color(0.12, 0.11, 0.14)
-		rock_mat.roughness = 0.90
+		rock_mat.albedo_color = Color(0.68, 0.48, 0.36)
+		rock_mat.metallic = 0.18
+		rock_mat.roughness = 0.88
 	else:
-		rock_mat.albedo_color = Color(0.14, 0.16, 0.22)
+		rock_mat.albedo_color = Color(0.48, 0.50, 0.54)
 		rock_mat.metallic = 0.25
 		rock_mat.roughness = 0.82
 
@@ -1761,38 +1768,49 @@ func _build_asteroid_field() -> void:
 	rng.seed = 108
 
 	var reef_positions: Array[Vector3] = []
-	if is_marea:
-		# "The Basalt Narrows" — two dense flanking asteroid walls on Port and Starboard
-		# leaving a central 70m canyon channel where El Río del Viento rushes through!
+
+	var stage_num := 1
+	for s in range(1, 13):
+		if stage_id.ends_with("_" + str(s)):
+			stage_num = s
+			break
+
+	if stage_num in [1, 5]:
+		# CANYON / BASALT NARROWS: two dense flanking asteroid walls on Port and Starboard
 		for z_step in range(-5, 6):
 			var z_val := float(z_step) * 16.0
-			reef_positions.append(Vector3(-46.0 + rng.randf_range(-6.0, 4.0), rng.randf_range(-12.0, 14.0), z_val))
-			reef_positions.append(Vector3(-62.0 + rng.randf_range(-8.0, 6.0), rng.randf_range(-16.0, 18.0), z_val + 6.0))
-			reef_positions.append(Vector3(46.0 + rng.randf_range(-4.0, 6.0), rng.randf_range(-12.0, 14.0), z_val))
-			reef_positions.append(Vector3(62.0 + rng.randf_range(-6.0, 8.0), rng.randf_range(-16.0, 18.0), z_val - 6.0))
-		# A few tactical mid-canyon obstacles to sail around
-		reef_positions.append(Vector3(-18.0, 8.0, -15.0))
-		reef_positions.append(Vector3(16.0, -6.0, 25.0))
-	elif is_vinc:
-		# Floating Sanctuary Crystal Orbitals encircling the sacred well
-		for a_i in range(12):
-			var ang := float(a_i) * TAU / 12.0
-			var dist := rng.randf_range(52.0, 85.0)
-			reef_positions.append(Vector3(cos(ang) * dist, rng.randf_range(-18.0, 22.0), sin(ang) * dist))
-	else:
-		# Acero standard industrial mining reefs
-		reef_positions = [
-			Vector3(-68.0, -8.0, 12.0),
-			Vector3(-56.0, 14.0, -28.0),
-			Vector3(64.0, -6.0, 18.0),
-			Vector3(58.0, 10.0, -24.0),
-			Vector3(-75.0, 4.0, 55.0),
-			Vector3(76.0, -12.0, 48.0),
-			Vector3(-48.0, -16.0, -68.0),
-			Vector3(52.0, 12.0, -72.0),
-			Vector3(0.0, -22.0, 5.0),
-			Vector3(-32.0, 18.0, 4.0),
+			reef_positions.append(Vector3(-52.0 + rng.randf_range(-6.0, 4.0), rng.randf_range(-10.0, 12.0), z_val))
+			reef_positions.append(Vector3(-68.0 + rng.randf_range(-8.0, 6.0), rng.randf_range(-14.0, 16.0), z_val + 6.0))
+			reef_positions.append(Vector3(52.0 + rng.randf_range(-4.0, 6.0), rng.randf_range(-10.0, 12.0), z_val))
+			reef_positions.append(Vector3(68.0 + rng.randf_range(-6.0, 8.0), rng.randf_range(-14.0, 16.0), z_val - 6.0))
+		reef_positions.append(Vector3(-22.0, 8.0, -15.0))
+		reef_positions.append(Vector3(22.0, -6.0, 25.0))
+	elif stage_num in [2, 7, 10]:
+		# CALDERA / RING: floating orbital reef encircling the battle perimeter
+		for a_i in range(16):
+			var ang := float(a_i) * TAU / 16.0
+			var dist := rng.randf_range(65.0, 92.0)
+			reef_positions.append(Vector3(cos(ang) * dist, rng.randf_range(-16.0, 18.0), sin(ang) * dist))
+	elif stage_num in [4, 8, 11]:
+		# CLUSTERED ARCHIPELAGO: tactical asteroid clusters that divide combat into multiple fronts
+		var clusters := [
+			Vector3(-45.0, 6.0, 15.0),
+			Vector3(-38.0, -8.0, -20.0),
+			Vector3(45.0, 4.0, 18.0),
+			Vector3(38.0, -10.0, -22.0),
+			Vector3(-65.0, 12.0, 50.0),
+			Vector3(65.0, -12.0, -50.0),
+			Vector3(0.0, 15.0, -10.0),
+			Vector3(0.0, -15.0, 20.0)
 		]
+		for c_pos in clusters:
+			for sub_i in range(3):
+				reef_positions.append(c_pos + Vector3(rng.randf_range(-8.0, 8.0), rng.randf_range(-4.0, 4.0), rng.randf_range(-8.0, 8.0)))
+	else:
+		# OPEN DEEP SPACE ARENA (Stages 3, 6, 9, 12): sparse perimeter asteroids to keep central void completely clear
+		for p_i in range(8):
+			var ang := float(p_i) * TAU / 8.0
+			reef_positions.append(Vector3(cos(ang) * 98.0, rng.randf_range(-20.0, 20.0), sin(ang) * 98.0))
 
 	for base_pos in reef_positions:
 		var cluster := Node3D.new()
@@ -1812,7 +1830,6 @@ func _build_asteroid_field() -> void:
 		main_rock.material_override = rock_mat
 		cluster.add_child(main_rock)
 
-		# Glowing Éther crystal spire embedded in the basalt reef
 		var crystal := MeshInstance3D.new()
 		var prism := PrismMesh.new()
 		prism.size = Vector3(rad * 0.45, rad * 1.35, rad * 0.45)
@@ -2012,89 +2029,125 @@ func _build_stage_landmark() -> void:
 
 	match LoreDB.current_stage_id:
 		"acero_stage_1":
-			_build_acero_sluice_station()
+			# Sluice Station Well-09 anchored behind player fleet (allied defensive perimeter)
+			_build_acero_sluice_station(Vector3(0.0, -2.0, 75.0), Vector3(0.0, 15.0, 0.0))
 		"acero_stage_2":
-			_build_vinculados_sanctuary_spire()
+			# Sanctuary Spire on eastern flank
+			_build_vinculados_sanctuary_spire(Vector3(48.0, 10.0, -35.0), Vector3(0.0, 25.0, 0.0))
 		"acero_stage_3":
-			_build_acero_calm_bastion()
+			# Calm Bastion Fortified Station on western flank
+			_build_acero_calm_bastion(Vector3(-48.0, 6.0, 65.0), Vector3(0.0, 12.0, 0.0))
 		"acero_stage_4":
-			_build_acero_sluice_station()
+			# Contested Western Sluice Refinery
+			_build_acero_sluice_station(Vector3(-52.0, -4.0, -35.0), Vector3(0.0, -20.0, 0.0))
 		"acero_stage_5":
-			_build_marea_corsair_haven()
+			# Corsair Haven deep in enemy stronghold territory
+			_build_marea_corsair_haven(Vector3(0.0, 8.0, -82.0), Vector3(0.0, -15.0, 0.0))
 		"acero_stage_6":
-			_build_vinculados_crystal_chasm()
+			# OPEN DEEP SPACE DOGFIGHT: zero central obstruction for high-speed interceptors!
+			pass
 		"acero_stage_7":
-			_build_acero_calm_bastion()
+			# Grand Iron Bastion behind player line (defense of the dam foundations)
+			_build_acero_calm_bastion(Vector3(0.0, 12.0, 78.0), Vector3(0.0, 0.0, 0.0))
 		"acero_stage_8":
-			_build_marea_foundry_complex()
+			# Ore Smelter Foundry Complex Vulcan-3 deep behind enemy lines
+			_build_marea_foundry_complex(Vector3(45.0, -6.0, -80.0), Vector3(0.0, 20.0, 0.0))
 		"acero_stage_9":
-			_build_marea_wind_maelstrom()
+			# OPEN VOID GRAND FLEET ENGAGEMENT: open 3-vector tactical arena
+			pass
 		"acero_stage_10":
-			_build_vinculados_genesis_ring()
+			# Genesis Ring Megastructure contested on western vector
+			_build_vinculados_genesis_ring(Vector3(-50.0, 15.0, -45.0), Vector3(15.0, 30.0, 0.0))
 		"acero_stage_11":
-			_build_acero_calm_bastion()
+			# Supreme Fortified Bastion at the Calm Event Horizon
+			_build_acero_calm_bastion(Vector3(0.0, 12.0, -85.0), Vector3(0.0, 12.0, 0.0))
 		"acero_stage_12":
-			_build_vinculados_genesis_ring()
+			# Transcendence Genesis Ring at cosmic apex
+			_build_vinculados_genesis_ring(Vector3(0.0, 18.0, -90.0), Vector3(15.0, 30.0, 0.0))
 
 		"vinculados_stage_1":
-			_build_vinculados_sanctuary_spire()
+			# Sanctuary Spire Psalm-4 behind player fleet
+			_build_vinculados_sanctuary_spire(Vector3(0.0, 6.0, 76.0), Vector3(0.0, 18.0, 0.0))
 		"vinculados_stage_2":
-			_build_vinculados_crystal_chasm()
+			# Deep Crystal Chasm floor below (mobile suits dive from high Z-altitude)
+			_build_vinculados_crystal_chasm(Vector3(0.0, -18.0, 0.0), Vector3(0.0, -15.0, 0.0))
 		"vinculados_stage_3":
-			_build_vinculados_genesis_ring()
+			# Genesis Ring in deep reserve behind combat line
+			_build_vinculados_genesis_ring(Vector3(0.0, 16.0, -78.0), Vector3(15.0, 30.0, 0.0))
 		"vinculados_stage_4":
-			_build_vinculados_sanctuary_spire()
+			# Sacred Spire on rear western terrace
+			_build_vinculados_sanctuary_spire(Vector3(-45.0, 8.0, 68.0), Vector3(0.0, 18.0, 0.0))
 		"vinculados_stage_5":
-			_build_vinculados_crystal_chasm()
+			# Acero Fortified Bastion deep in enemy territory
+			_build_acero_calm_bastion(Vector3(0.0, 8.0, -82.0), Vector3(0.0, 12.0, 0.0))
 		"vinculados_stage_6":
-			_build_vinculados_sanctuary_spire()
+			# OPEN CELESTIAL VOID DOGFIGHT: zero central obstruction
+			pass
 		"vinculados_stage_7":
-			_build_vinculados_crystal_chasm()
+			# Flank Crystal Chasm Trench
+			_build_vinculados_crystal_chasm(Vector3(48.0, -14.0, -20.0), Vector3(0.0, -15.0, 0.0))
 		"vinculados_stage_8":
-			_build_marea_corsair_haven()
+			# Corsair Haven deep behind enemy lines
+			_build_marea_corsair_haven(Vector3(-45.0, 10.0, -78.0), Vector3(0.0, -18.0, 0.0))
 		"vinculados_stage_9":
-			_build_acero_sluice_station()
+			# OPEN CELESTIAL GRAND FLEET CLASH
+			pass
 		"vinculados_stage_10":
-			_build_vinculados_genesis_ring()
+			# Acero Heavy Sluice Station on eastern flank
+			_build_acero_sluice_station(Vector3(48.0, -4.0, -78.0), Vector3(0.0, 24.0, 0.0))
 		"vinculados_stage_11":
-			_build_acero_calm_bastion()
+			# Fortress Bastion guarding the Calm breach
+			_build_acero_calm_bastion(Vector3(0.0, 12.0, -85.0), Vector3(0.0, 12.0, 0.0))
 		"vinculados_stage_12":
-			_build_vinculados_genesis_ring()
+			# Supreme Transcendence Ring Megastructure
+			_build_vinculados_genesis_ring(Vector3(0.0, 20.0, -92.0), Vector3(15.0, 30.0, 0.0))
 
 		"marea_stage_1":
-			_build_marea_corsair_haven()
+			# Corsair Free Haven behind player fleet
+			_build_marea_corsair_haven(Vector3(0.0, 8.0, 76.0), Vector3(0.0, -18.0, 0.0))
 		"marea_stage_2":
-			_build_marea_foundry_complex()
+			# Imperial Smelter Foundry Complex Vulcan-3 on eastern flank
+			_build_marea_foundry_complex(Vector3(45.0, -6.0, -75.0), Vector3(0.0, 20.0, 0.0))
 		"marea_stage_3":
-			_build_marea_wind_maelstrom()
+			# Cosmic Storm Maelstrom Vortex on western flank
+			_build_marea_wind_maelstrom(Vector3(-38.0, 16.0, -45.0), Vector3(0.0, 0.0, 0.0))
 		"marea_stage_4":
-			_build_marea_corsair_haven()
+			# Corsair Haven rear western anchorage
+			_build_marea_corsair_haven(Vector3(-42.0, 8.0, 70.0), Vector3(0.0, -18.0, 0.0))
 		"marea_stage_5":
-			_build_marea_foundry_complex()
+			# Imperial Sluice Station Well-09 deep in enemy territory
+			_build_acero_sluice_station(Vector3(0.0, -2.0, -82.0), Vector3(0.0, 24.0, 0.0))
 		"marea_stage_6":
-			_build_marea_corsair_haven()
+			# OPEN MAELSTROM RAPIDS DOGFIGHT: zero central obstruction
+			pass
 		"marea_stage_7":
-			_build_acero_sluice_station()
+			# Imperial Fortified Bastion on eastern flank
+			_build_acero_calm_bastion(Vector3(45.0, 10.0, -80.0), Vector3(0.0, 12.0, 0.0))
 		"marea_stage_8":
-			_build_vinculados_sanctuary_spire()
+			# Celestial Resonance Spire on western flank
+			_build_vinculados_sanctuary_spire(Vector3(-45.0, 12.0, -75.0), Vector3(0.0, 18.0, 0.0))
 		"marea_stage_9":
-			_build_marea_wind_maelstrom()
+			# OPEN TEMPEST WEATHER-GAUGE GRAND ARMADA CLASH
+			pass
 		"marea_stage_10":
-			_build_acero_calm_bastion()
+			# Industrial Foundry Complex Vulcan-3 deep on western flank
+			_build_marea_foundry_complex(Vector3(-48.0, -8.0, -80.0), Vector3(0.0, 20.0, 0.0))
 		"marea_stage_11":
-			_build_marea_wind_maelstrom()
+			# Breaching the Calm Bastion at the Singularity Ridge
+			_build_acero_calm_bastion(Vector3(0.0, 12.0, -85.0), Vector3(0.0, 12.0, 0.0))
 		"marea_stage_12":
-			_build_marea_corsair_haven()
+			# Supreme Maelstrom of Barlovento Vortex at the solar core
+			_build_marea_wind_maelstrom(Vector3(0.0, 18.0, -92.0), Vector3(0.0, 0.0, 0.0))
 
 		_:
-			_build_acero_sluice_station()
+			_build_acero_sluice_station(Vector3(-38.0, 0.0, 25.0), Vector3(0.0, 24.0, 0.0))
 
-func _build_acero_sluice_station() -> void:
-	# Colossal Textured 3D Acero Éteron Sluice-Gate Refinery ("Well-09", matching card_acero.png & acero_stage1_briefing.png)
+func _build_acero_sluice_station(pos: Vector3 = Vector3(-38.0, 0.0, 25.0), rot: Vector3 = Vector3(0.0, 24.0, 0.0)) -> void:
+	# Colossal Textured 3D Acero Éteron Sluice-Gate Refinery
 	_stage_landmark_root = Node3D.new()
 	_stage_landmark_root.name = "SluiceStationWell09"
-	_stage_landmark_root.position = Vector3(-28.0, -1.0, 4.0)
-	_stage_landmark_root.rotation_degrees = Vector3(0.0, 24.0, 0.0)
+	_stage_landmark_root.position = pos
+	_stage_landmark_root.rotation_degrees = rot
 	add_child(_stage_landmark_root)
 
 	var hull_tex: Texture2D = load("res://assets/ships/acero/acero_hull.png")
@@ -2353,12 +2406,12 @@ func _build_acero_sluice_station() -> void:
 	station_lbl.position = Vector3(0.0, 16.5, 6.0)
 	_stage_landmark_root.add_child(station_lbl)
 
-func _build_vinculados_sanctuary_spire() -> void:
-	# Colossal Pearlescent Ceramic Resonance Sanctuary Spire ("Psalm-4")
+func _build_vinculados_sanctuary_spire(pos: Vector3 = Vector3(36.0, 8.0, -35.0), rot: Vector3 = Vector3(0.0, 18.0, 0.0)) -> void:
+	# Colossal Pearlescent Ceramic Resonance Sanctuary Spire
 	_stage_landmark_root = Node3D.new()
 	_stage_landmark_root.name = "SanctuarySpirePsalm4"
-	_stage_landmark_root.position = Vector3(-24.0, -2.0, 6.0)
-	_stage_landmark_root.rotation_degrees = Vector3(0.0, 18.0, 0.0)
+	_stage_landmark_root.position = pos
+	_stage_landmark_root.rotation_degrees = rot
 	add_child(_stage_landmark_root)
 
 	var ceramic := StandardMaterial3D.new()
@@ -3328,7 +3381,7 @@ func _apply_tutorial_handicap(s: Ship, hp_mult: float = 0.65, dmg_mult: float = 
 func _spawn_fleets() -> void:
 	match LoreDB.current_stage_id:
 		"acero_stage_1":
-			# ACT I // STAGE 01 [TUTORIAL]: Defense of Sluice Station Well-09 (Acero vs Free Tide Corsair Scouts)
+			# ACT I // STAGE 01 [TUTORIAL]: Defense of Sluice Station Well-09
 			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 2.0, 54.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 56.0), Vector3.ZERO, 0))
@@ -3339,41 +3392,273 @@ func _spawn_fleets() -> void:
 			var e2 := _spawn("marea_brigantine", Vector3(12.0, 6.0, -52.0), Vector3(0.0, 0.0, 4.5), 1)
 			_apply_tutorial_handicap(e2, 0.65, 0.70)
 			_enemy_ships.append(e2)
+			var e3 := _spawn("marea_cutter", Vector3(-18.0, 2.0, -50.0), Vector3(0.0, 0.0, 5.0), 1)
+			_apply_tutorial_handicap(e3, 0.65, 0.70)
+			_enemy_ships.append(e3)
+
 		"acero_stage_2":
-			# ACT I // STAGE 02: Ambush at the Resonance Spire (Acero vs Vinculados Choir Wing)
+			# ACT I // STAGE 02: Ambush at the Resonance Spire
 			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 4.0, 55.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 7.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(8.0, 6.0, 54.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 2.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(-18.0, 3.0, 52.0), Vector3.ZERO, 0))
 
 			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 4.0, -58.0), Vector3(0.0, 0.0, 3.2), 1))
 			_enemy_ships.append(_spawn("vinculados_suit", Vector3(-14.0, 8.0, -52.0), Vector3(1.5, 0.0, 4.2), 1))
 			_enemy_ships.append(_spawn("vinculados_anima", Vector3(14.0, 2.0, -50.0), Vector3(-1.2, 0.0, 4.8), 1))
-		"acero_stage_3":
-			# ACT I // STAGE 03: The Calm Threshold (Acero vs Veteran Free Tide Flagship Squadron)
-			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 3.0, 54.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 56.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(0.0, 10.0, -54.0), Vector3(0.0, 0.0, 3.8), 1))
 
-			var boss_gal := _spawn("marea_galleon", Vector3(-10.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.8), 1)
+		"acero_stage_3":
+			# ACT I // STAGE 03: The Calm Threshold
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(0.0, 5.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-12.0, 3.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(12.0, 7.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(22.0, 4.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(-22.0, 2.0, 52.0), Vector3.ZERO, 0))
+
+			var boss_gal := _spawn("marea_galleon", Vector3(0.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.8), 1)
 			boss_gal.hp = roundf(boss_gal.hp * 1.20)
 			boss_gal.max_hp = boss_gal.hp
 			_enemy_ships.append(boss_gal)
-			_enemy_ships.append(_spawn("marea_raider", Vector3(6.0, 3.0, -56.0), Vector3(0.0, 0.0, 4.4), 1))
-			_enemy_ships.append(_spawn("marea_brigantine", Vector3(20.0, 8.0, -54.0), Vector3(0.0, 0.0, 4.8), 1))
-		"marea_stage_1":
-			# ACT III // STAGE 01 [TUTORIAL]: The Basalt Narrows (Free Tide Corsairs vs Acero Blockade Picket)
-			_player_ships.append(_spawn("marea_galleon", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_raider", Vector3(6.0, 2.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_brigantine", Vector3(18.0, 7.0, 54.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(-16.0, 8.0, -52.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(16.0, 3.0, -54.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(-26.0, 2.0, -50.0), Vector3(0.0, 0.0, 4.6), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(26.0, 6.0, -48.0), Vector3(0.0, 0.0, 5.0), 1))
 
-			var me1 := _spawn("acero_battlecruiser", Vector3(-4.0, 4.0, -56.0), Vector3(0.0, 0.0, 3.0), 1)
-			_apply_tutorial_handicap(me1, 0.65, 0.70)
-			_enemy_ships.append(me1)
-			var me2 := _spawn("acero_corvette", Vector3(14.0, 5.0, -52.0), Vector3(0.0, 0.0, 3.5), 1)
-			_apply_tutorial_handicap(me2, 0.65, 0.70)
-			_enemy_ships.append(me2)
+		"acero_stage_4":
+			# ACT I // STAGE 04: Sluice Breach Line
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(0.0, 4.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_monitor", Vector3(12.0, 6.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-12.0, 2.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(24.0, 5.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(-24.0, 3.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(-34.0, 7.0, 48.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 5.0, -58.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_aegis", Vector3(-15.0, 3.0, -55.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(15.0, 8.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(-28.0, 6.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(28.0, 2.0, -48.0), Vector3(0.0, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("vinculados_psyche", Vector3(0.0, 12.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+
+		"acero_stage_5":
+			# ACT II // STAGE 05: Corsair Haven Fortress Assault
+			# 7 Acero vs 8 Marea Pirates (Center Assault + Starboard Flank Group)
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-4.0, 4.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_monitor", Vector3(8.0, 6.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-16.0, 2.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(-26.0, 5.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(26.0, 3.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(36.0, 7.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(44.0, 1.0, 46.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(0.0, 6.0, -60.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("marea_bombard", Vector3(-14.0, 4.0, -62.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(14.0, 8.0, -58.0), Vector3(0.0, 0.0, 3.6), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(-26.0, 2.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(26.0, 5.0, -52.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(-38.0, 7.0, -48.0), Vector3(0.0, 0.0, 4.6), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(36.0, 1.0, -46.0), Vector3(0.0, 0.0, 5.0), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(46.0, 6.0, -44.0), Vector3(0.0, 0.0, 5.2), 1))
+
+		"acero_stage_6":
+			# ACT II // STAGE 06: Open Void Mecha Dogfight
+			# 8 Acero vs 8 Vinculados Gundam Mobile Suits
+			_player_ships.append(_spawn("acero_carrier", Vector3(0.0, 2.0, 64.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 6.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(12.0, 4.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-22.0, 2.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_monitor", Vector3(24.0, 8.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(-34.0, 5.0, 46.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(36.0, 3.0, 46.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(0.0, 10.0, 48.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 6.0, -64.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(16.0, 3.0, -60.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(-16.0, 8.0, -56.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(28.0, 5.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(-28.0, 2.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(38.0, 7.0, -48.0), Vector3(0.0, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("vinculados_psyche", Vector3(-38.0, 4.0, -46.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("vinculados_chorus", Vector3(0.0, 12.0, -52.0), Vector3(0.0, 0.0, 4.4), 1))
+
+		"acero_stage_7":
+			# ACT II // STAGE 07: Iron Dam Bastion Defense
+			# 9 Acero vs 9 Marea Pirates (Rear Guard + Forward Battleline vs 2 Pincer Wings)
+			_player_ships.append(_spawn("acero_monitor", Vector3(0.0, 8.0, 68.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(-14.0, 6.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(14.0, 6.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 4.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_carrier", Vector3(8.0, 2.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-24.0, 5.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(24.0, 3.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(-36.0, 7.0, 44.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(36.0, 1.0, 44.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(-25.0, 5.0, -58.0), Vector3(1.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(-38.0, 3.0, -52.0), Vector3(1.2, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(-48.0, 7.0, -46.0), Vector3(1.5, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(-15.0, 1.0, -50.0), Vector3(0.8, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(20.0, 6.0, -62.0), Vector3(-1.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("marea_bombard", Vector3(10.0, 4.0, -64.0), Vector3(-0.5, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(34.0, 8.0, -54.0), Vector3(-1.2, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(45.0, 2.0, -48.0), Vector3(-1.5, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(28.0, 9.0, -44.0), Vector3(-1.0, 0.0, 5.0), 1))
+
+		"acero_stage_8":
+			# ACT II // STAGE 08: Assault on Foundry Vulcan-3
+			# 9 Acero vs 10 Mixed Hostiles
+			_player_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_carrier", Vector3(-14.0, 2.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(16.0, 4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-28.0, 8.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(28.0, 3.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_monitor", Vector3(0.0, 12.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(-38.0, 5.0, 46.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(38.0, 7.0, 46.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(0.0, -4.0, 48.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(35.0, 4.0, -65.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(20.0, 6.0, -60.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("marea_bombard", Vector3(45.0, 2.0, -62.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(10.0, 8.0, -56.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(28.0, 5.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("vinculados_colossus", Vector3(-30.0, 6.0, -62.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(-18.0, 3.0, -58.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(-40.0, 8.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(-25.0, 2.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(0.0, 10.0, -50.0), Vector3(0.0, 0.0, 5.0), 1))
+
+		"acero_stage_9":
+			# ACT III // STAGE 09: GRAND FLEET CLASH — The Iron Wall
+			# 11 Acero vs 12 Grand Corsair Fleet (Center Battleline + Port Strike + Starboard Screening)
+			_player_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, 64.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_carrier", Vector3(-12.0, 2.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(12.0, 4.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_monitor", Vector3(0.0, 12.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-30.0, 5.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-42.0, 3.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(-52.0, 7.0, 46.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(-36.0, -2.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(30.0, 5.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(42.0, 2.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(52.0, 6.0, 46.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, -65.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(-15.0, 4.0, -62.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(15.0, 5.0, -62.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("marea_bombard", Vector3(0.0, 14.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(-28.0, 2.0, -56.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(28.0, 7.0, -56.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(-38.0, 6.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(38.0, 3.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(-48.0, 4.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(48.0, 8.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(-18.0, 10.0, -46.0), Vector3(0.0, 0.0, 5.0), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(18.0, 1.0, -46.0), Vector3(0.0, 0.0, 5.0), 1))
+
+		"acero_stage_10":
+			# ACT III // STAGE 10: Genesis Ring Convergence
+			# 12 Acero vs 13 Vinculados Carrier & Mobile Suit Swarm (Task Group Alpha + Flank Wing Beta)
+			_player_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, 65.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_carrier", Vector3(-14.0, 2.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(14.0, 4.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-26.0, 6.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_monitor", Vector3(26.0, 8.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-38.0, 3.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(38.0, 5.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(-48.0, 7.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(-56.0, 2.0, 46.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(48.0, 6.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(0.0, 12.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(56.0, 1.0, 46.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, -68.0), Vector3(0.0, 0.0, 2.8), 1))
+			_enemy_ships.append(_spawn("vinculados_aegis", Vector3(-18.0, 4.0, -64.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(18.0, 6.0, -64.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(-32.0, 2.0, -60.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(32.0, 8.0, -56.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(-44.0, 5.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(44.0, 3.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(-10.0, 12.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(10.0, 12.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(-54.0, 4.0, -46.0), Vector3(0.0, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(54.0, 7.0, -46.0), Vector3(0.0, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("vinculados_psyche", Vector3(-25.0, 10.0, -48.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("vinculados_chorus", Vector3(25.0, 10.0, -48.0), Vector3(0.0, 0.0, 4.4), 1))
+
+		"acero_stage_11":
+			# ACT III // STAGE 11: The Calm Event Horizon
+			# 13 Acero vs 14 Grand Corsair & Mercenary Line (3 Heavy Spearheads)
+			_player_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_carrier", Vector3(-14.0, 2.0, 64.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_carrier", Vector3(14.0, 4.0, 64.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-28.0, 6.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(28.0, 6.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(0.0, 14.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-40.0, 3.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(40.0, 5.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-18.0, -2.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_monitor", Vector3(18.0, 10.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(-50.0, 7.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(50.0, 2.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_corvette", Vector3(0.0, -4.0, 50.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, -68.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(-20.0, 4.0, -65.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(20.0, 8.0, -64.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(-35.0, 3.0, -60.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("marea_bombard", Vector3(35.0, 6.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(-10.0, 12.0, -56.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(10.0, 2.0, -56.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(-45.0, 7.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(45.0, 3.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(-55.0, 4.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(55.0, 8.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(-25.0, 9.0, -46.0), Vector3(0.0, 0.0, 5.0), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(25.0, 1.0, -46.0), Vector3(0.0, 0.0, 5.0), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(0.0, 14.0, -44.0), Vector3(0.0, 0.0, 5.2), 1))
+
+		"acero_stage_12":
+			# ACT III // STAGE 12: THE SUPREME DAM — BATTLE AT THE TRANSCENDENCE APEX
+			# 15 ACERO CAPITAL SHIPS VS 16 SUPREME COALITION ARMADA
+			# 4 Battle Groups: Grand Flagship Center, Port Siege Group, Starboard Line, High Flank Interceptors
+			_player_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, 68.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_carrier", Vector3(-12.0, 2.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_carrier", Vector3(12.0, 4.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-25.0, 6.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(25.0, 6.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(0.0, 14.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(0.0, -4.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-38.0, 4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(38.0, 4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-48.0, 2.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(48.0, 8.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_monitor", Vector3(-18.0, 10.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_monitor", Vector3(18.0, 10.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(-58.0, 6.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_lancer", Vector3(58.0, 4.0, 48.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, -72.0), Vector3(0.0, 0.0, 2.6), 1))
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(-20.0, 4.0, -68.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(20.0, 6.0, -68.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_aegis", Vector3(-35.0, 2.0, -64.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_aegis", Vector3(35.0, 7.0, -64.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 16.0, -64.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(-48.0, 5.0, -60.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(48.0, 3.0, -60.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("marea_bombard", Vector3(-12.0, 12.0, -58.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_bombard", Vector3(12.0, -2.0, -58.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(-26.0, 8.0, -54.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(26.0, 4.0, -54.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(-58.0, 6.0, -50.0), Vector3(0.0, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(58.0, 2.0, -50.0), Vector3(0.0, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(-38.0, 10.0, -48.0), Vector3(0.0, 0.0, 5.0), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(38.0, 0.0, -48.0), Vector3(0.0, 0.0, 5.0), 1))
+
+
 		"vinculados_stage_1":
-			# ACT II // STAGE 01 [TUTORIAL]: Sanctuary Spire Psalm-4 (Vinculados Choir vs Acero Extraction Force)
+			# ACT II // STAGE 01 [TUTORIAL]: Sanctuary Spire Psalm-4
 			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 2.0, 58.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("vinculados_suit", Vector3(-14.0, 6.0, 52.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("vinculados_anima", Vector3(14.0, -2.0, 50.0), Vector3.ZERO, 0))
@@ -3384,20 +3669,29 @@ func _spawn_fleets() -> void:
 			var ve2 := _spawn("acero_corvette", Vector3(14.0, 5.0, -52.0), Vector3(0.0, 0.0, 3.5), 1)
 			_apply_tutorial_handicap(ve2, 0.65, 0.70)
 			_enemy_ships.append(ve2)
+			var ve3 := _spawn("acero_corvette", Vector3(-18.0, 2.0, -50.0), Vector3(0.0, 0.0, 3.5), 1)
+			_apply_tutorial_handicap(ve3, 0.65, 0.70)
+			_enemy_ships.append(ve3)
+
 		"vinculados_stage_2":
-			# ACT II // STAGE 02: The Crystal Chasm (Vinculados diving from upper altitude into Acero column)
-			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 14.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_suit", Vector3(-12.0, 16.0, 50.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_anima", Vector3(12.0, 12.0, 48.0), Vector3.ZERO, 0))
+			# ACT II // STAGE 02: The Crystal Chasm (High Altitude Dive)
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 14.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-10.0, 16.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_suit", Vector3(10.0, 12.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(0.0, 18.0, 48.0), Vector3.ZERO, 0))
 
 			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, -8.0, -55.0), Vector3(0.0, 0.0, 3.2), 1))
 			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(10.0, -6.0, -50.0), Vector3(0.0, 0.0, 3.8), 1))
 			_enemy_ships.append(_spawn("acero_corvette", Vector3(-18.0, -4.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(18.0, -5.0, -48.0), Vector3(0.0, 0.0, 4.2), 1))
+
 		"vinculados_stage_3":
-			# ACT II // STAGE 03: Genesis Ring // Transcendence (Nous Ace frame + Carrier defending ring)
+			# ACT II // STAGE 03: Genesis Ring Defense
 			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 4.0, 60.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_nous", Vector3(-10.0, 8.0, 52.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_suit", Vector3(10.0, 6.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-12.0, 8.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_suit", Vector3(12.0, 6.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(-22.0, 2.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_psyche", Vector3(22.0, 10.0, 50.0), Vector3.ZERO, 0))
 
 			var acero_flag := _spawn("acero_dreadnought", Vector3(0.0, 5.0, -58.0), Vector3(0.0, 0.0, 3.0), 1)
 			acero_flag.hp = roundf(acero_flag.hp * 1.25)
@@ -3405,243 +3699,525 @@ func _spawn_fleets() -> void:
 			_enemy_ships.append(acero_flag)
 			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-16.0, 3.0, -52.0), Vector3(0.0, 0.0, 3.5), 1))
 			_enemy_ships.append(_spawn("marea_galleon", Vector3(16.0, 7.0, -54.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(-26.0, 5.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(26.0, 2.0, -48.0), Vector3(0.0, 0.0, 4.6), 1))
+
+		"vinculados_stage_4":
+			# ACT II // STAGE 04: The Harmonic Bastion
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 4.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_aegis", Vector3(-14.0, 6.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(14.0, 8.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_suit", Vector3(-26.0, 2.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(26.0, 10.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_psyche", Vector3(0.0, 14.0, 50.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(0.0, 5.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-16.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(16.0, 7.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(0.0, 12.0, -54.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(-28.0, 4.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(28.0, 2.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
+
+		"vinculados_stage_5":
+			# ACT II // STAGE 05: Colossus Awakens — Assault on the Imperial Fort
+			# 7 Vinculados vs 8 Acero Heavy Defense Line
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(-15.0, 4.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_aegis", Vector3(15.0, 6.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-28.0, 8.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(28.0, 4.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(-38.0, 2.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_psyche", Vector3(38.0, 10.0, 48.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, -66.0), Vector3(0.0, 0.0, 2.8), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-18.0, 4.0, -62.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(18.0, 6.0, -62.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-30.0, 2.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(30.0, 8.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(0.0, 12.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(-40.0, 5.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(40.0, 3.0, -52.0), Vector3(0.0, 0.0, 4.5), 1))
+
+		"vinculados_stage_6":
+			# ACT II // STAGE 06: Open Celestial Void Dogfight
+			# 8 Vinculados vs 8 Marea Pirates (Divided into 2 Echelon Wings)
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, 64.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(-14.0, 3.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(14.0, 6.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-26.0, 8.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_suit", Vector3(26.0, 4.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(-38.0, 10.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(38.0, 2.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_chorus", Vector3(0.0, 14.0, 50.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, -64.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(-16.0, 4.0, -60.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("marea_bombard", Vector3(16.0, 8.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(-28.0, 2.0, -56.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(28.0, 6.0, -56.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(-40.0, 5.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(40.0, 3.0, -50.0), Vector3(0.0, 0.0, 5.0), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(0.0, 12.0, -48.0), Vector3(0.0, 0.0, 5.0), 1))
+
+		"vinculados_stage_7":
+			# ACT II // STAGE 07: Defense of the Chasm Sanctuary
+			# 9 Vinculados vs 9 Acero Siege Force (Rear Spire Defense + Flank Interceptors)
+			_player_ships.append(_spawn("vinculados_aegis", Vector3(0.0, 8.0, 68.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(-15.0, 4.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(15.0, 4.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-28.0, 6.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(28.0, 6.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(-40.0, 2.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(40.0, 10.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_psyche", Vector3(0.0, 14.0, 52.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 5.0, -64.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(10.0, 5.0, -64.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(0.0, 2.0, -68.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-25.0, 3.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(25.0, 7.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(0.0, 12.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(-38.0, 6.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(38.0, 2.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(0.0, -4.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
+
+		"vinculados_stage_8":
+			# ACT II // STAGE 08: Raid on Corsair Pirate Haven
+			# 9 Vinculados vs 10 Marea Pirates (Divided into 2 Tactical Strike Wings)
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_aegis", Vector3(-14.0, 4.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(14.0, 6.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(-26.0, 2.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(26.0, 8.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-38.0, 6.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(38.0, 4.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_psyche", Vector3(-48.0, 10.0, 46.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_chorus", Vector3(48.0, 2.0, 46.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, -66.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(-16.0, 4.0, -62.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(16.0, 6.0, -62.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("marea_bombard", Vector3(0.0, 14.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(-30.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(30.0, 7.0, -56.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(-42.0, 5.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("marea_brigantine", Vector3(42.0, 2.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(-20.0, 10.0, -48.0), Vector3(0.0, 0.0, 5.0), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(20.0, 1.0, -48.0), Vector3(0.0, 0.0, 5.0), 1))
+
+		"vinculados_stage_9":
+			# ACT III // STAGE 09: GRAND MECHA FLEET CLASH — The Harmonic Wall
+			# 11 Vinculados vs 12 Acero Grand Navy (Center Mobile Armor Anchor + 2 Flanking Echelons)
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_aegis", Vector3(-12.0, 4.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_aegis", Vector3(12.0, 4.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(-24.0, 6.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(24.0, 6.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-36.0, 8.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(36.0, 8.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(0.0, 14.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(-48.0, 2.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(48.0, 10.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_psyche", Vector3(0.0, -2.0, 50.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, -68.0), Vector3(0.0, 0.0, 2.8), 1))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(-14.0, 2.0, -65.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(14.0, 4.0, -65.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-28.0, 6.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(28.0, 6.0, -60.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-40.0, 3.0, -55.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(40.0, 5.0, -55.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(0.0, 12.0, -58.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(-50.0, 7.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(50.0, 2.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(-18.0, 8.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(18.0, 1.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+
+		"vinculados_stage_10":
+			# ACT III // STAGE 10: Assault on the Imperial Sluice Network
+			# 12 Vinculados vs 13 Mixed Enemy Battlefleet (Task Force Archangel + High Echelon Scouts)
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(-20.0, 8.0, 64.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_aegis", Vector3(20.0, 6.0, 64.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(-32.0, 3.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(32.0, 3.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-10.0, 14.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(10.0, 14.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(0.0, -2.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(-44.0, 7.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(44.0, 7.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_psyche", Vector3(-54.0, 2.0, 46.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_chorus", Vector3(54.0, 10.0, 46.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, -68.0), Vector3(0.0, 0.0, 2.8), 1))
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(-20.0, 4.0, -65.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(20.0, 6.0, -65.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-35.0, 3.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(35.0, 7.0, -60.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-48.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(48.0, 2.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(0.0, 12.0, -58.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_bombard", Vector3(-12.0, 10.0, -54.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_frigate", Vector3(12.0, -2.0, -54.0), Vector3(0.0, 0.0, 3.8), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(-28.0, 8.0, -48.0), Vector3(0.0, 0.0, 5.0), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(28.0, 2.0, -48.0), Vector3(0.0, 0.0, 5.0), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(0.0, -6.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
+
+		"vinculados_stage_11":
+			# ACT III // STAGE 11: The Calm Horizon Incursion
+			# 13 Vinculados vs 14 Acero Dreadnought Bastion (3 Heavy Mobile Armor Waves)
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, 68.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(-22.0, 8.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_aegis", Vector3(22.0, 6.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_aegis", Vector3(0.0, 16.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(-35.0, 3.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(35.0, 3.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-14.0, 12.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(14.0, 12.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-45.0, 6.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(45.0, 6.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(-55.0, 2.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_psyche", Vector3(55.0, 9.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_chorus", Vector3(0.0, -4.0, 52.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, -70.0), Vector3(0.0, 0.0, 2.8), 1))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(-16.0, 2.0, -66.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(16.0, 4.0, -66.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-30.0, 6.0, -62.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(30.0, 6.0, -62.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(0.0, 14.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-45.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(45.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(-18.0, 10.0, -54.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(18.0, 10.0, -54.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(-55.0, 7.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(55.0, 2.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(-25.0, -2.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(25.0, -2.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+
+		"vinculados_stage_12":
+			# ACT III // STAGE 12: THE TRANSCENDENCE CHOIR — CLIMAX AT THE GENESIS RING
+			# 15 VINCULADOS SACRED ARKS & MOBILE SUIT SQUADRONS VS 16 SUPREME ENEMY FLEET
+			# 4 Battle Wings: Seraph Mobile Armor Core, Port Assault Wing, Starboard Lance, High Angelic Choir
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, 68.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_colossus", Vector3(-20.0, 8.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_aegis", Vector3(20.0, 6.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_aegis", Vector3(0.0, 16.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(-35.0, 3.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(35.0, 3.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, -4.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-14.0, 12.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(14.0, 12.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_nous", Vector3(-48.0, 6.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(48.0, 6.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_anima", Vector3(-58.0, 2.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_psyche", Vector3(58.0, 8.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_psyche", Vector3(-28.0, -2.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("vinculados_chorus", Vector3(28.0, -2.0, 50.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, -72.0), Vector3(0.0, 0.0, 2.6), 1))
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(-20.0, 4.0, -68.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_leviathan", Vector3(20.0, 6.0, -68.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(0.0, 14.0, -66.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-35.0, 4.0, -64.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(35.0, 4.0, -64.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(-48.0, 5.0, -60.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("marea_galleon", Vector3(48.0, 3.0, -60.0), Vector3(0.0, 0.0, 3.4), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-15.0, -3.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(15.0, -3.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("marea_bombard", Vector3(0.0, -6.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(-28.0, 10.0, -54.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(28.0, 10.0, -54.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(-58.0, 6.0, -50.0), Vector3(0.0, 0.0, 5.0), 1))
+			_enemy_ships.append(_spawn("marea_cutter", Vector3(58.0, 2.0, -50.0), Vector3(0.0, 0.0, 5.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(0.0, 16.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
+
+
+		"marea_stage_1":
+			# ACT III // STAGE 01 [TUTORIAL]: The Basalt Narrows
+			_player_ships.append(_spawn("marea_galleon", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(6.0, 2.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(18.0, 7.0, 54.0), Vector3.ZERO, 0))
+
+			var me1 := _spawn("acero_battlecruiser", Vector3(-4.0, 4.0, -56.0), Vector3(0.0, 0.0, 3.0), 1)
+			_apply_tutorial_handicap(me1, 0.65, 0.70)
+			_enemy_ships.append(me1)
+			var me2 := _spawn("acero_corvette", Vector3(14.0, 5.0, -52.0), Vector3(0.0, 0.0, 3.5), 1)
+			_apply_tutorial_handicap(me2, 0.65, 0.70)
+			_enemy_ships.append(me2)
+			var me3 := _spawn("acero_corvette", Vector3(-18.0, 3.0, -50.0), Vector3(0.0, 0.0, 3.5), 1)
+			_apply_tutorial_handicap(me3, 0.65, 0.70)
+			_enemy_ships.append(me3)
+
 		"marea_stage_2":
-			# ACT III // STAGE 02: Raid on Foundry Vulcan-3 (Free Tide corsairs raiding Acero industrial outpost)
+			# ACT III // STAGE 02: Raid on Foundry Vulcan-3
 			_player_ships.append(_spawn("marea_galleon", Vector3(-8.0, 4.0, 56.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("marea_brigantine", Vector3(6.0, 8.0, 52.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("marea_raider", Vector3(18.0, 2.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(-20.0, 6.0, 52.0), Vector3.ZERO, 0))
 
 			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-8.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.2), 1))
 			_enemy_ships.append(_spawn("acero_corvette", Vector3(12.0, 3.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
 			_enemy_ships.append(_spawn("acero_corvette", Vector3(-20.0, 7.0, -48.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(22.0, 4.0, -48.0), Vector3(0.0, 0.0, 4.2), 1))
+
 		"marea_stage_3":
-			# ACT III // STAGE 03: The Maelstrom of Barlovento (Free Tide Grand Armada in storm convergence)
+			# ACT III // STAGE 03: The Maelstrom of Barlovento
 			var pg := _spawn("marea_galleon", Vector3(0.0, 6.0, 62.0), Vector3.ZERO, 0)
 			pg.hp = roundf(pg.hp * 1.20)
 			pg.max_hp = pg.hp
 			_player_ships.append(pg)
 			_player_ships.append(_spawn("marea_brigantine", Vector3(-14.0, 3.0, 54.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("marea_raider", Vector3(14.0, 9.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_raider", Vector3(24.0, 2.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(-24.0, 4.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(24.0, 2.0, 50.0), Vector3.ZERO, 0))
 
 			var boss_acero := _spawn("acero_dreadnought", Vector3(0.0, 4.0, -60.0), Vector3(0.0, 0.0, 3.5), 1)
 			boss_acero.hp = roundf(boss_acero.hp * 1.30)
 			boss_acero.max_hp = boss_acero.hp
 			_enemy_ships.append(boss_acero)
 			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-18.0, 7.0, -54.0), Vector3(0.0, 0.0, 4.0), 1))
-			_enemy_ships.append(_spawn("vinculados_suit", Vector3(18.0, 10.0, -50.0), Vector3.ZERO, 1))
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(18.0, 10.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(-28.0, 2.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(28.0, 4.0, -48.0), Vector3(0.0, 0.0, 4.8), 1))
 
-		# --- ACERO EXPANSION (STAGES 4 - 12) ---
-		"acero_stage_4":
-			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_lancer", Vector3(8.0, 3.0, 52.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_corvette", Vector3(18.0, 6.0, 56.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("marea_raider", Vector3(-10.0, 4.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
-			_enemy_ships.append(_spawn("marea_cutter", Vector3(6.0, 7.0, -50.0), Vector3(0.0, 0.0, 5.0), 1))
-			_enemy_ships.append(_spawn("marea_brigantine", Vector3(18.0, 2.0, -54.0), Vector3(0.0, 0.0, 4.5), 1))
-		"acero_stage_5":
-			_player_ships.append(_spawn("acero_monitor", Vector3(0.0, 4.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-12.0, 6.0, 54.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_corvette", Vector3(14.0, 2.0, 52.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("marea_frigate", Vector3(-8.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.8), 1))
-			_enemy_ships.append(_spawn("marea_bombard", Vector3(10.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.2), 1))
-		"acero_stage_6":
-			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 4.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_battlecruiser", Vector3(8.0, 6.0, 54.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_lancer", Vector3(20.0, 2.0, 52.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("vinculados_chorus", Vector3(0.0, 5.0, -52.0), Vector3(0.0, 0.0, 4.5), 1))
-			_enemy_ships.append(_spawn("vinculados_anima", Vector3(-16.0, 8.0, -50.0), Vector3(0.0, 0.0, 5.2), 1))
-		"acero_stage_7":
-			_player_ships.append(_spawn("acero_carrier", Vector3(0.0, 3.0, 60.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-12.0, 5.0, 52.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_corvette", Vector3(14.0, 7.0, 54.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("marea_galleon", Vector3(-10.0, 4.0, -54.0), Vector3(0.0, 0.0, 3.6), 1))
-			_enemy_ships.append(_spawn("vinculados_suit", Vector3(10.0, 8.0, -50.0), Vector3(0.0, 0.0, 4.6), 1))
-		"acero_stage_8":
-			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_monitor", Vector3(8.0, 3.0, 52.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_lancer", Vector3(18.0, 7.0, 54.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("vinculados_psyche", Vector3(0.0, 6.0, -50.0), Vector3(0.0, 0.0, 4.8), 1))
-			_enemy_ships.append(_spawn("acero_corvette", Vector3(-14.0, 2.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
-		"acero_stage_9":
-			_player_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 5.0, 58.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 3.0, 54.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_carrier", Vector3(20.0, 6.0, 60.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
-			_enemy_ships.append(_spawn("marea_frigate", Vector3(-16.0, 4.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
-			_enemy_ships.append(_spawn("marea_cutter", Vector3(16.0, 8.0, -48.0), Vector3(0.0, 0.0, 5.2), 1))
-		"acero_stage_10":
-			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 4.0, 58.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_monitor", Vector3(8.0, 5.0, 55.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_battlecruiser", Vector3(20.0, 2.0, 52.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, -56.0), Vector3(0.0, 0.0, 3.8), 1))
-			_enemy_ships.append(_spawn("vinculados_nous", Vector3(-16.0, 4.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
-		"acero_stage_11":
-			_player_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 5.0, 60.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_carrier", Vector3(8.0, 3.0, 62.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_battlecruiser", Vector3(-20.0, 7.0, 54.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_lancer", Vector3(22.0, 4.0, 52.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("marea_galleon", Vector3(-10.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.6), 1))
-			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(10.0, 6.0, -58.0), Vector3(0.0, 0.0, 3.4), 1))
-			_enemy_ships.append(_spawn("marea_frigate", Vector3(22.0, 3.0, -50.0), Vector3(0.0, 0.0, 4.0), 1))
-		"acero_stage_12":
-			_player_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 5.0, 65.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_dreadnought", Vector3(-16.0, 4.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_monitor", Vector3(16.0, 6.0, 54.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("acero_carrier", Vector3(30.0, 3.0, 60.0), Vector3.ZERO, 0))
-			var boss12 := _spawn("vinculados_colossus", Vector3(0.0, 8.0, -62.0), Vector3(0.0, 0.0, 3.8), 1)
-			boss12.hp = roundf(boss12.hp * 1.35)
-			boss12.max_hp = boss12.hp
-			_enemy_ships.append(boss12)
-			_enemy_ships.append(_spawn("marea_leviathan", Vector3(-20.0, 5.0, -58.0), Vector3(0.0, 0.0, 3.4), 1))
-			_enemy_ships.append(_spawn("vinculados_nous", Vector3(20.0, 7.0, -52.0), Vector3(0.0, 0.0, 4.2), 1))
-
-		# --- VINCULADOS EXPANSION (STAGES 4 - 12) ---
-		"vinculados_stage_4":
-			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 3.0, 58.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_psyche", Vector3(-14.0, 6.0, 52.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_suit", Vector3(14.0, 2.0, 50.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-8.0, 4.0, -54.0), Vector3(0.0, 0.0, 3.5), 1))
-			_enemy_ships.append(_spawn("acero_lancer", Vector3(12.0, 6.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
-		"vinculados_stage_5":
-			_player_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 7.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_cradle", Vector3(-16.0, 3.0, 60.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_anima", Vector3(16.0, 9.0, 50.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.2), 1))
-			_enemy_ships.append(_spawn("acero_monitor", Vector3(12.0, 4.0, -52.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_corvette", Vector3(22.0, 6.0, -48.0), Vector3(0.0, 0.0, 4.2), 1))
-		"vinculados_stage_6":
-			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 4.0, 58.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_chorus", Vector3(-14.0, 6.0, 52.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_nous", Vector3(14.0, 3.0, 50.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_carrier", Vector3(0.0, 3.0, -58.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-16.0, 5.0, -52.0), Vector3(0.0, 0.0, 3.6), 1))
-			_enemy_ships.append(_spawn("acero_lancer", Vector3(16.0, 7.0, -50.0), Vector3(0.0, 0.0, 4.4), 1))
-		"vinculados_stage_7":
-			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 4.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_aegis", Vector3(-12.0, 6.0, 52.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_suit", Vector3(12.0, 3.0, 50.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 4.0, -54.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_monitor", Vector3(12.0, 5.0, -52.0), Vector3(0.0, 0.0, 3.0), 1))
-		"vinculados_stage_8":
-			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 4.0, 58.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_nous", Vector3(-14.0, 7.0, 52.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_galleon", Vector3(14.0, 3.0, 54.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.2), 1))
-			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(10.0, 4.0, -52.0), Vector3(0.0, 0.0, 3.8), 1))
-		"vinculados_stage_9":
-			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 4.0, 60.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_colossus", Vector3(-14.0, 8.0, 54.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_chorus", Vector3(16.0, 3.0, 50.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(0.0, 4.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_monitor", Vector3(-16.0, 6.0, -54.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_carrier", Vector3(18.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
-		"vinculados_stage_10":
-			_player_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, 58.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_cradle", Vector3(-16.0, 4.0, 62.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_psyche", Vector3(16.0, 5.0, 52.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 5.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-18.0, 6.0, -54.0), Vector3(0.0, 0.0, 3.8), 1))
-		"vinculados_stage_11":
-			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 5.0, 60.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_aegis", Vector3(-14.0, 7.0, 54.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_nous", Vector3(14.0, 3.0, 52.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_anima", Vector3(24.0, 9.0, 48.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 4.0, -58.0), Vector3(0.0, 0.0, 3.2), 1))
-			_enemy_ships.append(_spawn("acero_carrier", Vector3(12.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_lancer", Vector3(-24.0, 6.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
-		"vinculados_stage_12":
-			var lead_col := _spawn("vinculados_colossus", Vector3(0.0, 8.0, 62.0), Vector3.ZERO, 0)
-			lead_col.hp = roundf(lead_col.hp * 1.30)
-			lead_col.max_hp = lead_col.hp
-			_player_ships.append(lead_col)
-			_player_ships.append(_spawn("vinculados_cradle", Vector3(-18.0, 4.0, 65.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_chorus", Vector3(18.0, 6.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_nous", Vector3(30.0, 2.0, 52.0), Vector3.ZERO, 0))
-			var boss_jugg := _spawn("acero_juggernaut", Vector3(0.0, 5.0, -64.0), Vector3(0.0, 0.0, 3.2), 1)
-			boss_jugg.hp = roundf(boss_jugg.hp * 1.40)
-			boss_jugg.max_hp = boss_jugg.hp
-			_enemy_ships.append(boss_jugg)
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-20.0, 4.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
-			_enemy_ships.append(_spawn("acero_monitor", Vector3(20.0, 6.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
-
-		# --- MAREA LIBRE EXPANSION (STAGES 4 - 12) ---
 		"marea_stage_4":
-			_player_ships.append(_spawn("marea_galleon", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_cutter", Vector3(8.0, 3.0, 50.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_raider", Vector3(18.0, 7.0, 52.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-8.0, 4.0, -54.0), Vector3(0.0, 0.0, 3.6), 1))
-			_enemy_ships.append(_spawn("acero_corvette", Vector3(12.0, 5.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
-		"marea_stage_5":
-			_player_ships.append(_spawn("marea_galleon", Vector3(-8.0, 5.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_brigantine", Vector3(6.0, 7.0, 52.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_cutter", Vector3(18.0, 2.0, 48.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("marea_leviathan", Vector3(0.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_corvette", Vector3(16.0, 4.0, -50.0), Vector3(0.0, 0.0, 4.0), 1))
-		"marea_stage_6":
-			_player_ships.append(_spawn("marea_frigate", Vector3(-6.0, 4.0, 54.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_raider", Vector3(8.0, 7.0, 50.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_cutter", Vector3(18.0, 2.0, 48.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_carrier", Vector3(0.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_lancer", Vector3(-14.0, 5.0, -50.0), Vector3(0.0, 0.0, 4.4), 1))
-		"marea_stage_7":
-			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, 4.0, 58.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_galleon", Vector3(-14.0, 6.0, 54.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_brigantine", Vector3(14.0, 3.0, 50.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 4.0, -56.0), Vector3(0.0, 0.0, 3.2), 1))
-			_enemy_ships.append(_spawn("acero_monitor", Vector3(12.0, 5.0, -52.0), Vector3(0.0, 0.0, 3.0), 1))
-		"marea_stage_8":
-			_player_ships.append(_spawn("marea_galleon", Vector3(-6.0, 4.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_frigate", Vector3(8.0, 7.0, 52.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_raider", Vector3(20.0, 2.0, 50.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("vinculados_suit", Vector3(0.0, 6.0, -52.0), Vector3(0.0, 0.0, 4.5), 1))
-			_enemy_ships.append(_spawn("vinculados_anima", Vector3(-16.0, 8.0, -48.0), Vector3(0.0, 0.0, 5.0), 1))
-		"marea_stage_9":
-			_player_ships.append(_spawn("marea_galleon", Vector3(0.0, 6.0, 60.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_frigate", Vector3(-14.0, 4.0, 54.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_cutter", Vector3(14.0, 8.0, 50.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_raider", Vector3(24.0, 2.0, 48.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-10.0, 4.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
-			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(10.0, 6.0, -54.0), Vector3(0.0, 0.0, 4.0), 1))
-			_enemy_ships.append(_spawn("acero_lancer", Vector3(22.0, 3.0, -50.0), Vector3(0.0, 0.0, 4.8), 1))
-		"marea_stage_10":
-			_player_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, 62.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_bombard", Vector3(-14.0, 3.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_frigate", Vector3(14.0, 7.0, 54.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_carrier", Vector3(0.0, 4.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-18.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.8), 1))
-			_enemy_ships.append(_spawn("acero_monitor", Vector3(18.0, 3.0, -52.0), Vector3(0.0, 0.0, 3.0), 1))
-		"marea_stage_11":
-			_player_ships.append(_spawn("marea_leviathan", Vector3(0.0, 7.0, 62.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_galleon", Vector3(-16.0, 4.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_brigantine", Vector3(16.0, 8.0, 54.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_cutter", Vector3(28.0, 2.0, 50.0), Vector3.ZERO, 0))
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(0.0, 4.0, -60.0), Vector3(0.0, 0.0, 3.5), 1))
-			_enemy_ships.append(_spawn("vinculados_colossus", Vector3(-18.0, 8.0, -56.0), Vector3(0.0, 0.0, 4.0), 1))
-			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(18.0, 5.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
-		"marea_stage_12":
-			var flagship_lev := _spawn("marea_leviathan", Vector3(0.0, 7.0, 65.0), Vector3.ZERO, 0)
-			flagship_lev.hp = roundf(flagship_lev.hp * 1.35)
-			flagship_lev.max_hp = flagship_lev.hp
-			_player_ships.append(flagship_lev)
-			_player_ships.append(_spawn("marea_galleon", Vector3(-18.0, 4.0, 58.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_frigate", Vector3(18.0, 8.0, 56.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("marea_raider", Vector3(30.0, 2.0, 50.0), Vector3.ZERO, 0))
-			var boss_kurtz := _spawn("acero_juggernaut", Vector3(0.0, 5.0, -64.0), Vector3(0.0, 0.0, 3.2), 1)
-			boss_kurtz.hp = roundf(boss_kurtz.hp * 1.45)
-			boss_kurtz.max_hp = boss_kurtz.hp
-			_enemy_ships.append(boss_kurtz)
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-20.0, 4.0, -58.0), Vector3(0.0, 0.0, 3.5), 1))
-			_enemy_ships.append(_spawn("acero_carrier", Vector3(20.0, 6.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
-		_:
-			# Fallback Sandbox
-			_player_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 2.0, 58.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_suit", Vector3(-14.0, 6.0, 52.0), Vector3.ZERO, 0))
-			_player_ships.append(_spawn("vinculados_anima", Vector3(14.0, -2.0, 50.0), Vector3.ZERO, 0))
+			# ACT III // STAGE 04: The Weather-Gauge Ambush
+			_player_ships.append(_spawn("marea_galleon", Vector3(0.0, 5.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(-14.0, 4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(14.0, 6.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, 12.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(-26.0, 2.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(26.0, 8.0, 50.0), Vector3.ZERO, 0))
 
-			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-8.0, 6.0, -55.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(8.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.0), 1))
-			_enemy_ships.append(_spawn("acero_corvette", Vector3(20.0, 5.0, -54.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(0.0, 4.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-16.0, 6.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(16.0, 2.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(0.0, 10.0, -54.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(-28.0, 4.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(28.0, 7.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
+
+		"marea_stage_5":
+			# ACT III // STAGE 05: Sovereign del Mar Claiming
+			# 7 Marea vs 8 Vinculados Interception Wing (Flagship Line + Flank Raiders)
+			_player_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(-14.0, 4.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(14.0, 6.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(-26.0, 2.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, 12.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_raider", Vector3(26.0, 8.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(36.0, 1.0, 46.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, -64.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(-15.0, 3.0, -60.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("vinculados_aegis", Vector3(15.0, 5.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(-28.0, 7.0, -54.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(28.0, 3.0, -54.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(-38.0, 2.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(38.0, 9.0, -48.0), Vector3(0.0, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("vinculados_psyche", Vector3(0.0, 14.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+
+		"marea_stage_6":
+			# ACT III // STAGE 06: Open Maelstrom Rapids Dogfight
+			# 8 Marea vs 8 Acero Warships
+			_player_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, 64.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(-15.0, 4.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(15.0, 6.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(-26.0, 8.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(26.0, 2.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, 14.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(-38.0, 5.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(38.0, 7.0, 48.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(0.0, 5.0, -64.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(-15.0, 2.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(15.0, 7.0, -60.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-28.0, 4.0, -55.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(28.0, 4.0, -55.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(-38.0, 6.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(38.0, 2.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(0.0, 10.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+
+		"marea_stage_7":
+			# ACT III // STAGE 07: Defense of the Free Haven
+			# 9 Marea vs 9 Imperial Iron Navy (Haven Rear Defense + Flank Harriers)
+			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, 10.0, 68.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(-16.0, 4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(16.0, 6.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(-30.0, 2.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(30.0, 8.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(-42.0, 6.0, 46.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(42.0, 3.0, 46.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(0.0, -4.0, 48.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, -66.0), Vector3(0.0, 0.0, 2.8), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-16.0, 4.0, -62.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(16.0, 6.0, -62.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-30.0, 2.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(30.0, 8.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(0.0, 12.0, -58.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(-42.0, 5.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(42.0, 3.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(0.0, -4.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+
+		"marea_stage_8":
+			# ACT III // STAGE 08: Interception at the Spire Apex
+			# 9 Marea vs 10 Vinculados Mecha Wings (Divided: Port Line + Starboard Boarding Pack)
+			_player_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(-15.0, 4.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(15.0, 6.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(-28.0, 8.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(28.0, 2.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(-40.0, 4.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(40.0, 8.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, 14.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(0.0, -2.0, 46.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("vinculados_colossus", Vector3(0.0, 8.0, -66.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_aegis", Vector3(-16.0, 4.0, -62.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(16.0, 6.0, -62.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(-30.0, 2.0, -58.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(30.0, 8.0, -56.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(-42.0, 5.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(42.0, 3.0, -52.0), Vector3(0.0, 0.0, 4.8), 1))
+			_enemy_ships.append(_spawn("vinculados_psyche", Vector3(-20.0, 10.0, -48.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("vinculados_chorus", Vector3(20.0, 10.0, -48.0), Vector3(0.0, 0.0, 4.4), 1))
+			_enemy_ships.append(_spawn("vinculados_suit", Vector3(0.0, 14.0, -50.0), Vector3(0.0, 0.0, 4.5), 1))
+
+		"marea_stage_9":
+			# ACT III // STAGE 09: GRAND TEMPEST ARMADA — THE WEATHER-GAUGE
+			# 11 Marea vs 12 Imperial Armada (Center Leviathans + Windward Flank + Leeward Wolfpack)
+			_player_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(-14.0, 4.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(14.0, 4.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(0.0, 14.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, -4.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(-28.0, 6.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(28.0, 6.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(-42.0, 3.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(42.0, 5.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(-52.0, 8.0, 46.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(52.0, 1.0, 46.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, -68.0), Vector3(0.0, 0.0, 2.8), 1))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(-15.0, 2.0, -65.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(15.0, 4.0, -65.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-28.0, 6.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(28.0, 6.0, -60.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-42.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(42.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(0.0, 12.0, -58.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(-52.0, 7.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(52.0, 2.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(-20.0, 8.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(20.0, 0.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+
+		"marea_stage_10":
+			# ACT III // STAGE 10: Storming the Imperial Smelter Network
+			# 12 Marea vs 13 Heavy Defenders (Spearhead Strike + Flanking Frigates)
+			_player_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_leviathan", Vector3(-18.0, 4.0, 64.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(18.0, 6.0, 64.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(-32.0, 3.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(32.0, 3.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, 14.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, -4.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(-44.0, 7.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(44.0, 7.0, 52.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(-54.0, 2.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(54.0, 8.0, 48.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(0.0, 10.0, 48.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, -70.0), Vector3(0.0, 0.0, 2.8), 1))
+			_enemy_ships.append(_spawn("vinculados_colossus", Vector3(-20.0, 8.0, -66.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(20.0, 4.0, -66.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-35.0, 6.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(35.0, 6.0, -60.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(0.0, 14.0, -62.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("vinculados_aegis", Vector3(-14.0, -3.0, -58.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(14.0, 10.0, -58.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(-48.0, 5.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(48.0, 3.0, -52.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(-58.0, 7.0, -48.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(58.0, 1.0, -48.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("vinculados_anima", Vector3(0.0, -5.0, -50.0), Vector3(0.0, 0.0, 4.8), 1))
+
+		"marea_stage_11":
+			# ACT III // STAGE 11: Breaching the Singularity Iron Wall
+			# 13 Marea vs 14 Acero Imperial Warships (3 Attack Echelons)
+			_player_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, 68.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_leviathan", Vector3(-20.0, 4.0, 65.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(20.0, 6.0, 65.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(-35.0, 3.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(35.0, 5.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, 14.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, -4.0, 58.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(-14.0, 10.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(14.0, 10.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(-48.0, 7.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(48.0, 2.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(-58.0, 4.0, 46.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(58.0, 8.0, 46.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, -70.0), Vector3(0.0, 0.0, 2.8), 1))
+			_enemy_ships.append(_spawn("acero_juggernaut", Vector3(-22.0, 4.0, -68.0), Vector3(0.0, 0.0, 2.8), 1))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(22.0, 4.0, -68.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-36.0, 6.0, -62.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(36.0, 6.0, -62.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(0.0, 14.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-48.0, 3.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(48.0, 5.0, -56.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(-15.0, 10.0, -54.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(15.0, 10.0, -54.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(-58.0, 7.0, -48.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(58.0, 2.0, -48.0), Vector3(0.0, 0.0, 4.2), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(-25.0, -2.0, -46.0), Vector3(0.0, 0.0, 4.5), 1))
+			_enemy_ships.append(_spawn("acero_corvette", Vector3(25.0, -2.0, -46.0), Vector3(0.0, 0.0, 4.5), 1))
+
+		"marea_stage_12":
+			# ACT III // STAGE 12: THE GRAND SOVEREIGN ARMADA — BARLOVENTO ASCENDANT
+			# 15 FREE TIDE PIRATE WARSHIPS VS 16 SUPREME ENEMY BATTLEFLEET
+			# 4 Squadrons: Sovereign Mega-Galleon Center, Port Boarding Wing, Starboard Harriers, Mortar Artillery Line
+			_player_ships.append(_spawn("marea_leviathan", Vector3(0.0, 6.0, 68.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_leviathan", Vector3(-20.0, 4.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(20.0, 6.0, 66.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(-35.0, 4.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_galleon", Vector3(35.0, 4.0, 62.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, 14.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_bombard", Vector3(0.0, -4.0, 60.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(-14.0, 10.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(14.0, 10.0, 56.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_frigate", Vector3(0.0, 20.0, 54.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(-48.0, 7.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(48.0, 3.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_brigantine", Vector3(-28.0, -2.0, 50.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(-58.0, 5.0, 46.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("marea_cutter", Vector3(58.0, 7.0, 46.0), Vector3.ZERO, 0))
+
+			_enemy_ships.append(_spawn("acero_juggernaut", Vector3(0.0, 6.0, -72.0), Vector3(0.0, 0.0, 2.6), 1))
+			_enemy_ships.append(_spawn("vinculados_colossus", Vector3(-20.0, 8.0, -68.0), Vector3(0.0, 0.0, 2.8), 1))
+			_enemy_ships.append(_spawn("vinculados_colossus", Vector3(20.0, 8.0, -68.0), Vector3(0.0, 0.0, 2.8), 1))
+			_enemy_ships.append(_spawn("acero_carrier", Vector3(0.0, 14.0, -66.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(-35.0, 4.0, -64.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_dreadnought", Vector3(35.0, 4.0, -64.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_aegis", Vector3(-14.0, -3.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_aegis", Vector3(14.0, -3.0, -60.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(-48.0, 3.0, -58.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("vinculados_cradle", Vector3(48.0, 3.0, -58.0), Vector3(0.0, 0.0, 3.2), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(-28.0, 10.0, -54.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("acero_battlecruiser", Vector3(28.0, 10.0, -54.0), Vector3(0.0, 0.0, 3.5), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(-58.0, 6.0, -50.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("vinculados_nous", Vector3(58.0, 2.0, -50.0), Vector3(0.0, 0.0, 4.0), 1))
+			_enemy_ships.append(_spawn("acero_monitor", Vector3(0.0, -6.0, -52.0), Vector3(0.0, 0.0, 3.0), 1))
+			_enemy_ships.append(_spawn("acero_lancer", Vector3(0.0, 18.0, -50.0), Vector3(0.0, 0.0, 4.2), 1))
+
+		_:
+			# Default fallback
+			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
+			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 2.0, 54.0), Vector3.ZERO, 0))
+			_enemy_ships.append(_spawn("marea_raider", Vector3(-6.0, 4.0, -55.0), Vector3(0.0, 0.0, 4.0), 1))
 
 	_tactical_grid.set_ships(_player_ships + _enemy_ships)
 

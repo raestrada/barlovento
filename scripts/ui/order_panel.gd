@@ -115,10 +115,10 @@ func _build_ui() -> void:
     center_steps.position = Vector2(-82, 23)
     add_child(center_steps)
 
-    for i in range(4):
+    for i in range(8):
         var b := Button.new()
         b.text = "%d" % (i + 1)
-        b.custom_minimum_size = Vector2(24, 22)
+        b.custom_minimum_size = Vector2(22, 22)
         b.focus_mode = Control.FOCUS_NONE
         var idx := i
         b.pressed.connect(func() -> void:
@@ -172,11 +172,18 @@ func _build_ui() -> void:
     util_vbox.add_child(btn_grid)
     util_vbox.add_child(btn_roster)
 
-    # 2. Horizontal Unit Cards Strip
+    # 2. Horizontal Unit Cards Strip (Scrollable for large fleets)
+    var cards_scroll := ScrollContainer.new()
+    cards_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    cards_scroll.size_flags_vertical = Control.SIZE_FILL
+    cards_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    cards_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+    dock_row.add_child(cards_scroll)
+
     _cards_hbox = HBoxContainer.new()
     _cards_hbox.add_theme_constant_override("separation", 6)
     _cards_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    dock_row.add_child(_cards_hbox)
+    cards_scroll.add_child(_cards_hbox)
 
     # 3. Right "FLEET ORDER" Square Action Tiles (exact admiral-phase.png 68x66 square icon tiles)
     var tiles_hbox := HBoxContainer.new()
