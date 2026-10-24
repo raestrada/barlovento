@@ -1764,4 +1764,3 @@ func _update_ether_flow(delta: float) -> void:
 				child.position.z = -150.0
 			elif child.position.z < -150.0:
 				child.position.z = 150.0
-

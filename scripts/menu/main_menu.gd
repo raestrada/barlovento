@@ -489,13 +489,15 @@ func _create_faction_card(
 	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	card.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	card.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.016, 0.038, 0.078, 0.80) if is_featured else Color(0.012, 0.028, 0.060, 0.74)
+	style.bg_color = Color(0.016, 0.038, 0.078, 0.85) if is_featured else Color(0.012, 0.028, 0.060, 0.80)
 	style.border_color = accent_col if is_featured else Color(accent_col.r, accent_col.g, accent_col.b, 0.50)
 	style.set_border_width_all(2 if is_featured else 1)
 	style.set_corner_radius_all(6)
-	style.set_content_margin_all(14)
+	style.set_content_margin_all(12)
 	card.add_theme_stylebox_override("panel", style)
 
 	card.mouse_entered.connect(func() -> void:
@@ -508,22 +510,31 @@ func _create_faction_card(
 			style.border_color = Color(accent_col.r, accent_col.g, accent_col.b, 0.50)
 			style.set_border_width_all(1)
 	)
+	card.gui_input.connect(func(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			AudioManager.play_sfx("ui_click", -8.0)
+			_select_faction_and_open_briefing(fac_id)
+	)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 8)
+	vbox.add_theme_constant_override("separation", 6)
+	vbox.mouse_filter = Control.MOUSE_FILTER_PASS
 	card.add_child(vbox)
 
 	var top_row := HBoxContainer.new()
+	top_row.mouse_filter = Control.MOUSE_FILTER_PASS
 	vbox.add_child(top_row)
 
 	var prin_lbl := Label.new()
 	prin_lbl.text = principle_str
 	prin_lbl.add_theme_font_size_override("font_size", 10)
 	prin_lbl.add_theme_color_override("font_color", accent_col)
+	prin_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
 	top_row.add_child(prin_lbl)
 
 	var sp := Control.new()
 	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sp.mouse_filter = Control.MOUSE_FILTER_PASS
 	top_row.add_child(sp)
 
 	if SaveManager.is_stage_completed(fac_id + "_stage_12"):
@@ -531,24 +542,28 @@ func _create_faction_card(
 		won_lbl.text = "🏆 CAMPAIGN CONQUERED"
 		won_lbl.add_theme_font_size_override("font_size", 10)
 		won_lbl.add_theme_color_override("font_color", Color(1.0, 0.88, 0.25))
+		won_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
 		top_row.add_child(won_lbl)
 	elif is_featured:
 		var feat := Label.new()
 		feat.text = "★ RECOMMENDED ACT I"
 		feat.add_theme_font_size_override("font_size", 10)
 		feat.add_theme_color_override("font_color", Color(1.0, 0.88, 0.35))
+		feat.mouse_filter = Control.MOUSE_FILTER_PASS
 		top_row.add_child(feat)
 
 	var title := Label.new()
 	title.text = title_str
-	title.add_theme_font_size_override("font_size", 17)
+	title.add_theme_font_size_override("font_size", 16)
 	title.add_theme_color_override("font_color", Color.WHITE)
+	title.mouse_filter = Control.MOUSE_FILTER_PASS
 	vbox.add_child(title)
 
 	var motto := Label.new()
 	motto.text = motto_str
-	motto.add_theme_font_size_override("font_size", 11)
+	motto.add_theme_font_size_override("font_size", 10)
 	motto.add_theme_color_override("font_color", Color(0.88, 0.92, 0.98))
+	motto.mouse_filter = Control.MOUSE_FILTER_PASS
 	vbox.add_child(motto)
 
 	var art_frame := PanelContainer.new()
@@ -559,22 +574,27 @@ func _create_faction_card(
 	frame_st.set_corner_radius_all(4)
 	frame_st.set_content_margin_all(2)
 	art_frame.add_theme_stylebox_override("panel", frame_st)
+	art_frame.mouse_filter = Control.MOUSE_FILTER_PASS
 	vbox.add_child(art_frame)
 
 	var art_rect := TextureRect.new()
 	var tex: Texture2D = load(art_path)
 	if tex != null:
 		art_rect.texture = tex
-	art_rect.custom_minimum_size = Vector2(0, 195)
+	art_rect.custom_minimum_size = Vector2(0, 145)
 	art_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	art_rect.mouse_filter = Control.MOUSE_FILTER_PASS
 	art_frame.add_child(art_rect)
 
 	var lore_lbl := Label.new()
 	lore_lbl.text = lore_str
 	lore_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lore_lbl.add_theme_font_size_override("font_size", 11)
+	lore_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lore_lbl.custom_minimum_size = Vector2(240, 42)
+	lore_lbl.add_theme_font_size_override("font_size", 10)
 	lore_lbl.add_theme_color_override("font_color", Color(0.75, 0.84, 0.94))
+	lore_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
 	vbox.add_child(lore_lbl)
 
 	vbox.add_child(HSeparator.new())
@@ -583,29 +603,47 @@ func _create_faction_card(
 	sq_hdr.text = "STARTING TASK FORCE & HEROES:"
 	sq_hdr.add_theme_font_size_override("font_size", 10)
 	sq_hdr.add_theme_color_override("font_color", accent_col)
+	sq_hdr.mouse_filter = Control.MOUSE_FILTER_PASS
 	vbox.add_child(sq_hdr)
 
 	for line in roster_lines:
 		var rl := Label.new()
 		rl.text = String(line)
-		rl.add_theme_font_size_override("font_size", 10)
+		rl.add_theme_font_size_override("font_size", 9)
 		rl.add_theme_color_override("font_color", Color(0.86, 0.92, 0.98))
+		rl.mouse_filter = Control.MOUSE_FILTER_PASS
 		vbox.add_child(rl)
 
 	var v_spacer := Control.new()
 	v_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v_spacer.mouse_filter = Control.MOUSE_FILTER_PASS
 	vbox.add_child(v_spacer)
 
 	var stg_lbl := Label.new()
 	stg_lbl.text = "▶ " + stage_label
 	stg_lbl.add_theme_font_size_override("font_size", 10)
 	stg_lbl.add_theme_color_override("font_color", Color(0.45, 0.95, 0.72))
+	stg_lbl.mouse_filter = Control.MOUSE_FILTER_PASS
 	vbox.add_child(stg_lbl)
 
-	var select_btn := _make_primary_cta_button("COMMAND " + title_str + " ▶") if is_featured else Button.new()
-	if not is_featured:
-		select_btn.text = "COMMAND " + title_str + " ▶"
-	select_btn.custom_minimum_size = Vector2(0, 42)
+	var select_btn := Button.new()
+	select_btn.text = "COMMAND " + title_str + " ▶"
+	select_btn.custom_minimum_size = Vector2(0, 40)
+	select_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	var btn_st := StyleBoxFlat.new()
+	btn_st.bg_color = Color(accent_col.r * 0.75, accent_col.g * 0.75, accent_col.b * 0.75, 0.92)
+	btn_st.border_color = accent_col
+	btn_st.set_border_width_all(2)
+	btn_st.set_corner_radius_all(6)
+	btn_st.set_content_margin_all(8)
+	select_btn.add_theme_stylebox_override("normal", btn_st)
+	var btn_hov := StyleBoxFlat.new()
+	btn_hov.bg_color = accent_col
+	btn_hov.border_color = Color.WHITE
+	btn_hov.set_border_width_all(2)
+	btn_hov.set_corner_radius_all(6)
+	btn_hov.set_content_margin_all(8)
+	select_btn.add_theme_stylebox_override("hover", btn_hov)
 	select_btn.mouse_entered.connect(func() -> void:
 		_focused_faction = fac_id
 	)
@@ -794,6 +832,8 @@ func _select_faction_and_open_briefing(fac_id: String) -> void:
 	_selected_faction = fac_id
 	_focused_faction = fac_id
 	LoreDB.selected_faction = fac_id
+	LoreDB.player_faction = fac_id
+	SaveManager.last_selected_faction = fac_id
 
 	for child in _squadron_vbox.get_children():
 		child.queue_free()

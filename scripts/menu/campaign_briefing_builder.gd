@@ -41,6 +41,8 @@ static func add_squadron_row(container: Control, ship_id: String, unit_name: Str
 	container.add_child(panel)
 
 static func populate_acero(menu: Control, stage_id: String) -> void:
+	LoreDB.selected_faction = "acero"
+	LoreDB.player_faction = "acero"
 	LoreDB.current_stage_id = stage_id
 
 	for child in menu._stage_selector_row.get_children():
@@ -203,6 +205,8 @@ static func populate_acero(menu: Control, stage_id: String) -> void:
 			if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
 
 static func populate_vinculados(menu: Control, stage_id: String) -> void:
+	LoreDB.selected_faction = "vinculados"
+	LoreDB.player_faction = "vinculados"
 	LoreDB.current_stage_id = stage_id
 
 	for child in menu._stage_selector_row.get_children():
@@ -358,6 +362,8 @@ static func populate_vinculados(menu: Control, stage_id: String) -> void:
 			if menu._launch_stage_btn != null: menu._launch_stage_btn.text = "⚔  SOUND BATTLE STATIONS // LAUNCH STAGE %02d" % cur_num
 
 static func populate_marea(menu: Control, stage_id: String) -> void:
+	LoreDB.selected_faction = "marea_libre"
+	LoreDB.player_faction = "marea_libre"
 	LoreDB.current_stage_id = stage_id
 
 	for child in menu._stage_selector_row.get_children():

@@ -74,6 +74,16 @@ func _ready() -> void:
 	TurnManager.reset()
 	_setup_input_actions()
 
+	if LoreDB.current_stage_id.begins_with("vinculados"):
+		LoreDB.selected_faction = "vinculados"
+		LoreDB.player_faction = "vinculados"
+	elif LoreDB.current_stage_id.begins_with("marea"):
+		LoreDB.selected_faction = "marea_libre"
+		LoreDB.player_faction = "marea_libre"
+	elif LoreDB.current_stage_id.begins_with("acero"):
+		LoreDB.selected_faction = "acero"
+		LoreDB.player_faction = "acero"
+
 	_is_tutorial_stage = LoreDB.current_stage_id in ["acero_stage_1", "vinculados_stage_1", "marea_stage_1"]
 
 	PhysicsSim.bounds = AABB(

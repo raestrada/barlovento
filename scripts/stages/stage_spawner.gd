@@ -5,6 +5,7 @@ var world: Node3D
 var ether: EtherField
 var click_cb: Callable
 var right_click_cb: Callable
+var stage_id: String = ""
 var _player_ships: Array[Ship] = []
 var _enemy_ships: Array[Ship] = []
 const PITCH_LIMIT := 1.15
@@ -15,6 +16,8 @@ static func spawn_stage(stage_id: String, world_node: Node3D, ether_field: Ether
 	spawner.ether = ether_field
 	spawner.click_cb = clicked_handler
 	spawner.right_click_cb = right_clicked_handler
+	spawner.stage_id = stage_id
+	LoreDB.current_stage_id = stage_id
 	spawner._spawn_fleets()
 	return {
 		"player_ships": spawner._player_ships,
@@ -30,7 +33,8 @@ func _apply_tutorial_handicap(s: Ship, hp_mult: float = 0.65, dmg_mult: float = 
 	s.set_meta("tutorial_enemy", true)
 
 func _spawn_fleets() -> void:
-	match LoreDB.current_stage_id:
+	var sid := stage_id if stage_id != "" else LoreDB.current_stage_id
+	match sid:
 		"acero_stage_1":
 			# ACT I // STAGE 01 [TUTORIAL]: Defense of Sluice Station Well-09
 			# ACERO DOCTRINE: Fortified V-Wedge Line holding the rear Sluice against fast flanking raiders
