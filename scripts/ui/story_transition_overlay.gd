@@ -330,19 +330,25 @@ func _process(delta: float) -> void:
 				_is_typing = false
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not visible:
+	if not visible or not is_inside_tree():
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ESCAPE:
+			var vp := get_viewport()
+			if vp != null:
+				vp.set_input_as_handled()
 			_finish_story()
-			get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_SPACE or event.keycode == KEY_ENTER:
+			var vp := get_viewport()
+			if vp != null:
+				vp.set_input_as_handled()
 			_advance_dialogue()
-			get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var vp := get_viewport()
+		if vp != null:
+			vp.set_input_as_handled()
 		_advance_dialogue()
-		get_viewport().set_input_as_handled()
 
 func _advance_dialogue() -> void:
 	if _is_typing:
