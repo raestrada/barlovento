@@ -111,7 +111,7 @@ func _ready() -> void:
 	_build_hud()
 	_set_selected(_player_ships[0])
 
-	AudioManager.play_battle_music(-10.0, LoreDB.player_faction, LoreDB.current_stage_id)
+	AudioManager.play_battle_music(-10.0, LoreDB.selected_faction, LoreDB.current_stage_id)
 	AudioManager.start_ambient(-26.0)
 
 	TurnManager.phase_changed.connect(_on_phase_changed)
@@ -4121,7 +4121,7 @@ func _on_phase_changed(_phase: int) -> void:
 	if in_ace:
 		AudioManager.play_ace_tactical_music(-10.0)
 	else:
-		AudioManager.play_battle_music(-10.0, LoreDB.player_faction, LoreDB.current_stage_id)
+		AudioManager.play_battle_music(-10.0, LoreDB.selected_faction, LoreDB.current_stage_id)
 
 	if _turn_label_phase != null:
 		_turn_label_phase.text = "ACE PHASE" if in_ace else "ADMIRAL PHASE"
