@@ -58,6 +58,10 @@ static func can_hit(shooter: Ship, target: Ship) -> bool:
     return in_range(shooter, target) and in_arc(shooter, target)
 
 static func hit_chance(shooter: Ship, target: Ship) -> float:
+    if shooter != null and shooter.is_player and DevManager.god_mode:
+        return 1.0
+    if target != null and target.is_player and DevManager.god_mode:
+        return 0.0
     if not can_hit(shooter, target):
         return 0.0
     var chance := 0.92
@@ -103,6 +107,9 @@ static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
     if roll <= chance:
         result["hit"] = true
         var dmg := shooter.weapon_damage
+        if shooter != null and shooter.is_player and DevManager.god_mode:
+            dmg *= 3.5
+            result["critical"] = true
 
         # Barlovento (Weather-Gauge) Upwind Tactical Bonus (+15% Damage)
         if barlovento:

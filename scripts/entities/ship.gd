@@ -20,6 +20,9 @@ const ORDER_ARROW_SCALE := 0.75
 @export var ship_color: Color = Color(0.7, 0.7, 0.75)
 @export var body_size: Vector3 = Vector3(2.0, 1.0, 6.0)
 @export var team: int = 0
+var is_player: bool:
+    get:
+        return team == 0
 @export var selected: bool = false
 
 static var show_weapon_arcs: bool = false
@@ -217,9 +220,13 @@ var _smoke_emit_timer: float = 0.0
 var _hit_flash_timer: float = 0.0
 
 func take_damage(amount: float) -> void:
+    if is_player and DevManager.god_mode:
+        return
     take_directional_damage(amount, "BOW")
 
 func take_directional_damage(amount: float, quadrant: String) -> void:
+    if is_player and DevManager.god_mode:
+        return
     var shield_absorb := minf(shield_hp, amount * 0.50)
     shield_hp = maxf(shield_hp - shield_absorb, 0.0)
     var hull_dmg := amount - shield_absorb * 0.45

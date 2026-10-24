@@ -118,6 +118,13 @@ func _ready() -> void:
 	TurnManager.admiral_resolve_finished.connect(_on_admiral_resolve_finished)
 	TurnManager.ace_resolve_finished.connect(_on_ace_resolve_finished)
 	TurnManager.ace_fire_moment.connect(_on_ace_fire_moment)
+	DevManager.god_mode_toggled.connect(func(enabled: bool) -> void:
+		if enabled:
+			_add_combat_log("⚡ DEV GOD MODE ACTIVATED: Damage Immunity + Auto-Targeting + Crushing Firepower!", Color(1.0, 0.85, 0.2))
+		else:
+			_add_combat_log("⚡ DEV GOD MODE DEACTIVATED: Standard Tactical Simulation Restored.", Color(0.7, 0.85, 1.0))
+		_refresh_fleet_panel()
+	)
 
 	_on_phase_changed(TurnManager.phase)
 	if SaveManager.pending_load_battle and SaveManager.has_tactical_save():
@@ -474,12 +481,26 @@ func _handle_flight_controls(delta: float) -> void:
 
 func _execute_current_phase() -> void:
 	if TurnManager.phase == TurnManager.Phase.ADMIRAL_PLAN:
+		if DevManager.god_mode:
+			_plan_god_mode_admiral()
 		_plan_ai_orders()
 		AudioManager.play_sfx("ui_click", -12.0)
 		_add_combat_log("Executing strategic WEGO fleet resolution (%ds)..." % int(TurnManager.admiral_resolution_window), Color(0.3, 1.0, 0.6))
 		TurnManager.start_resolve()
 	elif TurnManager.phase == TurnManager.Phase.ACE_PLAN:
 		_execute_ace_round()
+
+func _plan_god_mode_admiral() -> void:
+	for ship in _player_ships:
+		if ship == null or ship.is_destroyed():
+			continue
+		var target := _nearest_enemy_for(ship)
+		if target != null:
+			var to_t := (target.global_position - ship.global_position).normalized()
+			if to_t.length_squared() > 0.01:
+				_set_order_heading(ship, to_t)
+			ship.order.target_speed = ship.state.max_speed * 0.85
+			ship.target_ship = target
 
 func _execute_ace_round() -> void:
 	_plan_friendly_ai_orders()
@@ -492,7 +513,7 @@ func _plan_friendly_ai_orders() -> void:
 	for ally in _player_ships:
 		if ally.is_destroyed():
 			continue
-		if ally.is_auto_pilot:
+		if ally.is_auto_pilot or DevManager.god_mode:
 			_plan_friendly_ship_ai(ally)
 
 func _clear_round_combat_metas(ship: Ship) -> void:
@@ -511,6 +532,9 @@ func _plan_friendly_ship_ai(ship: Ship) -> void:
 	if ship == null or ship.is_destroyed():
 		return
 
+	if DevManager.god_mode or DevManager.infinite_ap:
+		ship.action_points = ship.max_action_points
+
 	# 1. Target: tunnel vision on closest enemy threat
 	var target := _nearest_enemy_for(ship)
 	if target == null or target.is_destroyed():
@@ -522,25 +546,36 @@ func _plan_friendly_ship_ai(ship: Ship) -> void:
 	if to_target.length_squared() > 0.01:
 		_set_order_heading(ship, to_target.normalized())
 
-	# 3. Speed: conservative positioning
+	# 3. Speed: aggressive in god mode, conservative otherwise
 	var dist := ship.state.position.distance_to(target.state.position)
-	if dist > ship.weapon_range:
+	if DevManager.god_mode:
+		ship.order.target_speed = ship.state.max_speed * 0.85 if dist > 22.0 else 8.0
+		ship.stance = Ship.Stance.FIRE
+	elif dist > ship.weapon_range:
 		ship.order.target_speed = ship.state.max_speed * 0.60
+		ship.stance = Ship.Stance.FIRE
 	elif dist > 16.0:
 		ship.order.target_speed = 3.5
+		ship.stance = Ship.Stance.FIRE
 	else:
 		ship.order.target_speed = 1.5
+		ship.stance = Ship.Stance.EVASIVE if ship.hp < ship.max_hp * 0.35 else Ship.Stance.FIRE
 
-	# 4. Stance: defensive when battered, fire when healthy
-	if ship.hp < ship.max_hp * 0.35:
-		ship.stance = Ship.Stance.EVASIVE
-	else:
-		ship.stance = Ship.Stance.FIRE
-
-	# 5. Conservative AP spending (max 2 AP, 1 support action):
+	# 4. Tactical Abilities
 	_clear_round_combat_metas(ship)
 	var fac := ship.faction
-	if ship.hp < ship.max_hp * 0.35:
+	if DevManager.god_mode:
+		match fac:
+			"acero":
+				ship.set_meta("broadside_active", true)
+				ship.set_meta("prow_angle_active", true)
+			"vinculados":
+				ship.set_meta("resonance_pierce", true)
+				ship.set_meta("precision_boost", true)
+			"marea_libre":
+				ship.set_meta("broadside_active", true)
+				ship.set_meta("chain_shot_active", true)
+	elif ship.hp < ship.max_hp * 0.35:
 		match fac:
 			"acero":
 				ship.set_meta("flak_screen_active", true)
