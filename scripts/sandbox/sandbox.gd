@@ -534,6 +534,8 @@ func _plan_friendly_ship_ai(ship: Ship) -> void:
 
 	if DevManager.god_mode or DevManager.infinite_ap:
 		ship.action_points = ship.max_action_points
+		if _ace_panel != null:
+			_ace_panel.reset_all_ap()
 
 	# 1. Target: tunnel vision on closest enemy threat
 	var target := _nearest_enemy_for(ship)

@@ -389,11 +389,12 @@ func toggle_ability_by_slot(slot_idx: int) -> void:
         ability_toggled.emit(aid, false)
         AudioManager.play_sfx("ui_click", -10.0)
     else:
-        if _current_ap < cost:
+        if not (DevManager.god_mode or DevManager.infinite_ap) and _current_ap < cost:
             AudioManager.play_sfx("error", -6.0)
             return
         _ability_states[aid] = true
-        _current_ap -= cost
+        if not (DevManager.god_mode or DevManager.infinite_ap):
+            _current_ap -= cost
         if _ap_bar != null:
             _ap_bar.current_ap = _current_ap
             _ap_bar.queue_redraw()
