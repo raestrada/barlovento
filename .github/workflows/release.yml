@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Release Tag (e.g. v0.5.0-alpha)'
+        description: 'Release Tag (e.g. v0.5.1-alpha)'
         required: false
-        default: 'v0.5.0-alpha'
+        default: 'v0.5.1-alpha'
 
 permissions:
   contents: write
@@ -31,13 +31,14 @@ jobs:
           prerelease: true
           generate_release_notes: true
           body: |
-            ## 🚀 BARLOVENTO v0.5.0-alpha Build — Grand Fleet & Multi-Front Warfare Overhaul
+            ## 🚀 BARLOVENTO v0.5.1-alpha Build — Grand Fleet & Architecture Modularization Overhaul
 
             ### ✨ Highlights:
             - **⚔ Grand Fleet Warfare & Multi-Front Scaling (Up to 15 vs 16 Ships):** All 36 campaign stages across the 3 civilizations have been overhauled from introductory tactical duels to epic fleet battles with up to 15 player units divided into distinct tactical battle groups (Center Line, Port Strike Wings, Starboard Flanks, High-Altitude Dive Vectors, and Rear Station Defense).
+            - **🏗 Modular Architecture & Zero-Error Stability:** Full decomposition into Single Responsibility Godot 4 scripts (EnvironmentDirector, StageSpawner, FleetTacticalAI, ProceduralMeshPrimitives, Faction Ship Model Builders, StrategicGridSolver, CampaignBriefingBuilder) eliminating monoliths and passing automated 36-stage headless tests with zero compilation warnings.
             - **🌌 Varied Battle Topography & Off-Center Landmarks:** Battles take place across diverse celestial terrain: dense Basalt Gorges, orbital Caldera Reefs, tactical Asteroid Archipelago cover, and vast Open Void dogfight zones with rear defense stations and deep fortress assaults.
             - **🤖 Authentic 3D Gundam Mobile Armor & Platoons:** Complete visual overhaul of the Vinculados *Seraph-Prime* Colossus Mobile Armor, *Aegis* Anchor, and *Cradle* Carrier Ark with sculpted head anatomies, golden V-fins, pulsing chest soul reactors, 4 seraph shield-binder wings, and beam funnels.
-            - **🎨 Complete AAA Visual Suite:** Dedicated 16:9 stage briefings, panoramic 3D landmarks, faction selection cards, Ace hero portraits, and three-faction key art splash.
+            - **🎨 Complete AAA Visual Suite & Official Web Portal:** Monumental hero title wordmark, dedicated 16:9 stage briefings, panoramic 3D landmarks, faction selection cards, Ace hero portraits, three-faction key art splash, and a redesigned AAA game portal.
             - **🛠 Developer / God Mode Console (`Ctrl+Shift+D`):** Instant debug panel with damage immunity (God Mode), stage jumping across all 36 stages, AP manipulation, and real-time victory triggers.
             - **🎵 Multi-Track Symphonic OST:** High-fidelity classical and symphonic space themes dynamically scoring each faction's campaign.
 
