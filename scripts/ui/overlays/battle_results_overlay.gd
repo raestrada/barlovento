@@ -55,14 +55,36 @@ static func build_victory_overlay(layer: CanvasLayer, hud_theme: Theme, stage_id
 			victory_title_label.text = "STAGE 02 ACCOMPLISHED // THE CHOIR SILENCED"
 		"acero_stage_3":
 			victory_title_label.text = "ACT I VICTORY // BASTION OF THE CALM"
+		"acero_stage_4":
+			victory_title_label.text = "STAGE 04 ACCOMPLISHED // GATE TERTIUS SECURED"
+		"acero_stage_8":
+			victory_title_label.text = "ACT II VICTORY // INDUSTRIAL FORGE VULCAN-3 SECURED"
+		"acero_stage_11":
+			victory_title_label.text = "STAGE 11 ACCOMPLISHED // THE EVENT HORIZON HELD"
+		"acero_stage_12":
+			victory_title_label.text = "🏆 CAMPAIGN CONQUERED // THE IRON DAM SEALED"
 		"vinculados_stage_1":
 			victory_title_label.text = "TUTORIAL ACCOMPLISHED // RESONANCE DOCTRINE MASTERED"
+		"vinculados_stage_3":
+			victory_title_label.text = "ACT I VICTORY // GENESIS RING SYNCHRONIZED"
+		"vinculados_stage_8":
+			victory_title_label.text = "ACT II VICTORY // SANCTUARY CATHEDRAL AWAKENED"
+		"vinculados_stage_12":
+			victory_title_label.text = "🏆 CAMPAIGN CONQUERED // THE GREAT ASCENSION"
 		"marea_stage_1":
 			victory_title_label.text = "TUTORIAL ACCOMPLISHED // ETHER SAILING MASTERED"
+		"marea_stage_3":
+			victory_title_label.text = "ACT I VICTORY // CORSAIR HAVEN LIBERATED"
+		"marea_stage_8":
+			victory_title_label.text = "ACT II VICTORY // IMPERIAL SIEGE LINE BROKEN"
+		"marea_stage_9":
+			victory_title_label.text = "STAGE 09 ACCOMPLISHED // EYE OF THE MAELSTROM SURFED"
+		"marea_stage_12":
+			victory_title_label.text = "🏆 CAMPAIGN CONQUERED // SOVEREIGN OF THE STAR SEA"
 		_:
 			victory_title_label.text = "MISSION ACCOMPLISHED"
 	victory_title_label.add_theme_font_size_override("font_size", 20)
-	victory_title_label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.65))
+	victory_title_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.25) if stage_id.ends_with("_stage_12") else Color(0.3, 1.0, 0.65))
 	vbox.add_child(victory_title_label)
 	dialog.title_label = victory_title_label
 
@@ -74,12 +96,34 @@ static func build_victory_overlay(layer: CanvasLayer, hud_theme: Theme, stage_id
 			victory_sub_label.text = "Resonance Spire Secured // The Armada of Acero\nCommander Kaelen's Vinculados Choir Wing was forced to retreat before they could destabilize the sector's Ether currents."
 		"acero_stage_3":
 			victory_sub_label.text = "The Calm Threshold Held // Act I Campaign Complete\nAgainst the encroaching Calm, Admiral Vane's veteran squadron broke the coalition vanguard and anchored the Sluice Wall."
+		"acero_stage_4":
+			victory_sub_label.text = "Iron Gate Tertius Secured // Act I Climax\nThe canal locks have been fortified against corsair raids. Torpedo batteries repelled all fast-skiff incursions."
+		"acero_stage_8":
+			victory_sub_label.text = "Smelter Complex Vulcan-3 Secured // Act II Climax\nHeavy siege bombardment from CNS Crucible cracked the volcanic fortress. Imperial supply lines to the Iron Dam are secure."
+		"acero_stage_11":
+			victory_sub_label.text = "Calm Fracture Rift Secured // Eve of the Final Stand\nAgainst the absolute zero of the void rift, the battle line held fast. Only the final bastion remains to be sealed."
+		"acero_stage_12":
+			victory_sub_label.text = "THE ARMADA OF ACERO HAS WON THE STAR SEA!\nThe great Iron Dam stands unbroken across the galactic rift. The creeping frost of The Calm is permanently halted by human will, steel, and nuclear discipline. The fires of Anvil will burn forever."
 		"vinculados_stage_1":
 			victory_sub_label.text = "Sanctuary Spire Psalm-4 Defended // The Vinculados\nYou have mastered high-agility vector maneuvers, neural barrier defense, and focused resonance beam tactics alongside the Carrier Cradle."
+		"vinculados_stage_3":
+			victory_sub_label.text = "The Genesis Ring Synchronized // Act I Climax\nThe celestial ring's resonance pulse has stabilized the surrounding choir sectors against imperial interference."
+		"vinculados_stage_8":
+			victory_sub_label.text = "Sanctuary Cathedral Awakened // Act II Climax\nThe neural harmonics of the grand choir resonated through the crystal canyons, paving the way for the ultimate ascension."
+		"vinculados_stage_12":
+			victory_sub_label.text = "THE VINCULADOS HAVE TRANSCENDED THE MORTAL SEA!\nThe Seraph-Prime Colossus Mobile Armor and the entire neural chorus have crossed beyond the dying material void into eternal, infinite harmonic resonance. The hymn of souls sings across eternity."
 		"marea_stage_1":
 			victory_sub_label.text = "The Basalt Narrows Cleared // The Free Tide\nYou have navigated the treacherous asteroid gorge, harnessed the Ether rush of El Rio del Viento, and shattered the Acero picket line!"
+		"marea_stage_3":
+			victory_sub_label.text = "Corsair Haven Redoubt Liberated // Act I Climax\nThe imperial blockade of the pirate sanctuary has been broken! Rum, repairs, and fresh quantum sails await the fleet."
+		"marea_stage_8":
+			victory_sub_label.text = "Imperial Fortress Redoubt Shattered // Act II Climax\nHeavy siege bombards dismantled the imperial bastion sluices. The Grand Corsair Armada now controls the approaches to Barlovento."
+		"marea_stage_9":
+			victory_sub_label.text = "Eye of the Maelstrom Claimed // Act III Apex\nSurfing the central vortex currents with 6-sail rigging, the Free Tide seized the ultimate weather gauge over the imperial dreadnoughts."
+		"marea_stage_12":
+			victory_sub_label.text = "THE STAR SEA IS LIBERATED! THE WEATHER GAUGE IS OURS FOREVER!\nThe Grand Corsair Fleet of the Free Tide has broken all chains! The wind howls unbounded through every canal and rift. As long as stars shine in the black, we sail free!"
 		_:
-			victory_sub_label.text = "Sector Psalm-4 // Resonance Well Secured\nThe hostile strike group has been repelled. Your squadron holds control of the local Ether currents."
+			victory_sub_label.text = "Sector Secured // Combat Victory\nThe hostile combatants have been neutralized or forced to retreat. Your squadron commands the sector."
 	victory_sub_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	victory_sub_label.add_theme_font_size_override("font_size", 12)
 	victory_sub_label.add_theme_color_override("font_color", Color(0.85, 0.95, 1.0))

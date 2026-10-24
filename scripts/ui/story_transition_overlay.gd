@@ -253,7 +253,16 @@ func _setup_view() -> void:
 	if bg_path != "" and ResourceLoader.exists(bg_path):
 		_backdrop_rect.texture = load(bg_path)
 
-	_chapter_badge_lbl.text = "✦ %s" % _story_data.get("title", _stage_id.to_upper())
+	var is_final: bool = _stage_id.ends_with("_stage_12") or _story_data.get("is_final_stage", false)
+	if _current_mode == Mode.OUTRO and is_final:
+		_backdrop_rect.modulate = Color(1.0, 1.0, 1.0, 0.90)
+		_chapter_badge_lbl.text = "★ GRAND FINALE // %s" % _story_data.get("title", _stage_id.to_upper())
+		_chapter_badge_lbl.add_theme_color_override("font_color", Color(1.0, 0.88, 0.35))
+	else:
+		_backdrop_rect.modulate = Color(1.0, 1.0, 1.0, 0.40)
+		_chapter_badge_lbl.text = "✦ %s" % _story_data.get("title", _stage_id.to_upper())
+		_chapter_badge_lbl.add_theme_color_override("font_color", HudWidgets.COL_AMBER)
+
 	if _current_mode == Mode.INTRO:
 		_summary_title_lbl.text = "THE SITUATION // WAR SYNOPSIS:"
 		_summary_body_lbl.text = _story_data.get("intro_summary", "")
@@ -261,7 +270,7 @@ func _setup_view() -> void:
 		_dialogue_box.visible = true
 		_skip_btn.visible = true
 	else:
-		_summary_title_lbl.text = "MISSION ACCOMPLISHED // COMBAT AFTERMATH:"
+		_summary_title_lbl.text = "MISSION ACCOMPLISHED // COMBAT AFTERMATH:" if not is_final else "★ THE GRAND CLIMAX // VICTORY EPILOGUE:"
 		_summary_body_lbl.text = _story_data.get("outro_summary", "")
 		_proceed_btn.visible = false
 		_dialogue_box.visible = true
@@ -275,6 +284,19 @@ func _show_beat(index: int) -> void:
 			_dialogue_box.visible = false
 			_proceed_btn.visible = true
 			_skip_btn.visible = false
+			var is_final: bool = _stage_id.ends_with("_stage_12") or _story_data.get("is_final_stage", false)
+			if is_final:
+				_proceed_btn.text = "🏆 CLAIM TOTAL VICTORY // GRAND FLEET HEADQUARTERS"
+				_proceed_btn.custom_minimum_size = Vector2(460, 48)
+				_proceed_btn.position = Vector2(-230, -80)
+				_proceed_btn.add_theme_color_override("font_color", Color(1.0, 0.88, 0.25))
+				_backdrop_rect.modulate = Color(1.0, 1.0, 1.0, 1.0)
+				_summary_panel.visible = true
+				_summary_title_lbl.text = "★ GRAND CAMPAIGN ACCOMPLISHED // THE STAR SEA IS WON ★"
+				_summary_body_lbl.text = _story_data.get("outro_summary", "")
+				AudioManager.play_victory_fanfare(0.0)
+			else:
+				_proceed_btn.text = "▶ PROCEED TO NEXT STAGE BRIEFING"
 		else:
 			_finish_story()
 		return

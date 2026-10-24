@@ -13,7 +13,7 @@ static func _init_database() -> void:
 		"title": "ACT I // STAGE 01 [TUTORIAL]: DEFENSE OF SLUICE STATION WELL-09",
 		"faction": "acero",
 		"act": 1,
-		"backdrop": "res://assets/factions/acero_stage1_briefing.png",
+		"backdrop": "res://assets/cinematics/prologue_manga.png",
 		"intro_summary": "WAR LOG // SECTOR ANVIL: Free Tide corsairs have slipped through the outer basalt reef to sever Sluice Station Well-09. Without this ether conduit, the orbital foundries will stall. Admiral Vane leads the line-of-battle to anchor the perimeter.",
 		"intro_dialogue": [
 			{"speaker": "Adm. Vane", "role": "Fleet Admiral // CNS Iron Bastion", "portrait": "res://assets/heroes/ace_vane.png", "side": "left", "text": "All hands, sound general quarters. Corsair raiders are bearing down on Well-09. We form the anvil that shatters their sails."},
@@ -82,7 +82,7 @@ static func _init_database() -> void:
 		"title": "ACT II // STAGE 05: SIEGE OF THE OBSIDIAN SLUICE",
 		"faction": "acero",
 		"act": 2,
-		"backdrop": "res://assets/briefings/acero_act2.png",
+		"backdrop": "res://assets/cinematics/act2_transition.png",
 		"intro_summary": "WAR LOG // OBSIDIAN SLUICE: The Grand Fleet has arrived at the colossal volcanic trenches. Admiral Tarek anchors the line aboard the heavy siege monitor CNS Crucible.",
 		"intro_dialogue": [
 			{"speaker": "Adm. Tarek", "role": "Siege Master // CNS Crucible", "portrait": "res://assets/heroes/ace_tarek.png", "side": "right", "text": "Vane! Good to have your dreadnought beside us. My heavy plasma mortar needs a solid screening line while we crack the corsair redoubts."},
@@ -201,16 +201,22 @@ static func _init_database() -> void:
 		"title": "ACT III // STAGE 12: THE IRON DAM // THE FINAL REDOUBT",
 		"faction": "acero",
 		"act": 3,
-		"backdrop": "res://assets/briefings/acero_dam.png",
+		"backdrop": "res://assets/epilogue/acero_ending.png",
+		"is_final_stage": true,
 		"intro_summary": "WAR LOG // THE IRON DAM: The ultimate battle for the preservation of humanity's cradle. The Armada forms an unbroken line of steel across the dying sea.",
 		"intro_dialogue": [
 			{"speaker": "Adm. Vane", "role": "Fleet Admiral // CNS Iron Bastion", "portrait": "res://assets/heroes/ace_vane.png", "side": "left", "text": "Brothers and sisters of Acero. Beyond us lies the total stillness of cosmic extinction. Behind us lies every furnace, every home, every child of humanity. We do not step back."},
-			{"speaker": "Capt. Korr", "role": "Battlecruiser Lead // CNS Hammer", "portrait": "res://assets/heroes/ace_korr.png", "side": "right", "text": "We do not step back, Admiral! For the Armada! For the Iron Dam!"},
-			{"speaker": "Adm. Vane", "role": "Fleet Admiral // CNS Iron Bastion", "portrait": "res://assets/heroes/ace_vane.png", "side": "left", "text": "All ships... FULL SALVO! STEEL ENDURES!"},
+			{"speaker": "Grand Marshall Kurtz", "role": "Supreme Commander // CNS Imperator", "portrait": "res://assets/heroes/ace_kurtz.png", "side": "right", "text": "The Juggernaut Imperator has locked anchors! All spinal casemates at maximum excitation! When the Calm rushes this rift, we meet it with thirty gigatons of steel!"},
+			{"speaker": "Capt. Korr", "role": "Battlecruiser Lead // CNS Hammer", "portrait": "res://assets/heroes/ace_korr.png", "side": "right", "text": "All wings report battle readiness, Admiral! We will hold the gate or burn the stars trying!"},
+			{"speaker": "Adm. Vane", "role": "Fleet Admiral // CNS Iron Bastion", "portrait": "res://assets/heroes/ace_vane.png", "side": "left", "text": "All ships... FULL SALVO! FOR HUMANITY! STEEL ENDURES!"},
 		],
-		"outro_summary": "VICTORY COMPLETE: The Iron Dam has been sealed! The Calm is held at bay by an insurmountable bastion of gunmetal and nuclear fire. The Armada has saved civilization.",
+		"outro_summary": "VICTORY COMPLETE: The Iron Dam has been permanently sealed! The freezing frost of The Calm is held at bay by an insurmountable bastion of gunmetal and nuclear fire. The Armada has saved civilization.",
 		"outro_dialogue": [
-			{"speaker": "Adm. Vane", "role": "Fleet Admiral // CNS Iron Bastion", "portrait": "res://assets/heroes/ace_vane.png", "side": "left", "text": "The gates are locked. The ether flows through our regulated sluices. Humanity will survive the dark. Well done, armada. Stand down from battle stations."},
+			{"speaker": "Capt. Korr", "role": "Battlecruiser Lead // CNS Hammer", "portrait": "res://assets/heroes/ace_korr.png", "side": "right", "text": "Admiral! The hydraulic locks have engaged! The final sluice gate is sealed shut across the entire rift!"},
+			{"speaker": "Adm. Vane", "role": "Fleet Admiral // CNS Iron Bastion", "portrait": "res://assets/heroes/ace_vane.png", "side": "left", "text": "Look at the telemetry. The Calm is breaking against our ramparts like spray against an iron cliff. It cannot pass."},
+			{"speaker": "Grand Marshall Kurtz", "role": "Supreme Commander // CNS Imperator", "portrait": "res://assets/heroes/ace_kurtz.png", "side": "right", "text": "Refined eteron is flowing into the arterial pipelines. Every foundry on Anvil, every station in the cradle of mankind is roaring with heat and light."},
+			{"speaker": "Adm. Vane", "role": "Fleet Admiral // CNS Iron Bastion", "portrait": "res://assets/heroes/ace_vane.png", "side": "left", "text": "Let history record this day. In a dying universe, we did not weep or beg the void for mercy. We took our hammers, we poured our steel, and we built an eternal fortress against the dark."},
+			{"speaker": "Grand Marshall Kurtz", "role": "Supreme Commander // CNS Imperator", "portrait": "res://assets/heroes/ace_kurtz.png", "side": "right", "text": "All fleets... present arms to the Line of Battle. The Star Sea is secured. Steel endures forever!"},
 		]
 	}
 
@@ -218,7 +224,7 @@ static func _init_database() -> void:
 		"title": "ACT I // STAGE 01 [TUTORIAL]: DEFENSE OF SANCTUARY SPIRE PSALM-4",
 		"faction": "vinculados",
 		"act": 1,
-		"backdrop": "res://assets/briefings/vinculados_act1.png",
+		"backdrop": "res://assets/cinematics/prologue_manga.png",
 		"intro_summary": "CHOIR RECORD // SANCTUARY PSALM-4: Imperial corsair pickets are attempting to dismantle the harmonic resonance crystal spires. Ace Kaelen-7 launches the Eidolon Mobile Suit Platoon to protect the sacred harmonics.",
 		"intro_dialogue": [
 			{"speaker": "Ace Kaelen-7", "role": "Choir Flight Lead // Eidolon Prime", "portrait": "res://assets/heroes/ace_kaelen.png", "side": "left", "text": "Conductor Seraph, neural link synchronized. The choir sings clearly today. Intercepting imperial raiders."},
@@ -406,16 +412,22 @@ static func _init_database() -> void:
 		"title": "ACT III // STAGE 12: SYMPHONY OF THE STAR SEA // THE ASCENSION",
 		"faction": "vinculados",
 		"act": 3,
-		"backdrop": "res://assets/briefings/vinculados_ascension.png",
+		"backdrop": "res://assets/epilogue/vinculados_ending.png",
+		"is_final_stage": true,
 		"intro_summary": "CHOIR RECORD // THE ASCENSION: All choirs united. The Vinculados cross beyond the dying Star Sea into higher dimensional resonance.",
 		"intro_dialogue": [
 			{"speaker": "Ace Kaelen-7", "role": "Choir Flight Lead // Eidolon Prime", "portrait": "res://assets/heroes/ace_kaelen.png", "side": "left", "text": "The gateway opens! Sing, pilots of the Choir! We cross beyond the dying wind into eternity!"},
-			{"speaker": "Ace Mirei-4", "role": "High-Speed Interceptor // Anima-01", "portrait": "res://assets/heroes/ace_mirei.png", "side": "right", "text": "Our wings are bathed in light! We are flying beyond the Calm!"},
-			{"speaker": "Ace Kaelen-7", "role": "Choir Flight Lead // Eidolon Prime", "portrait": "res://assets/heroes/ace_kaelen.png", "side": "left", "text": "Farewell to the sea of stars. We are eternal."},
+			{"speaker": "Conductor Seraph-2", "role": "Carrier Ark // Sanktuario Albor", "portrait": "res://assets/heroes/ace_seraph.png", "side": "left", "text": "The Seraph-Prime Colossus has reached harmonic equilibrium. Six celestial energy wings have unfurled across the starfield."},
+			{"speaker": "Ace Mirei-4", "role": "High-Speed Interceptor // Anima-01", "portrait": "res://assets/heroes/ace_mirei.png", "side": "right", "text": "Our frames are vibrating with the soul of the Éther! We are shedding physical limits!"},
+			{"speaker": "Ace Kaelen-7", "role": "Choir Flight Lead // Eidolon Prime", "portrait": "res://assets/heroes/ace_kaelen.png", "side": "left", "text": "All wings, release fin funnels into choral alignment. Let our melody guide all souls across the threshold!"},
 		],
 		"outro_summary": "VICTORY COMPLETE: The Great Ascension is achieved! The Vinculados have transcended the mortal realm, leaving behind an eternal hymn that echoes across the cosmos.",
 		"outro_dialogue": [
-			{"speaker": "Conductor Seraph-2", "role": "Carrier Ark // Sanktuario Albor", "portrait": "res://assets/heroes/ace_seraph.png", "side": "left", "text": "The Choir has reached the other side. Peace descends upon the soul."},
+			{"speaker": "Ace Kaelen-7", "role": "Transcendent Pilot // Eidolon Prime", "portrait": "res://assets/heroes/ace_kaelen.png", "side": "left", "text": "Look back one last time, my brothers and sisters. The dying sea, the cold iron, the mortal struggles... they fade like mist before dawn."},
+			{"speaker": "Conductor Seraph-2", "role": "Ascended Conductor // Celestial Ark", "portrait": "res://assets/heroes/ace_seraph.png", "side": "left", "text": "Our consciousness has woven into the quintessence of the universe. There is no decay here. No hunger. No Calm."},
+			{"speaker": "Ace Mirei-4", "role": "Ascended Soul // Anima Choral", "portrait": "res://assets/heroes/ace_mirei.png", "side": "right", "text": "The music... it is so vast. Every star that ever burned is singing with us."},
+			{"speaker": "Ace Kaelen-7", "role": "Transcendent Pilot // Eidolon Prime", "portrait": "res://assets/heroes/ace_kaelen.png", "side": "left", "text": "To those we leave behind in the black: do not despair. The soul cannot be killed by silence. We await you beyond the stars."},
+			{"speaker": "Conductor Seraph-2", "role": "Ascended Conductor // Celestial Ark", "portrait": "res://assets/heroes/ace_seraph.png", "side": "left", "text": "The Choir has ascended. Peace, eternal peace, descends upon the Star Sea."},
 		]
 	}
 
@@ -423,7 +435,7 @@ static func _init_database() -> void:
 		"title": "ACT I // STAGE 01 [TUTORIAL]: THE BASALT NARROWS",
 		"faction": "marea_libre",
 		"act": 1,
-		"backdrop": "res://assets/briefings/marea_act1.png",
+		"backdrop": "res://assets/cinematics/prologue_manga.png",
 		"intro_summary": "CORSAIR LOG // BASALT NARROWS: Imperial blockades are choking the haven of the Free Tide. Captain Solano commands the void-galleon Viento Rojo to catch the ether rapids and break the blockade.",
 		"intro_dialogue": [
 			{"speaker": "Capt. Solano", "role": "Corsair Flagship // Viento Rojo", "portrait": "res://assets/heroes/ace_solano.png", "side": "left", "text": "Unfurl the quantum sails, sea dogs! Catch the rapids of El R\u00edo del Viento, claim the Weather-Gauge [BARLOVENTO], and sweep their flanks with full broadsides!"},
@@ -611,16 +623,22 @@ static func _init_database() -> void:
 		"title": "ACT III // STAGE 12: THE SOVEREIGN OCEAN // THE FINAL GALE",
 		"faction": "marea_libre",
 		"act": 3,
-		"backdrop": "res://assets/briefings/marea_act3.png",
+		"backdrop": "res://assets/epilogue/marea_ending.png",
+		"is_final_stage": true,
 		"intro_summary": "CORSAIR LOG // THE SOVEREIGN OCEAN: The entire Star Sea reclaimed for freedom. The Grand Corsair Armada claims the ultimate weather gauge [BARLOVENTO].",
 		"intro_dialogue": [
 			{"speaker": "Barbanegra", "role": "Supreme Void Corsair // Soberano del Mar", "portrait": "res://assets/heroes/ace_barbanegra.png", "side": "left", "text": "Unfurl the royal sails of the Soberano! As long as the wind blows across the void, NO EMPEROR, NO CHATTERING AI, NO MAN OWNS THE SEA!"},
-			{"speaker": "Capt. Solano", "role": "Corsair Flagship // Viento Rojo", "portrait": "res://assets/heroes/ace_solano.png", "side": "right", "text": "All ships, full broadsides! Ride the eternal gale! LIBERTY ON THE STAR SEA!"},
-			{"speaker": "Commodore Marina", "role": "Heavy Frigate // El Gavil\u00e1n", "portrait": "res://assets/heroes/ace_marina.png", "side": "left", "text": "BARLOVENTO! FIRE!"},
+			{"speaker": "Commodore Marina", "role": "Heavy Frigate // El Gavilán", "portrait": "res://assets/heroes/ace_marina.png", "side": "left", "text": "All corsair wings in formation! Bombards loaded, broadside ports open, and quantum rigging tuned to the gale!"},
+			{"speaker": "Capt. Solano", "role": "Corsair Flagship // Viento Rojo", "portrait": "res://assets/heroes/ace_solano.png", "side": "right", "text": "All ships, full broadsides! Ride the apex storm! LIBERTY ON THE STAR SEA!"},
+			{"speaker": "Barbanegra", "role": "Supreme Void Corsair // Soberano del Mar", "portrait": "res://assets/heroes/ace_barbanegra.png", "side": "left", "text": "BARLOVENTO! CRACK THEIR DAMS AND LET THE OCEAN ROAR!"},
 		],
 		"outro_summary": "VICTORY COMPLETE: The Star Sea is liberated! The wind howls free through every canal and rift. The Free Tide reigns sovereign across the infinite ocean.",
 		"outro_dialogue": [
-			{"speaker": "Capt. Solano", "role": "Corsair Flagship // Viento Rojo", "portrait": "res://assets/heroes/ace_solano.png", "side": "right", "text": "The sea is ours, brothers and sisters! As long as stars shine in the black, we sail free!"},
+			{"speaker": "Capt. Solano", "role": "Corsair Flagship // Viento Rojo", "portrait": "res://assets/heroes/ace_solano.png", "side": "right", "text": "THE DAMS ARE SHATTERED! Look at the current rushing through the rift! The Star Sea is awakening!"},
+			{"speaker": "Commodore Marina", "role": "Heavy Frigate // El Gavilán", "portrait": "res://assets/heroes/ace_marina.png", "side": "left", "text": "The cyan tide is rolling across lightyears! The Calm is retreating, shattered into a billion glittering crystals!"},
+			{"speaker": "Barbanegra", "role": "Supreme Void Corsair // Soberano del Mar", "portrait": "res://assets/heroes/ace_barbanegra.png", "side": "left", "text": "HA! What did I tell you, lads and lasses?! The wind cannot be bound in chains! It belongs to those with the courage to unfurl their sails and ride the tempest!"},
+			{"speaker": "Capt. Solano", "role": "Corsair Flagship // Viento Rojo", "portrait": "res://assets/heroes/ace_solano.png", "side": "right", "text": "Fire the victory flares! Pour the rum across the quarterdecks! Every void-corsair from here to the galactic rim is singing tonight!"},
+			{"speaker": "Barbanegra", "role": "Supreme Void Corsair // Soberano del Mar", "portrait": "res://assets/heroes/ace_barbanegra.png", "side": "left", "text": "Set helm for the open horizon! As long as the breath of the cosmos flows, we sail free! VIVA BARLOVENTO!"},
 		]
 	}
 

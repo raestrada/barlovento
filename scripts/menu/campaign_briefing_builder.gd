@@ -85,11 +85,17 @@ static func populate_acero(menu: Control, stage_id: String) -> void:
 
 	var art_path := "res://assets/briefings/acero_act1.png"
 	if cur_num == 1:
-		art_path = "res://assets/factions/acero_stage1_briefing.png"
+		art_path = "res://assets/cinematics/prologue_manga.png"
+	elif cur_num == 5:
+		art_path = "res://assets/cinematics/act2_transition.png"
 	elif cur_num == 6:
 		art_path = "res://assets/briefings/acero_forge.png"
-	elif cur_num in [11, 12]:
+	elif cur_num == 9:
+		art_path = "res://assets/cinematics/act3_climax.png"
+	elif cur_num == 11:
 		art_path = "res://assets/briefings/acero_dam.png"
+	elif cur_num == 12:
+		art_path = "res://assets/epilogue/acero_ending.png"
 	elif cur_num >= 9:
 		art_path = "res://assets/briefings/acero_act3.png"
 	elif cur_num >= 5:
@@ -240,10 +246,16 @@ static func populate_vinculados(menu: Control, stage_id: String) -> void:
 	var act_str := "ACT I" if cur_num <= 4 else ("ACT II" if cur_num <= 8 else "ACT III")
 
 	var art_path := "res://assets/briefings/vinculados_act1.png"
-	if cur_num == 3:
+	if cur_num == 1:
+		art_path = "res://assets/cinematics/prologue_manga.png"
+	elif cur_num == 3:
 		art_path = "res://assets/briefings/vinculados_genesis.png"
+	elif cur_num == 5:
+		art_path = "res://assets/cinematics/act2_transition.png"
+	elif cur_num == 9:
+		art_path = "res://assets/cinematics/act3_climax.png"
 	elif cur_num == 12:
-		art_path = "res://assets/briefings/vinculados_ascension.png"
+		art_path = "res://assets/epilogue/vinculados_ending.png"
 	elif cur_num >= 8:
 		art_path = "res://assets/briefings/vinculados_act3.png"
 	elif cur_num >= 4:
@@ -389,10 +401,20 @@ static func populate_marea(menu: Control, stage_id: String) -> void:
 	var act_str := "ACT I" if cur_num <= 4 else ("ACT II" if cur_num <= 8 else "ACT III")
 
 	var art_path := "res://assets/briefings/marea_act1.png"
-	if cur_num == 3:
-		art_path = "res://assets/briefings/marea_maelstrom.png"
+	if cur_num == 1:
+		art_path = "res://assets/cinematics/prologue_manga.png"
+	elif cur_num == 3:
+		art_path = "res://assets/briefings/marea_act1.png"
 	elif cur_num == 5:
+		art_path = "res://assets/cinematics/act2_transition.png"
+	elif cur_num == 9:
+		art_path = "res://assets/cinematics/act3_climax.png"
+	elif cur_num == 10:
+		art_path = "res://assets/briefings/marea_maelstrom.png"
+	elif cur_num == 11:
 		art_path = "res://assets/briefings/marea_soberano.png"
+	elif cur_num == 12:
+		art_path = "res://assets/epilogue/marea_ending.png"
 	elif cur_num >= 8:
 		art_path = "res://assets/briefings/marea_act3.png"
 	elif cur_num >= 4:

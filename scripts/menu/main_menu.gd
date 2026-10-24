@@ -320,13 +320,13 @@ func _build_title_view() -> void:
 	sc_vbox.add_child(badge_row)
 
 	var act_badge := Label.new()
-	act_badge.text = "[FEATURED CAMPAIGN // ACT I]"
+	act_badge.text = "[CAMPAIGN SAGA // 36 STAGES]"
 	act_badge.add_theme_font_size_override("font_size", 12)
 	act_badge.add_theme_color_override("font_color", Color(1.0, 0.62, 0.22))
 	badge_row.add_child(act_badge)
 
 	var act_title := Label.new()
-	act_title.text = "THE ARMADA OF ACERO — \"STEEL ENDURES\""
+	act_title.text = "THE WAR FOR THE STAR SEA — \"EL ÚLTIMO VIENTO\""
 	act_title.add_theme_font_size_override("font_size", 15)
 	act_title.add_theme_color_override("font_color", Color(0.95, 0.97, 1.0))
 	badge_row.add_child(act_title)
@@ -336,9 +336,9 @@ func _build_title_view() -> void:
 	sc_vbox.add_child(art_holder)
 
 	var stage_art := TextureRect.new()
-	var st_tex: Texture2D = load("res://assets/factions/acero_stage1_briefing.png")
+	var st_tex: Texture2D = load("res://assets/cinematics/prologue_manga.png")
 	if st_tex == null:
-		st_tex = load("res://assets/ships/acero/dreadnought_concept.png")
+		st_tex = load("res://assets/splash/cover.png")
 	stage_art.texture = st_tex
 	stage_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	stage_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
@@ -347,7 +347,7 @@ func _build_title_view() -> void:
 	art_holder.add_child(stage_art)
 
 	var sc_desc := Label.new()
-	sc_desc.text = "STAGE 01: DEFENSE OF SLUICE STATION WELL-09 — Command Fleet Admiral Vane aboard the Anvil-class Dreadnought CNS Iron Bastion. Hold the line of battle above the Éther river and repel Captain Solano's Free Tide corsair raid."
+	sc_desc.text = "The Star Sea is fading under the encroaching frost of The Calm. Command the battle lines across 36 epic campaign stages. Master Newtonian vector inertia, directional armor angling, and Gundam-style hero aces in full 3D tactical combat."
 	sc_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	sc_desc.add_theme_font_size_override("font_size", 12)
 	sc_desc.add_theme_color_override("font_color", Color(0.82, 0.90, 0.98))
@@ -526,7 +526,13 @@ func _create_faction_card(
 	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top_row.add_child(sp)
 
-	if is_featured:
+	if SaveManager.is_stage_completed(fac_id + "_stage_12"):
+		var won_lbl := Label.new()
+		won_lbl.text = "🏆 CAMPAIGN CONQUERED"
+		won_lbl.add_theme_font_size_override("font_size", 10)
+		won_lbl.add_theme_color_override("font_color", Color(1.0, 0.88, 0.25))
+		top_row.add_child(won_lbl)
+	elif is_featured:
 		var feat := Label.new()
 		feat.text = "★ RECOMMENDED ACT I"
 		feat.add_theme_font_size_override("font_size", 10)
