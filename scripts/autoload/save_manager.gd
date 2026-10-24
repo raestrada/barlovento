@@ -151,6 +151,13 @@ func get_next_stage_id(stage_id: String) -> String:
         _:
             return ""
 
+func unlock_stage(stage_id: String) -> void:
+    if stage_id.is_empty():
+        return
+    unlocked_stages[stage_id] = true
+    last_stage_id = stage_id
+    save_campaign()
+
 func is_stage_unlocked(stage_id: String) -> bool:
     return bool(unlocked_stages.get(stage_id, false))
 
