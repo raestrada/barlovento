@@ -1,5 +1,5 @@
 class_name ShipModelBuilder
-extends RefCounted
+extends ProceduralMeshPrimitives
 
 static func build(ship: Ship, root: Node3D, thruster_lights: Array[Node3D]) -> void:
 	match ship.faction:

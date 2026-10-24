@@ -130,7 +130,8 @@ func _build_asteroid_field() -> void:
 	var stage_id := LoreDB.current_stage_id
 
 	var rock_mat := StandardMaterial3D.new()
-	rock_mat.albedo_texture = load("res://assets/backgrounds/asteroid_rock.png")
+	if ResourceLoader.exists("res://assets/backgrounds/asteroid_rock.png"):
+		rock_mat.albedo_texture = load("res://assets/backgrounds/asteroid_rock.png")
 	if is_vinc:
 		rock_mat.albedo_color = Color(0.42, 0.44, 0.58)
 		rock_mat.metallic = 0.35
@@ -829,7 +830,7 @@ func _build_vinculados_sanctuary_spire(pos: Vector3 = Vector3(36.0, 8.0, -35.0),
 	frame_dark.metallic = 0.72
 	frame_dark.roughness = 0.36
 
-	var soul_core_mat := ShipModelBuilder._get_soul_core_material()
+	var soul_core_mat := ProceduralMeshPrimitives._get_soul_core_material()
 
 	var cyan_glow := StandardMaterial3D.new()
 	cyan_glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -1078,7 +1079,7 @@ func _build_marea_corsair_haven(pos: Vector3 = Vector3(-26.0, 0.0, 4.0), rot: Ve
 	glass_dome.emission = Color(0.92, 0.56, 0.18)
 	glass_dome.emission_energy_multiplier = 0.75
 
-	var sail_mat := ShipModelBuilder._get_quantum_sail_material()
+	var sail_mat := ProceduralMeshPrimitives._get_quantum_sail_material()
 
 	# Dedicated Haven Illumination Lights (Warm Tavern Glow + Azure River Refraction)
 	var tavern_light := OmniLight3D.new()
@@ -1326,9 +1327,9 @@ func _build_acero_calm_bastion(pos: Vector3 = Vector3(-28.0, 0.0, 8.0), rot: Vec
 		t_box.size = Vector3(1.6, 1.4, 6.0)
 		turret.mesh = t_box
 		turret.position = Vector3(cos(ang) * 7.5, 1.0, sin(ang) * 7.5)
-		turret.look_at(_stage_landmark_root.global_position + Vector3(cos(ang) * 20.0, 1.0, sin(ang) * 20.0))
 		turret.material_override = dark_steel
 		_stage_landmark_root.add_child(turret)
+		turret.look_at(_stage_landmark_root.global_position + Vector3(cos(ang) * 20.0, 1.0, sin(ang) * 20.0))
 
 		var glow_tip := MeshInstance3D.new()
 		var gt_sph := SphereMesh.new()
@@ -1462,7 +1463,7 @@ func _build_vinculados_genesis_ring(pos: Vector3 = Vector3(-28.0, 4.0, 5.0), rot
 	ceramic.rim_enabled = true
 	ceramic.rim = 0.7
 
-	var soul_mat := ShipModelBuilder._get_soul_core_material()
+	var soul_mat := ProceduralMeshPrimitives._get_soul_core_material()
 
 	var cyan_mat := StandardMaterial3D.new()
 	cyan_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -1517,9 +1518,9 @@ func _build_vinculados_genesis_ring(pos: Vector3 = Vector3(-28.0, 4.0, 5.0), rot
 		p_box.size = Vector3(1.2, 0.8, 8.0)
 		pylon.mesh = p_box
 		pylon.position = Vector3(cos(ang) * 12.0, 0.0, sin(ang) * 12.0)
-		pylon.look_at(_stage_landmark_root.global_position)
 		pylon.material_override = ceramic
 		outer_root.add_child(pylon)
+		pylon.look_at(_stage_landmark_root.global_position)
 
 	var station_lbl := Label3D.new()
 	station_lbl.text = "✦ THE GENESIS RING\n[TRANSCENDENCE THRESHOLD GATE]"
