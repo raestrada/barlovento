@@ -710,7 +710,7 @@ func _on_ace_resolve_finished() -> void:
 
 func _advance_calm_wavefront() -> void:
 	var tw := create_tween().set_parallel(true)
-	var avg_growth := _environment.advance_calm_wavefront(tw)
+	var avg_growth: float = _environment.advance_calm_wavefront(tw)
 	if avg_growth > 0.0:
 		_add_combat_log("🌊 THE CALM DILATES: Dimensional fluid seeps expand (+%.1fm across flanks)!" % avg_growth, Color(0.85, 0.45, 0.98))
 		AudioManager.play_sfx("shield", -10.0)
@@ -1852,7 +1852,7 @@ func _update_hud_telemetry() -> void:
 		if check["in_calm"]:
 			_ace_panel.set_calm_status("⚠ BECALMED IN CALM SEEP (-15 SHLD)", true)
 		else:
-			var info := _environment.get_nearest_calm_info(_selected_ship.global_position)
+			var info: Dictionary = _environment.get_nearest_calm_info(_selected_ship.global_position)
 			if info["name"] != "":
 				_ace_panel.set_calm_status("CALM SEEP: %.0fm (%s)" % [info["distance"], info["name"]], false)
 			else:

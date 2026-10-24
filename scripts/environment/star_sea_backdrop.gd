@@ -702,82 +702,82 @@ static func _create_star_sea_sky_material() -> ShaderMaterial:
 shader_type sky;
 
 float hash(vec3 p) {
-    p = fract(p * vec3(443.897, 441.423, 437.195));
-    p += dot(p, p.yzx + 19.19);
-    return fract((p.x + p.y) * p.z);
+	p = fract(p * vec3(443.897, 441.423, 437.195));
+	p += dot(p, p.yzx + 19.19);
+	return fract((p.x + p.y) * p.z);
 }
 
 float noise(vec3 p) {
-    vec3 i = floor(p);
-    vec3 f = fract(p);
-    f = f * f * (3.0 - 2.0 * f);
-    return mix(
-        mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x),
-            mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
-        mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
-            mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y),
-        f.z
-    );
+	vec3 i = floor(p);
+	vec3 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(
+		mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x),
+			mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+		mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
+			mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y),
+		f.z
+	);
 }
 
 float fbm(vec3 p) {
-    float v = 0.0;
-    float a = 0.5;
-    for (int i = 0; i < 4; i++) {
-        v += a * noise(p);
-        p = p * 2.03 + vec3(13.7, 29.1, 7.3);
-        a *= 0.5;
-    }
-    return v;
+	float v = 0.0;
+	float a = 0.5;
+	for (int i = 0; i < 4; i++) {
+		v += a * noise(p);
+		p = p * 2.03 + vec3(13.7, 29.1, 7.3);
+		a *= 0.5;
+	}
+	return v;
 }
 
 void sky() {
-    vec3 dir = normalize(EYEDIR);
-    float t = TIME * 0.04;
+	vec3 dir = normalize(EYEDIR);
+	float t = TIME * 0.04;
 
-    // 1. Deep Star Sea Base Gradient (Abyssal Indigo to Deep Teal)
-    vec3 col = mix(vec3(0.008, 0.014, 0.032), vec3(0.018, 0.042, 0.085), clamp(1.0 - abs(dir.y), 0.0, 1.0));
+	// 1. Deep Star Sea Base Gradient (Abyssal Indigo to Deep Teal)
+	vec3 col = mix(vec3(0.008, 0.014, 0.032), vec3(0.018, 0.042, 0.085), clamp(1.0 - abs(dir.y), 0.0, 1.0));
 
-    // 2. Volumetric Multi-Octave Nebula Clouds
-    float n1 = fbm(dir * 3.2 + vec3(t * 0.4, -t * 0.2, t * 0.3));
-    float n2 = fbm(dir * 6.5 - vec3(t * 0.3, t * 0.5, -t * 0.2));
-    float neb_mask = smoothstep(0.44, 0.84, n1 * 0.65 + n2 * 0.35);
-    vec3 neb_cyan = vec3(0.07, 0.38, 0.58) * neb_mask * 0.38;
-    vec3 neb_ember = vec3(0.55, 0.24, 0.08) * smoothstep(0.58, 0.88, n2) * smoothstep(-0.2, 0.6, dir.x) * 0.28;
-    col += neb_cyan + neb_ember;
+	// 2. Volumetric Multi-Octave Nebula Clouds
+	float n1 = fbm(dir * 3.2 + vec3(t * 0.4, -t * 0.2, t * 0.3));
+	float n2 = fbm(dir * 6.5 - vec3(t * 0.3, t * 0.5, -t * 0.2));
+	float neb_mask = smoothstep(0.44, 0.84, n1 * 0.65 + n2 * 0.35);
+	vec3 neb_cyan = vec3(0.07, 0.38, 0.58) * neb_mask * 0.38;
+	vec3 neb_ember = vec3(0.55, 0.24, 0.08) * smoothstep(0.58, 0.88, n2) * smoothstep(-0.2, 0.6, dir.x) * 0.28;
+	col += neb_cyan + neb_ember;
 
-    // 3. Dynamic Undulating Éther Aurora Currents across the ecliptic plane
-    float wave = sin(dir.x * 5.0 + dir.z * 3.0 + TIME * 0.25) * 0.14;
-    float band = exp(-pow((dir.y - wave) * 5.2, 2.0));
-    float aurora_noise = fbm(vec3(dir.xz * 8.0, TIME * 0.18));
-    vec3 ether_aurora = mix(vec3(0.08, 0.52, 0.72), vec3(0.32, 0.78, 0.88), aurora_noise) * band * smoothstep(0.38, 0.80, aurora_noise) * 0.42;
-    col += ether_aurora;
+	// 3. Dynamic Undulating Éther Aurora Currents across the ecliptic plane
+	float wave = sin(dir.x * 5.0 + dir.z * 3.0 + TIME * 0.25) * 0.14;
+	float band = exp(-pow((dir.y - wave) * 5.2, 2.0));
+	float aurora_noise = fbm(vec3(dir.xz * 8.0, TIME * 0.18));
+	vec3 ether_aurora = mix(vec3(0.08, 0.52, 0.72), vec3(0.32, 0.78, 0.88), aurora_noise) * band * smoothstep(0.38, 0.80, aurora_noise) * 0.42;
+	col += ether_aurora;
 
-    // 4. The Calm (La Calma) — Encroaching dark decay front on the northern horizon (-Z)
-    float calm_front = smoothstep(-0.25, -0.85, dir.z) * exp(-abs(dir.y) * 2.2);
-    float calm_vein = smoothstep(0.68, 0.76, fbm(dir * 10.0 + vec3(0.0, 0.0, TIME * 0.35)));
-    col = mix(col, vec3(0.012, 0.004, 0.020), calm_front * 0.75);
-    col += vec3(0.48, 0.10, 0.38) * calm_front * calm_vein * (0.6 + 0.4 * sin(TIME * 2.5));
+	// 4. The Calm (La Calma) — Encroaching dark decay front on the northern horizon (-Z)
+	float calm_front = smoothstep(-0.25, -0.85, dir.z) * exp(-abs(dir.y) * 2.2);
+	float calm_vein = smoothstep(0.68, 0.76, fbm(dir * 10.0 + vec3(0.0, 0.0, TIME * 0.35)));
+	col = mix(col, vec3(0.012, 0.004, 0.020), calm_front * 0.75);
+	col += vec3(0.48, 0.10, 0.38) * calm_front * calm_vein * (0.6 + 0.4 * sin(TIME * 2.5));
 
-    // 5. Multi-Layered Twinkling Starfield
-    vec3 star_grid = floor(dir * 260.0);
-    float star_val = hash(star_grid);
-    if (star_val > 0.992) {
-        vec3 star_pos = normalize(star_grid + 0.5);
-        float d = length(dir - star_pos) * 260.0;
-        float twinkle = 0.65 + 0.35 * sin(TIME * (3.0 + fract(star_val * 91.3) * 6.0) + star_val * 100.0);
-        float spark = exp(-d * d * 14.0) * twinkle;
-        vec3 s_col = mix(vec3(0.68, 0.86, 0.98), vec3(0.98, 0.82, 0.58), fract(star_val * 37.0));
-        col += s_col * spark * 1.65;
-    }
+	// 5. Multi-Layered Twinkling Starfield
+	vec3 star_grid = floor(dir * 260.0);
+	float star_val = hash(star_grid);
+	if (star_val > 0.992) {
+		vec3 star_pos = normalize(star_grid + 0.5);
+		float d = length(dir - star_pos) * 260.0;
+		float twinkle = 0.65 + 0.35 * sin(TIME * (3.0 + fract(star_val * 91.3) * 6.0) + star_val * 100.0);
+		float spark = exp(-d * d * 14.0) * twinkle;
+		vec3 s_col = mix(vec3(0.68, 0.86, 0.98), vec3(0.98, 0.82, 0.58), fract(star_val * 37.0));
+		col += s_col * spark * 1.65;
+	}
 
-    // 6. Distant Key Star Corona & Bloom
-    vec3 sun_dir = normalize(vec3(0.45, 0.52, -0.72));
-    float sun_dot = max(dot(dir, sun_dir), 0.0);
-    col += vec3(1.0, 0.88, 0.65) * pow(sun_dot, 180.0) * 2.4;
-    col += vec3(0.28, 0.65, 0.88) * pow(sun_dot, 16.0) * 0.22;
+	// 6. Distant Key Star Corona & Bloom
+	vec3 sun_dir = normalize(vec3(0.45, 0.52, -0.72));
+	float sun_dot = max(dot(dir, sun_dir), 0.0);
+	col += vec3(1.0, 0.88, 0.65) * pow(sun_dot, 180.0) * 2.4;
+	col += vec3(0.28, 0.65, 0.88) * pow(sun_dot, 16.0) * 0.22;
 
-    COLOR = col;
+	COLOR = col;
 }
 """
 	var sm := ShaderMaterial.new()
@@ -791,42 +791,42 @@ static func _create_planet_material() -> ShaderMaterial:
 shader_type spatial;
 
 float hash(vec3 p) {
-    p = fract(p * vec3(443.897, 441.423, 437.195));
-    p += dot(p, p.yzx + 19.19);
-    return fract((p.x + p.y) * p.z);
+	p = fract(p * vec3(443.897, 441.423, 437.195));
+	p += dot(p, p.yzx + 19.19);
+	return fract((p.x + p.y) * p.z);
 }
 
 float noise(vec3 p) {
-    vec3 i = floor(p);
-    vec3 f = fract(p);
-    f = f * f * (3.0 - 2.0 * f);
-    return mix(
-        mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x),
-            mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
-        mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
-            mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y),
-        f.z
-    );
+	vec3 i = floor(p);
+	vec3 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(
+		mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x),
+			mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+		mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x),
+			mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y),
+		f.z
+	);
 }
 
 void fragment() {
-    vec3 p = vec3(UV * 12.0, 1.0);
-    float n = noise(p) * 0.6 + noise(p * 2.5) * 0.3 + noise(p * 6.0) * 0.1;
-    vec3 basalt = mix(vec3(0.06, 0.08, 0.13), vec3(0.16, 0.21, 0.28), n);
+	vec3 p = vec3(UV * 12.0, 1.0);
+	float n = noise(p) * 0.6 + noise(p * 2.5) * 0.3 + noise(p * 6.0) * 0.1;
+	vec3 basalt = mix(vec3(0.06, 0.08, 0.13), vec3(0.16, 0.21, 0.28), n);
 
-    // Molten ember-orange industrial forge-veins & cities on Anvil
-    float forge_veins = smoothstep(0.67, 0.75, noise(p * 3.5 + vec3(TIME * 0.05, 0.0, 0.0)));
-    float pulse = 0.78 + 0.22 * sin(TIME * 2.2 + UV.x * 18.0);
-    vec3 ember_glow = vec3(0.95, 0.42, 0.10) * forge_veins * pulse * 1.45;
+	// Molten ember-orange industrial forge-veins & cities on Anvil
+	float forge_veins = smoothstep(0.67, 0.75, noise(p * 3.5 + vec3(TIME * 0.05, 0.0, 0.0)));
+	float pulse = 0.78 + 0.22 * sin(TIME * 2.2 + UV.x * 18.0);
+	vec3 ember_glow = vec3(0.95, 0.42, 0.10) * forge_veins * pulse * 1.45;
 
-    // Atmospheric cyan Fresnel rim
-    float fresnel = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 3.4);
-    vec3 atmo = vec3(0.18, 0.68, 0.88) * fresnel * 1.15;
+	// Atmospheric cyan Fresnel rim
+	float fresnel = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 3.4);
+	vec3 atmo = vec3(0.18, 0.68, 0.88) * fresnel * 1.15;
 
-    ALBEDO = basalt;
-    ROUGHNESS = 0.72;
-    METALLIC = 0.35;
-    EMISSION = ember_glow + atmo;
+	ALBEDO = basalt;
+	ROUGHNESS = 0.72;
+	METALLIC = 0.35;
+	EMISSION = ember_glow + atmo;
 }
 """
 	var sm := ShaderMaterial.new()
@@ -841,11 +841,11 @@ shader_type spatial;
 render_mode blend_mix, cull_disabled, unshaded;
 
 void fragment() {
-    float bands = 0.5 + 0.5 * sin(UV.y * 62.83 + TIME * 0.4);
-    float fine = 0.5 + 0.5 * cos(UV.y * 180.0 - UV.x * 12.0);
-    vec3 col = mix(vec3(0.16, 0.62, 0.82), vec3(0.85, 0.52, 0.20), smoothstep(0.6, 0.9, fine));
-    ALBEDO = col * 0.95;
-    ALPHA = clamp(bands * 0.28 + fine * 0.14, 0.04, 0.42);
+	float bands = 0.5 + 0.5 * sin(UV.y * 62.83 + TIME * 0.4);
+	float fine = 0.5 + 0.5 * cos(UV.y * 180.0 - UV.x * 12.0);
+	vec3 col = mix(vec3(0.16, 0.62, 0.82), vec3(0.85, 0.52, 0.20), smoothstep(0.6, 0.9, fine));
+	ALBEDO = col * 0.95;
+	ALPHA = clamp(bands * 0.28 + fine * 0.14, 0.04, 0.42);
 }
 """
 	var sm := ShaderMaterial.new()
@@ -860,18 +860,18 @@ shader_type spatial;
 render_mode blend_mix, depth_draw_never, cull_disabled, unshaded;
 
 void vertex() {
-    VERTEX.y += sin(VERTEX.z * 0.08 + TIME * 1.4 + VERTEX.x * 0.2) * 1.15;
+	VERTEX.y += sin(VERTEX.z * 0.08 + TIME * 1.4 + VERTEX.x * 0.2) * 1.15;
 }
 
 void fragment() {
-    float edge_fade = sin(UV.x * 3.14159);
-    float end_fade = sin(UV.y * 3.14159);
-    float stream1 = 0.5 + 0.5 * sin(UV.x * 24.0 + UV.y * 18.0 - TIME * 2.2);
-    float stream2 = 0.5 + 0.5 * cos(UV.x * 14.0 - UV.y * 32.0 + TIME * 1.5);
-    float filament = smoothstep(0.58, 0.95, stream1 * 0.6 + stream2 * 0.4);
-    vec3 col = mix(vec3(0.08, 0.48, 0.68), vec3(0.38, 0.82, 0.92), filament);
-    ALBEDO = col * (0.65 + filament * 0.85);
-    ALPHA = edge_fade * end_fade * (0.06 + filament * 0.18);
+	float edge_fade = sin(UV.x * 3.14159);
+	float end_fade = sin(UV.y * 3.14159);
+	float stream1 = 0.5 + 0.5 * sin(UV.x * 24.0 + UV.y * 18.0 - TIME * 2.2);
+	float stream2 = 0.5 + 0.5 * cos(UV.x * 14.0 - UV.y * 32.0 + TIME * 1.5);
+	float filament = smoothstep(0.58, 0.95, stream1 * 0.6 + stream2 * 0.4);
+	vec3 col = mix(vec3(0.08, 0.48, 0.68), vec3(0.38, 0.82, 0.92), filament);
+	ALBEDO = col * (0.65 + filament * 0.85);
+	ALPHA = edge_fade * end_fade * (0.06 + filament * 0.18);
 }
 """
 	var sm := ShaderMaterial.new()

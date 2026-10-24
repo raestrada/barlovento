@@ -413,8 +413,7 @@ func _build_calm_wavefront() -> void:
 
 		_calm_seeps.append(seep_dict)
 
-var _stage_landmark_root: Node3D = null
-var _landmark_rotators: Array[Dictionary] = []
+# Landmark state declared at class top
 
 func _register_landmark_rotator(node: Node3D, axis: Vector3, speed: float) -> void:
 	_landmark_rotators.append({"node": node, "axis": axis, "speed": speed})

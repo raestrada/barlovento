@@ -2,7 +2,7 @@ class_name AceroModelBuilder
 extends ProceduralMeshPrimitives
 
 static func build(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
-	_build_acero(ship, root, thrusters)
+    _build_acero(ship, root, thrusters)
 
 static func _build_acero(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
     var s := ship.body_size

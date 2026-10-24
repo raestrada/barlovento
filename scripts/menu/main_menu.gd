@@ -807,16 +807,16 @@ func _select_faction_and_open_briefing(fac_id: String) -> void:
     _switch_view(MenuView.BRIEFING)
 
 func _populate_acero_stage_briefing(stage_id: String) -> void:
-	CampaignBriefingBuilder.populate_acero(self, stage_id)
+    CampaignBriefingBuilder.populate_acero(self, stage_id)
 
 func _populate_vinculados_stage_briefing(stage_id: String) -> void:
-	CampaignBriefingBuilder.populate_vinculados(self, stage_id)
+    CampaignBriefingBuilder.populate_vinculados(self, stage_id)
 
 func _populate_marea_stage_briefing(stage_id: String) -> void:
-	CampaignBriefingBuilder.populate_marea(self, stage_id)
+    CampaignBriefingBuilder.populate_marea(self, stage_id)
 
 func _add_squadron_row(ship_id: String, unit_name: String, role_str: String, stats_str: String) -> void:
-	CampaignBriefingBuilder.add_squadron_row(_squadron_vbox, ship_id, unit_name, role_str, stats_str)
+    CampaignBriefingBuilder.add_squadron_row(_squadron_vbox, ship_id, unit_name, role_str, stats_str)
 
 func _launch_campaign_stage() -> void:
     AudioManager.play_sfx("ui_click", -6.0)

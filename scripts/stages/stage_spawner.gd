@@ -7,6 +7,7 @@ var click_cb: Callable
 var right_click_cb: Callable
 var _player_ships: Array[Ship] = []
 var _enemy_ships: Array[Ship] = []
+const PITCH_LIMIT := 1.15
 
 static func spawn_stage(stage_id: String, world_node: Node3D, ether_field: EtherField, clicked_handler: Callable, right_clicked_handler: Callable) -> Dictionary:
 	var spawner := StageSpawner.new()
@@ -874,15 +875,6 @@ func _spawn_fleets() -> void:
 			_player_ships.append(_spawn("acero_dreadnought", Vector3(-6.0, 5.0, 55.0), Vector3.ZERO, 0))
 			_player_ships.append(_spawn("acero_battlecruiser", Vector3(6.0, 2.0, 54.0), Vector3.ZERO, 0))
 			_enemy_ships.append(_spawn("marea_raider", Vector3(-6.0, 4.0, -55.0), Vector3(0.0, 0.0, 4.0), 1))
-
-	_tactical_grid.set_ships(_player_ships + _enemy_ships)
-
-	for p in _player_ships:
-		if p.order.target_speed <= 0.0:
-			p.order.target_speed = minf(10.0, p.state.max_speed * 0.75)
-
-	_set_selected(_player_ships[0])
-	_ace_target = _enemy_ships[0]
 
 func _spawn(id: String, pos: Vector3, vel: Vector3, team: int, rot: Vector3 = Vector3.ZERO, target_spd: float = -1.0) -> Ship:
 	var def := LoreDB.get_ship(id)

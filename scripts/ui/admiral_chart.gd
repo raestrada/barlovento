@@ -139,7 +139,50 @@ func _plan_initial_orders() -> void:
 	_plan_ai_chart_orders()
 
 func _plan_ai_chart_orders() -> void:
-	StrategicGridSolver.plan_ai_chart_orders(enemy_ships, _e_cells, _p_cells, grid_cols, grid_rows, _e_targets)
+	var claimed: Array[Vector2i] = []
+	for i in range(3):
+		var cur := _e_cells[i]
+		var target_p := _p_cells[mini(i, _p_cells.size() - 1)]
+		var best := cur
+		var best_score := -INF
+		for ox in range(-1, 2):
+			for oy in range(-1, 2):
+				var cand := Vector2i(clampi(cur.x + ox, 0, grid_cols - 1), clampi(cur.y + oy, 0, grid_rows - 1))
+				if claimed.has(cand):
+					continue
+				var score := 0.0
+				var dist_to_target := Vector2(cand - target_p).length()
+				score += (14.0 - dist_to_target) * 1.1
+
+				# Hazard avoidance: stay far out of The Calm!
+				if _sector_types.get(cand, "") == "calm":
+					score -= 75.0
+
+				# Contest Éther Conduits (+1 AP reward)
+				if _sector_types.get(cand, "") == "conduit":
+					score += 5.5
+
+				# Contest Barlovento Wind Stream (+Hit & Damage)
+				if _sector_types.get(cand, "") == "wind_stream":
+					score += 4.0
+
+				# Flanking reefs cover
+				if _sector_types.get(cand, "") == "reef":
+					score += 2.2
+
+				# Bias against idling unless holding a strategic conduit
+				if cand == cur and _sector_types.get(cur, "") != "conduit":
+					score -= 3.0
+
+				if score > best_score:
+					best_score = score
+					best = cand
+
+		claimed.append(best)
+		_e_targets[i] = best
+		var dv := Vector2(best - cur)
+		if dv.length_squared() > 0.01:
+			_e_facing[i] = dv.normalized()
 
 func _build_ui() -> void:
 	# Subtle, non-blocking cinematic backdrop with vignette: 3D scene is 100% visible through center
@@ -465,10 +508,112 @@ func _build_ui() -> void:
 	btm_hbox.add_child(_engage_btn)
 
 func _apply_formation_preset_to_targets() -> void:
-	StrategicGridSolver.apply_formation_preset(_active_formation, _p_cells, grid_cols, grid_rows, _p_targets)
+	var center_c := _p_cells[0]
+	match current_formation:
+		Formation.LINE_OF_BATTLE:
+			var target_row := maxi(center_c.y - 1, 0)
+			_p_targets[0] = Vector2i(clampi(center_c.x, 1, grid_cols - 2), target_row)
+			_p_targets[1] = Vector2i(clampi(_p_targets[0].x - 1, 0, grid_cols - 1), target_row)
+			_p_targets[2] = Vector2i(clampi(_p_targets[0].x + 1, 0, grid_cols - 1), target_row)
+		Formation.SPEARHEAD_WEDGE:
+			var lead_row := maxi(center_c.y - 2, 0)
+			_p_targets[0] = Vector2i(clampi(center_c.x, 1, grid_cols - 2), lead_row)
+			_p_targets[1] = Vector2i(clampi(_p_targets[0].x - 1, 0, grid_cols - 1), mini(lead_row + 1, grid_rows - 1))
+			_p_targets[2] = Vector2i(clampi(_p_targets[0].x + 1, 0, grid_cols - 1), mini(lead_row + 1, grid_rows - 1))
+		Formation.FLANKING_PINCER:
+			var pincer_row := maxi(center_c.y - 1, 0)
+			_p_targets[0] = Vector2i(clampi(center_c.x, 2, grid_cols - 3), pincer_row)
+			_p_targets[1] = Vector2i(clampi(_p_targets[0].x - 2, 0, grid_cols - 1), maxi(pincer_row - 1, 0))
+			_p_targets[2] = Vector2i(clampi(_p_targets[0].x + 2, 0, grid_cols - 1), maxi(pincer_row - 1, 0))
+
+	for i in range(3):
+		var dv := Vector2(_p_targets[i] - _p_cells[i])
+		if dv.length_squared() > 0.01:
+			_p_facing[i] = dv.normalized()
 
 func compute_strategic_bonuses() -> Dictionary:
-	return StrategicGridSolver.compute_strategic_bonuses(_p_targets, _p_cells, is_animating_turn, _sector_types, enemy_ships, _e_cells)
+	var wind_cells_held := 0
+	var sluice_held := 0
+	var conduit_held := 0
+	var reef_held := 0
+	for i in range(3):
+		var c := _p_targets[i] if not is_animating_turn else _p_cells[i]
+		var stype: String = _sector_types.get(c, "")
+		if stype == "wind_stream":
+			wind_cells_held += 1
+		elif stype == "sluice":
+			sluice_held += 1
+		elif stype == "conduit":
+			conduit_held += 1
+		elif stype == "reef":
+			reef_held += 1
+
+	var enemy_wind_cells := 0
+	var enemy_conduit_held := 0
+	for i in range(3):
+		if i < enemy_ships.size() and enemy_ships[i] != null and enemy_ships[i].is_destroyed():
+			continue
+		var est: String = _sector_types.get(_e_cells[i], "")
+		if est == "wind_stream":
+			enemy_wind_cells += 1
+		elif est == "conduit":
+			enemy_conduit_held += 1
+
+	var has_barlovento := (wind_cells_held >= 1 and wind_cells_held > enemy_wind_cells)
+	var enemy_barlovento := (enemy_wind_cells >= 1 and enemy_wind_cells > wind_cells_held)
+
+	var min_px := 99
+	var max_px := -99
+	var avg_py := 0.0
+	for i in range(3):
+		var c := _p_targets[i] if not is_animating_turn else _p_cells[i]
+		min_px = mini(min_px, c.x)
+		max_px = maxi(max_px, c.x)
+		avg_py += float(c.y)
+	avg_py /= 3.0
+
+	var avg_ex := 0.0
+	var avg_ey := 0.0
+	for i in range(3):
+		var ec := _e_cells[i]
+		avg_ex += float(ec.x)
+		avg_ey += float(ec.y)
+	avg_ex /= 3.0
+	avg_ey /= 3.0
+
+	var spread_span := max_px - min_px
+	var is_flanking := (spread_span >= 4) or (avg_py <= avg_ey + 0.5) or (current_formation == Formation.FLANKING_PINCER)
+	var is_crossing_t := (current_formation == Formation.LINE_OF_BATTLE and wind_cells_held >= 2)
+
+	var calm_hazard_count := 0
+	for i in range(3):
+		var c := _p_targets[i] if not is_animating_turn else _p_cells[i]
+		if _sector_types.get(c, "") == "calm":
+			calm_hazard_count += 1
+
+	var bonus_ap: int = (1 if has_barlovento else 0) + (1 if conduit_held > 0 else 0)
+
+	return {
+		"has_barlovento": has_barlovento,
+		"enemy_barlovento": enemy_barlovento,
+		"enemy_wind_cells": enemy_wind_cells,
+		"wind_cells_held": wind_cells_held,
+		"sluice_held": sluice_held > 0,
+		"conduit_held": conduit_held > 0,
+		"reef_held": reef_held > 0,
+		"enemy_conduit_held": enemy_conduit_held > 0,
+		"calm_hazard_count": calm_hazard_count,
+		"is_flanking": is_flanking,
+		"is_crossing_t": is_crossing_t,
+		"formation": current_formation,
+		"bonus_ap": bonus_ap,
+		"accuracy_bonus": 0.15 if has_barlovento else 0.0,
+		"damage_bonus": 0.15 if (has_barlovento or is_crossing_t) else 0.0,
+		"crit_bonus": 0.25 if reef_held > 0 else 0.0,
+		"armor_mult": 1.20 if current_formation == Formation.LINE_OF_BATTLE else 1.0,
+		"speed_mult": (1.25 if current_formation == Formation.SPEARHEAD_WEDGE else 1.0) * (1.15 if conduit_held > 0 else 1.0),
+		"turn_mult": 1.15 if current_formation == Formation.FLANKING_PINCER else 1.0
+	}
 
 func _refresh_ui() -> void:
 	if _turn_lbl != null:
