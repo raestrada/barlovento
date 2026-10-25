@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/raestrada/barlovento/releases/download/v0.5.3-alpha/Barlovento.zip"><img src="https://img.shields.io/badge/Download_Build-Windows_64--bit-0284c7?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Build" /></a>
+  <a href="https://github.com/raestrada/barlovento/releases/download/v0.5.4-alpha/Barlovento.zip"><img src="https://img.shields.io/badge/Download_Build-Windows_64--bit-0284c7?style=for-the-badge&logo=windows&logoColor=white" alt="Download Windows Build" /></a>
   <a href="https://raestrada.github.io/barlovento/"><img src="https://img.shields.io/badge/Official_Site-GitHub_Pages-38bdf8?style=for-the-badge&logo=github" alt="Official Site" /></a>
   <img src="https://img.shields.io/badge/Campaign-36_Epic_Stages-10b981?style=for-the-badge" alt="36 Epic Stages" />
   <img src="https://img.shields.io/badge/Engine-Godot_4.7.2_Forward%2B-478cbf?style=for-the-badge&logo=godotengine&logoColor=white" alt="Godot 4.7.2" />
@@ -22,10 +22,10 @@
 </p>
 
 > [!IMPORTANT]
-> **⚔ Grand Fleet Multi-Front Warfare & Faction Selection LIVE in v0.5.3-alpha!**
-> Command massive armadas with up to **15 player warships and mobile suit platoons against 16 enemy units**, deployed across multi-front tactical formations (Center Battlelines, Port Flanks, Starboard Pincers, and High-Altitude Dives). Fight across varied celestial topographies—dense Basalt Gorges, orbital Caldera Reefs, tactical Asteroid Archipelago cover, and open void arenas—featuring authentic 3D Gundam Mobile Armor (*Seraph-Prime* with beam funnels), 16:9 Act Briefings, secret Developer / God Mode (`Ctrl+Shift+D`), and a completely decomposed modular architecture.
+> **⚔ Hard-Surface Angular Gundam Mechas & AAA Main Menu LIVE in v0.5.4-alpha!**
+> Command massive armadas with up to **15 player warships and mobile suit platoons against 16 enemy units**, deployed across multi-front tactical formations. Featuring hard-surface angular Gundam mechas, a full AAA Main Menu with Faction Save Loader, Systems Settings, Tactical Codex, balanced continuous symphonic audio, and secret Developer / God Mode (`Ctrl+Shift+D`).
 >
-> 🚀 **[Download Windows Alpha Build (Barlovento.zip)](https://github.com/raestrada/barlovento/releases/download/v0.5.3-alpha/Barlovento.zip)** • [View GitHub Releases](https://github.com/raestrada/barlovento/releases)
+> 🚀 **[Download Windows Alpha Build (Barlovento.zip)](https://github.com/raestrada/barlovento/releases/download/v0.5.4-alpha/Barlovento.zip)** • [View GitHub Releases](https://github.com/raestrada/barlovento/releases)
 
 <p align="center">
   <a href="https://raestrada.github.io/barlovento/"><b>Explore the Interactive Web Experience & Watch the Cinematic Prologue &rarr;</b></a>
