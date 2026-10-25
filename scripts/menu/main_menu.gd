@@ -336,7 +336,7 @@ func _build_title_view() -> void:
 	sc_vbox.add_child(art_holder)
 
 	var stage_art := TextureRect.new()
-	var st_tex: Texture2D = load("res://assets/cinematics/prologue_manga.png")
+	var st_tex: Texture2D = load("res://assets/splash/cover.png")
 	if st_tex == null:
 		st_tex = load("res://assets/splash/cover.png")
 	stage_art.texture = st_tex

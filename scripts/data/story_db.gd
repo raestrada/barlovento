@@ -13,7 +13,7 @@ static func _init_database() -> void:
 		"title": "ACT I // STAGE 01 [TUTORIAL]: DEFENSE OF SLUICE STATION WELL-09",
 		"faction": "acero",
 		"act": 1,
-		"backdrop": "res://assets/cinematics/prologue_manga.png",
+		"backdrop": "res://assets/factions/acero_stage1_briefing.png",
 		"intro_summary": "WAR LOG // SECTOR ANVIL: Free Tide corsairs have slipped through the outer basalt reef to sever Sluice Station Well-09. Without this ether conduit, the orbital foundries will stall. Admiral Vane leads the line-of-battle to anchor the perimeter.",
 		"intro_dialogue": [
 			{"speaker": "Adm. Vane", "role": "Fleet Admiral // CNS Iron Bastion", "portrait": "res://assets/heroes/ace_vane.png", "side": "left", "text": "All hands, sound general quarters. Corsair raiders are bearing down on Well-09. We form the anvil that shatters their sails."},
@@ -224,7 +224,7 @@ static func _init_database() -> void:
 		"title": "ACT I // STAGE 01 [TUTORIAL]: DEFENSE OF SANCTUARY SPIRE PSALM-4",
 		"faction": "vinculados",
 		"act": 1,
-		"backdrop": "res://assets/cinematics/prologue_manga.png",
+		"backdrop": "res://assets/briefings/vinculados_act1.png",
 		"intro_summary": "CHOIR RECORD // SANCTUARY PSALM-4: Imperial corsair pickets are attempting to dismantle the harmonic resonance crystal spires. Ace Kaelen-7 launches the Eidolon Mobile Suit Platoon to protect the sacred harmonics.",
 		"intro_dialogue": [
 			{"speaker": "Ace Kaelen-7", "role": "Choir Flight Lead // Eidolon Prime", "portrait": "res://assets/heroes/ace_kaelen.png", "side": "left", "text": "Conductor Seraph, neural link synchronized. The choir sings clearly today. Intercepting imperial raiders."},
@@ -242,7 +242,7 @@ static func _init_database() -> void:
 		"title": "ACT I // STAGE 02: DIVE INTO THE CRYSTAL CHASM",
 		"faction": "vinculados",
 		"act": 1,
-		"backdrop": "res://assets/briefings/vinculados_act2.png",
+		"backdrop": "res://assets/briefings/vinculados_act1.png",
 		"intro_summary": "CHOIR RECORD // BASALT CRYSTAL CHASM: Clumsy Acero capital ships are navigating the narrow canyon floor below. The Vinculados execute a high-angle dive from the upper celestial ledge.",
 		"intro_dialogue": [
 			{"speaker": "Ace Mirei-4", "role": "High-Speed Interceptor // Anima-01", "portrait": "res://assets/heroes/ace_mirei.png", "side": "right", "text": "Look at those heavy iron dreadnoughts down in the chasm, Kaelen! They cannot even tilt their guns upward!"},
@@ -435,7 +435,7 @@ static func _init_database() -> void:
 		"title": "ACT I // STAGE 01 [TUTORIAL]: THE BASALT NARROWS",
 		"faction": "marea_libre",
 		"act": 1,
-		"backdrop": "res://assets/cinematics/prologue_manga.png",
+		"backdrop": "res://assets/briefings/marea_act1.png",
 		"intro_summary": "CORSAIR LOG // BASALT NARROWS: Imperial blockades are choking the haven of the Free Tide. Captain Solano commands the void-galleon Viento Rojo to catch the ether rapids and break the blockade.",
 		"intro_dialogue": [
 			{"speaker": "Capt. Solano", "role": "Corsair Flagship // Viento Rojo", "portrait": "res://assets/heroes/ace_solano.png", "side": "left", "text": "Unfurl the quantum sails, sea dogs! Catch the rapids of El R\u00edo del Viento, claim the Weather-Gauge [BARLOVENTO], and sweep their flanks with full broadsides!"},
