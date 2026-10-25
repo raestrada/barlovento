@@ -15,6 +15,9 @@ var _cam_target_cur: Vector3 = Vector3(0.0, 4.0, -30.0)
 var _title_container: Control
 var _faction_container: Control
 var _briefing_container: Control
+var _load_modal: Control
+var _settings_modal: Control
+var _codex_modal: Control
 var _roster_modal: HudWidgets.HeroRosterModal
 var _fade_rect: ColorRect
 var _theme: Theme
@@ -41,6 +44,9 @@ func _ready() -> void:
 	_build_title_view()
 	_build_faction_select_view()
 	_build_briefing_view()
+	_build_load_game_modal()
+	_build_settings_modal()
+	_build_codex_modal()
 
 	_roster_modal = HudWidgets.HeroRosterModal.new()
 	_roster_modal.theme = _theme
@@ -55,7 +61,11 @@ func _ready() -> void:
 	var tween := create_tween()
 	tween.tween_property(_fade_rect, "color:a", 0.0, 0.65)
 
-	AudioManager.play_menu_music(-11.0)
+	var settings := SaveManager.load_settings()
+	var menu_track: String = String(settings.get("preferred_menu_music", "res://assets/audio/music/out_there.ogg"))
+	if not ResourceLoader.exists(menu_track):
+		menu_track = "res://assets/audio/music_prologue.ogg"
+	AudioManager.crossfade_to(menu_track, -11.0, 1.2)
 	AudioManager.start_ambient(-24.0)
 
 	if LoreDB.return_to_briefing_stage_id != "":
@@ -90,6 +100,39 @@ func _process(delta: float) -> void:
 		_bg_cam.global_position = _cam_pos_cur
 		if _cam_pos_cur.distance_to(_cam_target_cur) > 0.1:
 			_bg_cam.look_at(_cam_target_cur, Vector3.UP)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		if _load_modal != null and _load_modal.visible:
+			_load_modal.visible = false
+			AudioManager.play_sfx("ui_click", -8.0)
+			get_viewport().set_input_as_handled()
+			return
+		if _settings_modal != null and _settings_modal.visible:
+			_settings_modal.visible = false
+			AudioManager.play_sfx("ui_click", -8.0)
+			get_viewport().set_input_as_handled()
+			return
+		if _codex_modal != null and _codex_modal.visible:
+			_codex_modal.visible = false
+			AudioManager.play_sfx("ui_click", -8.0)
+			get_viewport().set_input_as_handled()
+			return
+		if _roster_modal != null and _roster_modal.visible:
+			_roster_modal.visible = false
+			AudioManager.play_sfx("ui_click", -8.0)
+			get_viewport().set_input_as_handled()
+			return
+		if _current_view == MenuView.FACTION_SELECT:
+			_switch_view(MenuView.TITLE)
+			AudioManager.play_sfx("ui_click", -8.0)
+			get_viewport().set_input_as_handled()
+			return
+		elif _current_view == MenuView.BRIEFING:
+			_switch_view(MenuView.FACTION_SELECT)
+			AudioManager.play_sfx("ui_click", -8.0)
+			get_viewport().set_input_as_handled()
+			return
 
 func _build_background() -> void:
 	var base_bg := ColorRect.new()
@@ -222,25 +265,10 @@ func _build_title_view() -> void:
 
 	menu_vbox.add_child(HSeparator.new())
 
-	if SaveManager.has_tactical_save():
-		var btn_resume := _make_menu_button(
-			"📂  RESUME SAVED BATTLE",
-			SaveManager.get_tactical_save_summary(),
-			true
-		)
-		btn_resume.pressed.connect(func() -> void:
-			AudioManager.play_sfx("ui_click", -8.0)
-			var st := SaveManager.load_tactical_state()
-			LoreDB.current_stage_id = String(st.get("stage_id", "acero_stage_1"))
-			SaveManager.pending_load_battle = true
-			_transition_to_scene("res://scenes/sandbox/sandbox.tscn")
-		)
-		menu_vbox.add_child(btn_resume)
-
 	var btn_campaign := _make_menu_button(
-		"▶  CAMPAIGN // SELECT FACTION",
-		"Choose your civilization and enter the War for the Star Sea",
-		not SaveManager.has_tactical_save()
+		"▶  NUEVA CAMPAÑA",
+		"Elige tu civilización y entra en la Guerra por el Mar Estelar",
+		true
 	)
 	btn_campaign.pressed.connect(func() -> void:
 		AudioManager.play_sfx("ui_click", -8.0)
@@ -248,33 +276,42 @@ func _build_title_view() -> void:
 	)
 	menu_vbox.add_child(btn_campaign)
 
-	var btn_acero_direct := _make_menu_button(
-		"⚡  ACT I: THE ARMADA OF ACERO (3 STAGES)",
-		"Operation Anvil Gate — Defend Sluice Station Well-09 & The Calm",
+	var btn_load := _make_menu_button(
+		"📂  CARGAR PARTIDA",
+		"Reanuda campañas guardadas por facción o batallas tácticas",
 		false
 	)
-	btn_acero_direct.pressed.connect(func() -> void:
+	btn_load.pressed.connect(func() -> void:
 		AudioManager.play_sfx("ui_click", -8.0)
-		_select_faction_and_open_briefing("acero")
+		_open_load_modal()
 	)
-	menu_vbox.add_child(btn_acero_direct)
+	menu_vbox.add_child(btn_load)
 
-	var btn_sandbox := _make_menu_button(
-		"⚔  TACTICAL SKIRMISH SANDBOX",
-		"Instant 3D naval engagement in Sector Psalm-4",
+	var btn_settings := _make_menu_button(
+		"⚙  CONFIGURACIÓN",
+		"Ajustes de Audio (volumen y música) y Gráficos (pantalla, FPS)",
 		false
 	)
-	btn_sandbox.pressed.connect(func() -> void:
+	btn_settings.pressed.connect(func() -> void:
 		AudioManager.play_sfx("ui_click", -8.0)
-		LoreDB.selected_faction = "vinculados"
-		LoreDB.current_stage_id = "sandbox"
-		_transition_to_scene("res://scenes/sandbox/sandbox.tscn")
+		_open_settings_modal()
 	)
-	menu_vbox.add_child(btn_sandbox)
+	menu_vbox.add_child(btn_settings)
+
+	var btn_codex := _make_menu_button(
+		"📖  MANUAL TÁCTICO & AYUDA",
+		"Aprende las 2 Fases, Viento/Éter, Inercia, Blindaje y Combos",
+		false
+	)
+	btn_codex.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		_open_codex_modal()
+	)
+	menu_vbox.add_child(btn_codex)
 
 	var btn_roster := _make_menu_button(
-		"★  HEROES & FLEET ARCHIVES",
-		"Inspect Ace pilots, Admirals, and warship specifications",
+		"★  ARCHIVO DE HÉROES & FLOTAS",
+		"Inspecciona pilotos Ases, Almirantes y navíos de guerra",
 		false
 	)
 	btn_roster.pressed.connect(func() -> void:
@@ -284,9 +321,20 @@ func _build_title_view() -> void:
 	)
 	menu_vbox.add_child(btn_roster)
 
+	var btn_credits := _make_menu_button(
+		"🎬  CRÉDITOS CINEMATOGRÁFICOS",
+		"Secuencia de créditos finales con Dvořák y epílogos",
+		false
+	)
+	btn_credits.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		_transition_to_scene("res://scenes/credits/credits.tscn")
+	)
+	menu_vbox.add_child(btn_credits)
+
 	var btn_intro := _make_menu_button(
-		"🎬  REPLAY INTRO CINEMATIC",
-		"Watch the Barlovento opening prologue",
+		"🎥  VER PRÓLOGO CINEMÁTICO",
+		"Revive la introducción cinematográfica en 3D",
 		false
 	)
 	btn_intro.pressed.connect(func() -> void:
@@ -300,7 +348,7 @@ func _build_title_view() -> void:
 	menu_vbox.add_child(spacer)
 
 	var btn_quit := Button.new()
-	btn_quit.text = "✕  EXIT TO DESKTOP"
+	btn_quit.text = "✕  SALIR AL ESCRITORIO"
 	btn_quit.custom_minimum_size = Vector2(0, 38)
 	btn_quit.pressed.connect(func() -> void: get_tree().quit())
 	menu_vbox.add_child(btn_quit)
@@ -320,13 +368,13 @@ func _build_title_view() -> void:
 	sc_vbox.add_child(badge_row)
 
 	var act_badge := Label.new()
-	act_badge.text = "[CAMPAIGN SAGA // 36 STAGES]"
+	act_badge.text = "[CAMPAÑA SAGA // 36 ETAPAS]"
 	act_badge.add_theme_font_size_override("font_size", 12)
 	act_badge.add_theme_color_override("font_color", Color(1.0, 0.62, 0.22))
 	badge_row.add_child(act_badge)
 
 	var act_title := Label.new()
-	act_title.text = "THE WAR FOR THE STAR SEA — \"EL ÚLTIMO VIENTO\""
+	act_title.text = "LA GUERRA POR EL MAR ESTELAR — \"EL ÚLTIMO VIENTO\""
 	act_title.add_theme_font_size_override("font_size", 15)
 	act_title.add_theme_color_override("font_color", Color(0.95, 0.97, 1.0))
 	badge_row.add_child(act_title)
@@ -346,8 +394,32 @@ func _build_title_view() -> void:
 	stage_art.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	art_holder.add_child(stage_art)
 
+	# Stats banner overlay
+	var stats_row := HBoxContainer.new()
+	stats_row.add_theme_constant_override("separation", 24)
+	sc_vbox.add_child(stats_row)
+
+	var stat_vic := Label.new()
+	stat_vic.text = "🏆 Victorias: %d" % SaveManager.total_victories
+	stat_vic.add_theme_font_size_override("font_size", 11)
+	stat_vic.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
+	stats_row.add_child(stat_vic)
+
+	var stat_kills := Label.new()
+	stat_kills.text = "💥 Naves Derrotadas: %d" % SaveManager.total_kills
+	stat_kills.add_theme_font_size_override("font_size", 11)
+	stat_kills.add_theme_color_override("font_color", Color(1.0, 0.75, 0.35))
+	stats_row.add_child(stat_kills)
+
+	var completed_total := SaveManager.completed_stages.size()
+	var stat_comp := Label.new()
+	stat_comp.text = "✦ Etapas Conquistadas: %d / 36" % completed_total
+	stat_comp.add_theme_font_size_override("font_size", 11)
+	stat_comp.add_theme_color_override("font_color", Color(0.40, 1.0, 0.65))
+	stats_row.add_child(stat_comp)
+
 	var sc_desc := Label.new()
-	sc_desc.text = "The Star Sea is fading under the encroaching frost of The Calm. Command the battle lines across 36 epic campaign stages. Master Newtonian vector inertia, directional armor angling, and Gundam-style hero aces in full 3D tactical combat."
+	sc_desc.text = "El Mar Estelar se apaga bajo el avance implacable de La Calma. Comanda las tres civilizaciones asimétricas en 36 batallas monumentales. Domina la inercia newtoniana, el blindaje direccional, y los héroes Ases estilo Gundam en combate táctico espacial 3D."
 	sc_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	sc_desc.add_theme_font_size_override("font_size", 12)
 	sc_desc.add_theme_color_override("font_color", Color(0.82, 0.90, 0.98))
@@ -358,22 +430,26 @@ func _build_title_view() -> void:
 	sc_footer.add_theme_constant_override("separation", 12)
 	sc_vbox.add_child(sc_footer)
 
-	var choose_fac_btn := Button.new()
-	choose_fac_btn.text = "CHOOSE FACTION (3 CIVILIZATIONS)"
-	choose_fac_btn.custom_minimum_size = Vector2(260, 42)
+	if SaveManager.has_tactical_save():
+		var quick_resume_btn := Button.new()
+		quick_resume_btn.text = "📂  REANUDAR BATALLA EN CURSO"
+		quick_resume_btn.custom_minimum_size = Vector2(250, 42)
+		quick_resume_btn.pressed.connect(func() -> void:
+			AudioManager.play_sfx("ui_click", -8.0)
+			var st := SaveManager.load_tactical_state()
+			LoreDB.current_stage_id = String(st.get("stage_id", "acero_stage_1"))
+			SaveManager.pending_load_battle = true
+			_transition_to_scene("res://scenes/sandbox/sandbox.tscn")
+		)
+		sc_footer.add_child(quick_resume_btn)
+
+	var choose_fac_btn := _make_primary_cta_button("▶  ELEGIR FACCIÓN Y COMENZAR")
+	choose_fac_btn.custom_minimum_size = Vector2(280, 42)
 	choose_fac_btn.pressed.connect(func() -> void:
 		AudioManager.play_sfx("ui_click", -8.0)
 		_switch_view(MenuView.FACTION_SELECT)
 	)
 	sc_footer.add_child(choose_fac_btn)
-
-	var play_acero_btn := _make_primary_cta_button("▶ DEPLOY AS ARMADA OF ACERO (STAGE 01)")
-	play_acero_btn.custom_minimum_size = Vector2(320, 42)
-	play_acero_btn.pressed.connect(func() -> void:
-		AudioManager.play_sfx("ui_click", -8.0)
-		_select_faction_and_open_briefing("acero")
-	)
-	sc_footer.add_child(play_acero_btn)
 
 func _build_faction_select_view() -> void:
 	_faction_container = Control.new()
@@ -965,3 +1041,1057 @@ func _build_menu_theme() -> Theme:
 	t.set_color("font_hover_color", "Button", Color(1.0, 1.0, 1.0))
 	t.set_color("font_color", "Label", Color(0.88, 0.94, 1.0))
 	return t
+
+# ==============================================================================
+# LOAD GAME MODAL (BY FACTION + TACTICAL SAVE)
+# ==============================================================================
+var _load_tab_container: PanelContainer
+var _load_active_tab: String = "acero"
+var _load_tab_buttons: Dictionary = {}
+
+func _build_load_game_modal() -> void:
+	_load_modal = Control.new()
+	_load_modal.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_load_modal.visible = false
+	add_child(_load_modal)
+
+	var bg_dim := ColorRect.new()
+	bg_dim.color = Color(0.008, 0.02, 0.04, 0.88)
+	bg_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_load_modal.add_child(bg_dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_load_modal.add_child(center)
+
+	var window := PanelContainer.new()
+	window.custom_minimum_size = Vector2(980, 620)
+	var win_style := StyleBoxFlat.new()
+	win_style.bg_color = Color(0.018, 0.045, 0.088, 0.96)
+	win_style.border_color = Color(0.28, 0.78, 0.98, 0.85)
+	win_style.set_border_width_all(2)
+	win_style.set_corner_radius_all(8)
+	win_style.set_content_margin_all(20)
+	window.add_theme_stylebox_override("panel", win_style)
+	center.add_child(window)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	window.add_child(vbox)
+
+	var hdr := HBoxContainer.new()
+	vbox.add_child(hdr)
+
+	var hdr_titles := VBoxContainer.new()
+	hdr_titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hdr.add_child(hdr_titles)
+
+	var title_lbl := Label.new()
+	title_lbl.text = "CARGAR PARTIDA // ARCHIVO DE OPERACIONES NAVALES"
+	title_lbl.add_theme_font_size_override("font_size", 18)
+	title_lbl.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
+	hdr_titles.add_child(title_lbl)
+
+	var sub_lbl := Label.new()
+	sub_lbl.text = "Selecciona tu facción para reanudar la campaña o retoma una batalla táctica guardada"
+	sub_lbl.add_theme_font_size_override("font_size", 11)
+	sub_lbl.add_theme_color_override("font_color", Color(0.65, 0.82, 0.94))
+	hdr_titles.add_child(sub_lbl)
+
+	var close_btn := Button.new()
+	close_btn.text = "✕ CERRAR"
+	close_btn.custom_minimum_size = Vector2(100, 32)
+	close_btn.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		_load_modal.visible = false
+	)
+	hdr.add_child(close_btn)
+
+	vbox.add_child(HSeparator.new())
+
+	var tab_bar := HBoxContainer.new()
+	tab_bar.add_theme_constant_override("separation", 10)
+	vbox.add_child(tab_bar)
+
+	var tabs_def := [
+		{"id": "acero", "label": "⚡ ARMADA DE ACERO"},
+		{"id": "vinculados", "label": "✦ LOS VINCULADOS"},
+		{"id": "marea_libre", "label": "⚓ LA MAREA LIBRE"},
+		{"id": "tactical", "label": "💾 QUICK / TACTICAL SAVE"},
+	]
+
+	for t_info in tabs_def:
+		var tab_btn := Button.new()
+		tab_btn.text = t_info["label"]
+		tab_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tab_btn.custom_minimum_size = Vector2(0, 38)
+		var tid: String = t_info["id"]
+		tab_btn.pressed.connect(func() -> void:
+			AudioManager.play_sfx("ui_click", -8.0)
+			_set_load_tab(tid)
+		)
+		tab_bar.add_child(tab_btn)
+		_load_tab_buttons[tid] = tab_btn
+
+	_load_tab_container = PanelContainer.new()
+	_load_tab_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var cont_style := StyleBoxFlat.new()
+	cont_style.bg_color = Color(0.012, 0.028, 0.060, 0.75)
+	cont_style.border_color = Color(0.20, 0.55, 0.75, 0.45)
+	cont_style.set_border_width_all(1)
+	cont_style.set_corner_radius_all(6)
+	cont_style.set_content_margin_all(14)
+	_load_tab_container.add_theme_stylebox_override("panel", cont_style)
+	vbox.add_child(_load_tab_container)
+
+	_set_load_tab("acero")
+
+func _open_load_modal() -> void:
+	if _load_modal == null:
+		return
+	_load_modal.visible = true
+	_set_load_tab(_load_active_tab)
+
+func _set_load_tab(tab_id: String) -> void:
+	_load_active_tab = tab_id
+	for tid in _load_tab_buttons.keys():
+		var btn: Button = _load_tab_buttons[tid]
+		if tid == tab_id:
+			var active_st := StyleBoxFlat.new()
+			active_st.bg_color = Color(0.08, 0.22, 0.38, 0.95)
+			active_st.border_color = Color(0.35, 0.95, 1.0)
+			active_st.set_border_width_all(2)
+			active_st.set_corner_radius_all(5)
+			btn.add_theme_stylebox_override("normal", active_st)
+		else:
+			btn.remove_theme_stylebox_override("normal")
+
+	for child in _load_tab_container.get_children():
+		child.queue_free()
+
+	if tab_id == "tactical":
+		_populate_load_tactical_tab()
+	else:
+		_populate_load_faction_tab(tab_id)
+
+func _populate_load_faction_tab(fac_id: String) -> void:
+	var summary := SaveManager.get_faction_summary(fac_id)
+
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 24)
+	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_load_tab_container.add_child(hbox)
+
+	# Left Column: Faction Banner, Motto, Progress
+	var left_vbox := VBoxContainer.new()
+	left_vbox.custom_minimum_size = Vector2(320, 0)
+	left_vbox.add_theme_constant_override("separation", 10)
+	hbox.add_child(left_vbox)
+
+	var art_rect := TextureRect.new()
+	var tex: Texture2D = load(summary.get("art_path", ""))
+	if tex != null:
+		art_rect.texture = tex
+	art_rect.custom_minimum_size = Vector2(320, 180)
+	art_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	left_vbox.add_child(art_rect)
+
+	var fac_name_lbl := Label.new()
+	fac_name_lbl.text = summary.get("faction_name", "")
+	fac_name_lbl.add_theme_font_size_override("font_size", 16)
+	fac_name_lbl.add_theme_color_override("font_color", summary.get("emblem_color", Color.WHITE))
+	left_vbox.add_child(fac_name_lbl)
+
+	var motto_lbl := Label.new()
+	motto_lbl.text = "\"%s\"" % summary.get("motto", "")
+	motto_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	motto_lbl.add_theme_font_size_override("font_size", 11)
+	motto_lbl.add_theme_color_override("font_color", Color(0.70, 0.82, 0.94))
+	left_vbox.add_child(motto_lbl)
+
+	left_vbox.add_child(HSeparator.new())
+
+	var prog_title := Label.new()
+	prog_title.text = "PROGRESO DE CAMPAÑA: %d / %d ETAPAS" % [summary.get("stages_completed", 0), summary.get("total_stages", 12)]
+	prog_title.add_theme_font_size_override("font_size", 12)
+	prog_title.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
+	left_vbox.add_child(prog_title)
+
+	var pbar := ProgressBar.new()
+	pbar.min_value = 0
+	pbar.max_value = float(summary.get("total_stages", 12))
+	pbar.value = float(summary.get("stages_completed", 0))
+	pbar.custom_minimum_size = Vector2(0, 18)
+	left_vbox.add_child(pbar)
+
+	var status_lbl := Label.new()
+	if bool(summary.get("is_conquered", false)):
+		status_lbl.text = "★ VICTORIA TOTAL // CAMPAÑA CONQUISTADA"
+		status_lbl.add_theme_color_override("font_color", Color(0.35, 1.0, 0.65))
+	else:
+		status_lbl.text = "EN CURSO // ÚLTIMA ETAPA ALCANZADA: %d" % summary.get("stage_number", 1)
+		status_lbl.add_theme_color_override("font_color", Color(1.0, 0.78, 0.35))
+	status_lbl.add_theme_font_size_override("font_size", 11)
+	left_vbox.add_child(status_lbl)
+
+	var left_spacer := Control.new()
+	left_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left_vbox.add_child(left_spacer)
+
+	var reset_btn := Button.new()
+	reset_btn.text = "↺ REINICIAR PROGRESO DE FACCIÓN"
+	reset_btn.custom_minimum_size = Vector2(0, 32)
+	reset_btn.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		SaveManager.reset_faction_progress(fac_id)
+		_set_load_tab(fac_id)
+	)
+	left_vbox.add_child(reset_btn)
+
+	# Right Column: Stage Showcase and Launch Buttons
+	var right_vbox := VBoxContainer.new()
+	right_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_vbox.add_theme_constant_override("separation", 10)
+	hbox.add_child(right_vbox)
+
+	var stage_badge := Label.new()
+	stage_badge.text = "[FICHA DE ETAPA GUARDADA // REGISTRO #%02d]" % summary.get("stage_number", 1)
+	stage_badge.add_theme_font_size_override("font_size", 11)
+	stage_badge.add_theme_color_override("font_color", Color(0.45, 0.85, 1.0))
+	right_vbox.add_child(stage_badge)
+
+	var stage_title_lbl := Label.new()
+	stage_title_lbl.text = summary.get("stage_title", "")
+	stage_title_lbl.add_theme_font_size_override("font_size", 16)
+	stage_title_lbl.add_theme_color_override("font_color", Color(0.96, 0.98, 1.0))
+	right_vbox.add_child(stage_title_lbl)
+
+	var st_data: Dictionary = StoryDB.get_story_data(summary.get("latest_stage_id", ""))
+	var paras: Array = st_data.get("story_paragraphs", [])
+	var desc_text: String = paras[0] if paras.size() > 0 else "Sin datos adicionales de telemetría."
+	var desc_lbl := Label.new()
+	desc_lbl.text = desc_text
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_lbl.add_theme_font_size_override("font_size", 11)
+	desc_lbl.add_theme_color_override("font_color", Color(0.78, 0.86, 0.95))
+	right_vbox.add_child(desc_lbl)
+
+	right_vbox.add_child(HSeparator.new())
+
+	var squad_hdr := Label.new()
+	squad_hdr.text = "ESCUADRÓN ASIGNADO EN ESTA ETAPA:"
+	squad_hdr.add_theme_font_size_override("font_size", 12)
+	squad_hdr.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
+	right_vbox.add_child(squad_hdr)
+
+	var ship_ids: Array = ["acero_dreadnought", "acero_battlecruiser", "acero_corvette"]
+	if fac_id == "vinculados":
+		ship_ids = ["vinculados_cradle", "vinculados_suit", "vinculados_anima"]
+	elif fac_id == "marea_libre":
+		ship_ids = ["marea_galleon", "marea_raider", "marea_brigantine"]
+
+	for sid in ship_ids:
+		var sdef: ShipDef = LoreDB.get_ship(sid)
+		if sdef == null:
+			continue
+		var srow := HBoxContainer.new()
+		srow.add_theme_constant_override("separation", 10)
+		var s_lbl := Label.new()
+		s_lbl.text = "✦ %s — %s (%s)" % [sdef.display_name, sdef.pilot_name, sdef.class_label]
+		s_lbl.add_theme_font_size_override("font_size", 11)
+		s_lbl.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
+		srow.add_child(s_lbl)
+		right_vbox.add_child(srow)
+
+	var r_spacer := Control.new()
+	r_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	right_vbox.add_child(r_spacer)
+
+	# Action Row
+	var actions_row := HBoxContainer.new()
+	actions_row.add_theme_constant_override("separation", 14)
+	right_vbox.add_child(actions_row)
+
+	var resume_brief_btn := _make_primary_cta_button("📋  REANUDAR EN BRIEFING TÁCTICO")
+	resume_brief_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	resume_brief_btn.custom_minimum_size = Vector2(0, 44)
+	resume_brief_btn.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		_load_modal.visible = false
+		_selected_faction = fac_id
+		_focused_faction = fac_id
+		LoreDB.selected_faction = fac_id
+		LoreDB.player_faction = fac_id
+		SaveManager.last_selected_faction = fac_id
+		for child in _squadron_vbox.get_children():
+			child.queue_free()
+		for child in _stage_selector_row.get_children():
+			child.queue_free()
+		var stage_to_load: String = summary.get("latest_stage_id", fac_id + "_stage_1")
+		if fac_id == "acero":
+			_populate_acero_stage_briefing(stage_to_load)
+		elif fac_id == "vinculados":
+			_populate_vinculados_stage_briefing(stage_to_load)
+		elif fac_id == "marea_libre":
+			_populate_marea_stage_briefing(stage_to_load)
+		_switch_view(MenuView.BRIEFING)
+	)
+	actions_row.add_child(resume_brief_btn)
+
+	var direct_launch_btn := Button.new()
+	direct_launch_btn.text = "⚔  INICIAR COMBATE DIRECTO"
+	direct_launch_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	direct_launch_btn.custom_minimum_size = Vector2(0, 44)
+	direct_launch_btn.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		_load_modal.visible = false
+		LoreDB.selected_faction = fac_id
+		LoreDB.player_faction = fac_id
+		LoreDB.current_stage_id = summary.get("latest_stage_id", fac_id + "_stage_1")
+		SaveManager.pending_load_battle = false
+		_transition_to_scene("res://scenes/sandbox/sandbox.tscn")
+	)
+	actions_row.add_child(direct_launch_btn)
+
+func _populate_load_tactical_tab() -> void:
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 14)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_load_tab_container.add_child(vbox)
+
+	if not SaveManager.has_tactical_save():
+		var empty_lbl := Label.new()
+		empty_lbl.text = "NO HAY BATALLA TÁCTICA GUARDADA"
+		empty_lbl.add_theme_font_size_override("font_size", 16)
+		empty_lbl.add_theme_color_override("font_color", Color(0.95, 0.65, 0.25))
+		vbox.add_child(empty_lbl)
+
+		var empty_desc := Label.new()
+		empty_desc.text = "Durante cualquier enfrentamiento (en Fase Almirante o Fase As), puedes guardar tu progreso con 'F5 (Guardado Rápido)' o mediante el menú de pausa (ESC).\n\nEl sistema guarda las posiciones exactas de cada navío en el espacio 3D, su vector de aceleración e inercia, integridad de blindaje direccional (Proa, Popa, Babor, Estribor), estado de escudos y rondas de combate."
+		empty_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		empty_desc.add_theme_font_size_override("font_size", 12)
+		empty_desc.add_theme_color_override("font_color", Color(0.70, 0.82, 0.94))
+		vbox.add_child(empty_desc)
+		return
+
+	var tac := SaveManager.load_tactical_state()
+	var st_id: String = String(tac.get("stage_id", "Desconocido"))
+	var fac: String = String(tac.get("faction", "acero"))
+	var turn: int = int(tac.get("turn_number", 1))
+	var ace_rnd: int = int(tac.get("ace_round", 1))
+	var phase_val: int = int(tac.get("phase", 0))
+	var time_str: String = String(tac.get("timestamp", "Sin registro"))
+	var allies: Array = tac.get("player_ships", [])
+	var enemies: Array = tac.get("enemy_ships", [])
+
+	var title_lbl := Label.new()
+	title_lbl.text = "BATALLA EN CURSO // ESTADO TÁCTICO REGISTRADO"
+	title_lbl.add_theme_font_size_override("font_size", 16)
+	title_lbl.add_theme_color_override("font_color", Color(0.40, 1.0, 0.65))
+	vbox.add_child(title_lbl)
+
+	var info_grid := GridContainer.new()
+	info_grid.columns = 2
+	info_grid.add_theme_constant_override("h_separation", 24)
+	info_grid.add_theme_constant_override("v_separation", 8)
+	vbox.add_child(info_grid)
+
+	_add_stat_row(info_grid, "Etapa de Combate:", "%s" % st_id)
+	_add_stat_row(info_grid, "Facción Activa:", "%s" % fac.to_upper())
+	_add_stat_row(info_grid, "Fase Guardada:", "Fase As (Ronda %d)" % ace_rnd if phase_val == 1 else "Fase Almirante (Turno %d)" % turn)
+	_add_stat_row(info_grid, "Fecha / Hora:", "%s" % time_str)
+	_add_stat_row(info_grid, "Navíos Aliados Restantes:", "%d" % allies.size())
+	_add_stat_row(info_grid, "Navíos Enemigos Restantes:", "%d" % enemies.size())
+
+	vbox.add_child(HSeparator.new())
+
+	var desc_lbl := Label.new()
+	desc_lbl.text = "Al reanudar, la simulación 3D restaura exactamente la inercia newtoniana, el rumbo actual, el estado del reactor de Éter y las órdenes de combate activas."
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_lbl.add_theme_font_size_override("font_size", 11)
+	desc_lbl.add_theme_color_override("font_color", Color(0.70, 0.82, 0.94))
+	vbox.add_child(desc_lbl)
+
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(spacer)
+
+	var btn_row := HBoxContainer.new()
+	btn_row.add_theme_constant_override("separation", 16)
+	vbox.add_child(btn_row)
+
+	var resume_btn := _make_primary_cta_button("⚔  REANUDAR ESTA BATALLA TÁCTICA")
+	resume_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	resume_btn.custom_minimum_size = Vector2(0, 44)
+	resume_btn.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		_load_modal.visible = false
+		LoreDB.current_stage_id = st_id
+		SaveManager.pending_load_battle = true
+		_transition_to_scene("res://scenes/sandbox/sandbox.tscn")
+	)
+	btn_row.add_child(resume_btn)
+
+	var delete_btn := Button.new()
+	delete_btn.text = "🗑  DESCARTAR GUARDADO TÁCTICO"
+	delete_btn.custom_minimum_size = Vector2(260, 44)
+	delete_btn.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		if FileAccess.file_exists(SaveManager.TACTICAL_SAVE_PATH):
+			DirAccess.remove_absolute(SaveManager.TACTICAL_SAVE_PATH)
+		_set_load_tab("tactical")
+	)
+	btn_row.add_child(delete_btn)
+
+func _add_stat_row(container: Container, label_txt: String, val_txt: String) -> void:
+	var l := Label.new()
+	l.text = label_txt
+	l.add_theme_font_size_override("font_size", 12)
+	l.add_theme_color_override("font_color", Color(0.65, 0.82, 0.94))
+	container.add_child(l)
+
+	var v := Label.new()
+	v.text = val_txt
+	v.add_theme_font_size_override("font_size", 12)
+	v.add_theme_color_override("font_color", Color(0.95, 0.98, 1.0))
+	container.add_child(v)
+
+# ==============================================================================
+# SETTINGS MODAL (AUDIO & GRAPHICS)
+# ==============================================================================
+var _settings_active_tab: String = "audio"
+var _settings_tab_container: PanelContainer
+var _settings_tab_buttons: Dictionary = {}
+var _temp_settings: Dictionary = {}
+
+func _build_settings_modal() -> void:
+	_settings_modal = Control.new()
+	_settings_modal.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_settings_modal.visible = false
+	add_child(_settings_modal)
+
+	var bg_dim := ColorRect.new()
+	bg_dim.color = Color(0.008, 0.02, 0.04, 0.88)
+	bg_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_settings_modal.add_child(bg_dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_settings_modal.add_child(center)
+
+	var window := PanelContainer.new()
+	window.custom_minimum_size = Vector2(880, 580)
+	var win_style := StyleBoxFlat.new()
+	win_style.bg_color = Color(0.018, 0.045, 0.088, 0.96)
+	win_style.border_color = Color(0.28, 0.78, 0.98, 0.85)
+	win_style.set_border_width_all(2)
+	win_style.set_corner_radius_all(8)
+	win_style.set_content_margin_all(20)
+	window.add_theme_stylebox_override("panel", win_style)
+	center.add_child(window)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	window.add_child(vbox)
+
+	var hdr := HBoxContainer.new()
+	vbox.add_child(hdr)
+
+	var hdr_titles := VBoxContainer.new()
+	hdr_titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hdr.add_child(hdr_titles)
+
+	var title_lbl := Label.new()
+	title_lbl.text = "CONFIGURACIÓN DEL SISTEMA // FLEET SYSTEM SETTINGS"
+	title_lbl.add_theme_font_size_override("font_size", 18)
+	title_lbl.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
+	hdr_titles.add_child(title_lbl)
+
+	var sub_lbl := Label.new()
+	sub_lbl.text = "Ajustes de Telemetría Acústica, Rendimiento Visual y Parámetros del Motor Forward+"
+	sub_lbl.add_theme_font_size_override("font_size", 11)
+	sub_lbl.add_theme_color_override("font_color", Color(0.65, 0.82, 0.94))
+	hdr_titles.add_child(sub_lbl)
+
+	var close_btn := Button.new()
+	close_btn.text = "✕ CERRAR"
+	close_btn.custom_minimum_size = Vector2(100, 32)
+	close_btn.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		_settings_modal.visible = false
+	)
+	hdr.add_child(close_btn)
+
+	vbox.add_child(HSeparator.new())
+
+	var tab_bar := HBoxContainer.new()
+	tab_bar.add_theme_constant_override("separation", 10)
+	vbox.add_child(tab_bar)
+
+	var tabs_def := [
+		{"id": "audio", "label": "🔊 AUDIO Y MÚSICA DE COMBATE"},
+		{"id": "graphics", "label": "🖥 PANTALLA Y GRÁFICOS 3D"}
+	]
+
+	for t_info in tabs_def:
+		var tab_btn := Button.new()
+		tab_btn.text = t_info["label"]
+		tab_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tab_btn.custom_minimum_size = Vector2(0, 38)
+		var tid: String = t_info["id"]
+		tab_btn.pressed.connect(func() -> void:
+			AudioManager.play_sfx("ui_click", -8.0)
+			_set_settings_tab(tid)
+		)
+		tab_bar.add_child(tab_btn)
+		_settings_tab_buttons[tid] = tab_btn
+
+	_settings_tab_container = PanelContainer.new()
+	_settings_tab_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var cont_style := StyleBoxFlat.new()
+	cont_style.bg_color = Color(0.012, 0.028, 0.060, 0.75)
+	cont_style.border_color = Color(0.20, 0.55, 0.75, 0.45)
+	cont_style.set_border_width_all(1)
+	cont_style.set_corner_radius_all(6)
+	cont_style.set_content_margin_all(16)
+	_settings_tab_container.add_theme_stylebox_override("panel", cont_style)
+	vbox.add_child(_settings_tab_container)
+
+	# Footer buttons
+	var footer_row := HBoxContainer.new()
+	footer_row.add_theme_constant_override("separation", 14)
+	vbox.add_child(footer_row)
+
+	var reset_btn := Button.new()
+	reset_btn.text = "↺ RESTAURAR POR DEFECTO"
+	reset_btn.custom_minimum_size = Vector2(210, 38)
+	reset_btn.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		_temp_settings = SaveManager.get_default_settings()
+		SaveManager.save_settings(_temp_settings)
+		_set_settings_tab(_settings_active_tab)
+	)
+	footer_row.add_child(reset_btn)
+
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	footer_row.add_child(spacer)
+
+	var save_btn := _make_primary_cta_button("✓ GUARDAR Y APLICAR CAMBIOS")
+	save_btn.custom_minimum_size = Vector2(240, 38)
+	save_btn.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		SaveManager.save_settings(_temp_settings)
+		_settings_modal.visible = false
+	)
+	footer_row.add_child(save_btn)
+
+	_set_settings_tab("audio")
+
+func _open_settings_modal() -> void:
+	if _settings_modal == null:
+		return
+	_temp_settings = SaveManager.load_settings()
+	_settings_modal.visible = true
+	_set_settings_tab(_settings_active_tab)
+
+func _set_settings_tab(tab_id: String) -> void:
+	_settings_active_tab = tab_id
+	for tid in _settings_tab_buttons.keys():
+		var btn: Button = _settings_tab_buttons[tid]
+		if tid == tab_id:
+			var active_st := StyleBoxFlat.new()
+			active_st.bg_color = Color(0.08, 0.22, 0.38, 0.95)
+			active_st.border_color = Color(0.35, 0.95, 1.0)
+			active_st.set_border_width_all(2)
+			active_st.set_corner_radius_all(5)
+			btn.add_theme_stylebox_override("normal", active_st)
+		else:
+			btn.remove_theme_stylebox_override("normal")
+
+	for child in _settings_tab_container.get_children():
+		child.queue_free()
+
+	if _temp_settings.is_empty():
+		_temp_settings = SaveManager.load_settings()
+
+	if tab_id == "audio":
+		_populate_settings_audio_tab()
+	else:
+		_populate_settings_graphics_tab()
+
+func _populate_settings_audio_tab() -> void:
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 16)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_settings_tab_container.add_child(vbox)
+
+	_create_volume_slider_row(vbox, "Volumen Maestro (Master):", "master_volume", func(v: float) -> void:
+		_temp_settings["master_volume"] = v
+		AudioManager.set_master_volume(v)
+	)
+
+	_create_volume_slider_row(vbox, "Música de Fondo & Sinfónica:", "music_volume", func(v: float) -> void:
+		_temp_settings["music_volume"] = v
+		AudioManager.set_music_volume(v)
+	)
+
+	_create_volume_slider_row(vbox, "Efectos de Sonido & Cañones (SFX):", "sfx_volume", func(v: float) -> void:
+		_temp_settings["sfx_volume"] = v
+		AudioManager.set_sfx_volume(v)
+		AudioManager.play_sfx("ui_click", -6.0)
+	)
+
+	_create_volume_slider_row(vbox, "Zumbido Ambiental del Éter (Ambient):", "ambient_volume", func(v: float) -> void:
+		_temp_settings["ambient_volume"] = v
+		AudioManager.set_ambient_volume(v)
+	)
+
+	vbox.add_child(HSeparator.new())
+
+	var track_header := Label.new()
+	track_header.text = "SELECTOR DE MÚSICA PRINCIPAL // BANCO ORQUESTAL DEL MAR ESTELAR"
+	track_header.add_theme_font_size_override("font_size", 12)
+	track_header.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
+	vbox.add_child(track_header)
+
+	var track_row := HBoxContainer.new()
+	track_row.add_theme_constant_override("separation", 12)
+	vbox.add_child(track_row)
+
+	var track_opt := OptionButton.new()
+	track_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	track_opt.custom_minimum_size = Vector2(0, 36)
+
+	var tracks_list := [
+		"res://assets/audio/music/out_there.ogg",
+		"res://assets/audio/music_prologue.ogg",
+		"res://assets/audio/music_battle_march.ogg",
+		"res://assets/audio/music/music_marea.ogg",
+		"res://assets/audio/music/music_vinculados.ogg",
+		"res://assets/audio/music/music_climax.ogg",
+		"res://assets/audio/music/music_ace_tactical.ogg"
+	]
+
+	var cur_preferred: String = String(_temp_settings.get("preferred_menu_music", "res://assets/audio/music/out_there.ogg"))
+	var selected_idx := 0
+	for i in range(tracks_list.size()):
+		var p: String = tracks_list[i]
+		var title: String = String(AudioManager.TRACK_TITLES.get(p, p.get_file()))
+		track_opt.add_item(title, i)
+		if p == cur_preferred:
+			selected_idx = i
+	track_opt.selected = selected_idx
+	track_row.add_child(track_opt)
+
+	var preview_btn := Button.new()
+	preview_btn.text = "▶ PROBAR TEMA"
+	preview_btn.custom_minimum_size = Vector2(140, 36)
+	preview_btn.pressed.connect(func() -> void:
+		var chosen: String = tracks_list[track_opt.selected]
+		AudioManager.crossfade_to(chosen, -11.0, 1.0)
+	)
+	track_row.add_child(preview_btn)
+
+	var assign_btn := Button.new()
+	assign_btn.text = "✓ FIJAR PARA EL MENÚ"
+	assign_btn.custom_minimum_size = Vector2(170, 36)
+	assign_btn.pressed.connect(func() -> void:
+		var chosen: String = tracks_list[track_opt.selected]
+		_temp_settings["preferred_menu_music"] = chosen
+		AudioManager.play_sfx("ui_click", -8.0)
+	)
+	track_row.add_child(assign_btn)
+
+func _create_volume_slider_row(parent: VBoxContainer, label_str: String, key_str: String, callback: Callable) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 16)
+	parent.add_child(row)
+
+	var lbl := Label.new()
+	lbl.text = label_str
+	lbl.custom_minimum_size = Vector2(260, 0)
+	lbl.add_theme_font_size_override("font_size", 12)
+	lbl.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
+	row.add_child(lbl)
+
+	var slider := HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 1.0
+	slider.step = 0.05
+	slider.value = float(_temp_settings.get(key_str, 1.0))
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.custom_minimum_size = Vector2(0, 24)
+	row.add_child(slider)
+
+	var val_lbl := Label.new()
+	val_lbl.text = "%d%%" % int(slider.value * 100.0)
+	val_lbl.custom_minimum_size = Vector2(50, 0)
+	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	val_lbl.add_theme_font_size_override("font_size", 12)
+	val_lbl.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
+	row.add_child(val_lbl)
+
+	slider.value_changed.connect(func(v: float) -> void:
+		val_lbl.text = "%d%%" % int(v * 100.0)
+		callback.call(v)
+	)
+
+func _populate_settings_graphics_tab() -> void:
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 16)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_settings_tab_container.add_child(vbox)
+
+	# Fullscreen
+	var fs_row := HBoxContainer.new()
+	fs_row.add_theme_constant_override("separation", 16)
+	vbox.add_child(fs_row)
+
+	var fs_lbl := Label.new()
+	fs_lbl.text = "Modo de Pantalla Completa (Fullscreen):"
+	fs_lbl.custom_minimum_size = Vector2(300, 0)
+	fs_lbl.add_theme_font_size_override("font_size", 12)
+	fs_lbl.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
+	fs_row.add_child(fs_lbl)
+
+	var fs_check := CheckBox.new()
+	fs_check.text = "Activar Pantalla Completa Exclusiva"
+	fs_check.button_pressed = bool(_temp_settings.get("fullscreen", false))
+	fs_check.toggled.connect(func(pressed: bool) -> void:
+		_temp_settings["fullscreen"] = pressed
+	)
+	fs_row.add_child(fs_check)
+
+	# MSAA 3D
+	var msaa_row := HBoxContainer.new()
+	msaa_row.add_theme_constant_override("separation", 16)
+	vbox.add_child(msaa_row)
+
+	var msaa_lbl := Label.new()
+	msaa_lbl.text = "Suavizado de Bordes 3D (MSAA Antialiasing):"
+	msaa_lbl.custom_minimum_size = Vector2(300, 0)
+	msaa_lbl.add_theme_font_size_override("font_size", 12)
+	msaa_lbl.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
+	msaa_row.add_child(msaa_lbl)
+
+	var msaa_opt := OptionButton.new()
+	msaa_opt.custom_minimum_size = Vector2(220, 32)
+	msaa_opt.add_item("Desactivado", 0)
+	msaa_opt.add_item("2X MSAA (Rápido)", 1)
+	msaa_opt.add_item("4X MSAA (Equilibrado)", 2)
+	msaa_opt.add_item("8X MSAA (Alta Definición)", 3)
+	var cur_msaa: int = int(_temp_settings.get("msaa_3d", 2))
+	msaa_opt.selected = clampi(cur_msaa, 0, 3)
+	msaa_opt.item_selected.connect(func(idx: int) -> void:
+		_temp_settings["msaa_3d"] = idx
+	)
+	msaa_row.add_child(msaa_opt)
+
+	# Glow
+	var glow_row := HBoxContainer.new()
+	glow_row.add_theme_constant_override("separation", 16)
+	vbox.add_child(glow_row)
+
+	var glow_lbl := Label.new()
+	glow_lbl.text = "Luminiscencia del Éter & Motores (Bloom/Glow):"
+	glow_lbl.custom_minimum_size = Vector2(300, 0)
+	glow_lbl.add_theme_font_size_override("font_size", 12)
+	glow_lbl.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
+	glow_row.add_child(glow_lbl)
+
+	var glow_check := CheckBox.new()
+	glow_check.text = "Efectos de Brillo Cósmico y Resonancia Activos"
+	glow_check.button_pressed = bool(_temp_settings.get("glow_enabled", true))
+	glow_check.toggled.connect(func(pressed: bool) -> void:
+		_temp_settings["glow_enabled"] = pressed
+	)
+	glow_row.add_child(glow_check)
+
+	# SSAO
+	var ssao_row := HBoxContainer.new()
+	ssao_row.add_theme_constant_override("separation", 16)
+	vbox.add_child(ssao_row)
+
+	var ssao_lbl := Label.new()
+	ssao_lbl.text = "Oclusión Ambiental de Cascos (SSAO):"
+	ssao_lbl.custom_minimum_size = Vector2(300, 0)
+	ssao_lbl.add_theme_font_size_override("font_size", 12)
+	ssao_lbl.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
+	ssao_row.add_child(ssao_lbl)
+
+	var ssao_check := CheckBox.new()
+	ssao_check.text = "Sombras de Contacto en Hangar y Blindajes"
+	ssao_check.button_pressed = bool(_temp_settings.get("ssao_enabled", true))
+	ssao_check.toggled.connect(func(pressed: bool) -> void:
+		_temp_settings["ssao_enabled"] = pressed
+	)
+	ssao_row.add_child(ssao_check)
+
+	# FPS limit
+	var fps_row := HBoxContainer.new()
+	fps_row.add_theme_constant_override("separation", 16)
+	vbox.add_child(fps_row)
+
+	var fps_lbl := Label.new()
+	fps_lbl.text = "Límite de Fotogramas por Segundo (Max FPS):"
+	fps_lbl.custom_minimum_size = Vector2(300, 0)
+	fps_lbl.add_theme_font_size_override("font_size", 12)
+	fps_lbl.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
+	fps_row.add_child(fps_lbl)
+
+	var fps_opt := OptionButton.new()
+	fps_opt.custom_minimum_size = Vector2(220, 32)
+	var fps_values := [0, 30, 60, 120, 144]
+	var fps_labels := ["Sin Límite (Máximo Rendimiento)", "30 FPS (Ahorro de Energía)", "60 FPS (Estándar Suave)", "120 FPS (Tasa de Refresco Alta)", "144 FPS (Ultra Competitivo)"]
+	var cur_fps: int = int(_temp_settings.get("max_fps", 0))
+	var fps_sel := 0
+	for i in range(fps_values.size()):
+		fps_opt.add_item(fps_labels[i], i)
+		if fps_values[i] == cur_fps:
+			fps_sel = i
+	fps_opt.selected = fps_sel
+	fps_opt.item_selected.connect(func(idx: int) -> void:
+		_temp_settings["max_fps"] = fps_values[idx]
+	)
+	fps_row.add_child(fps_opt)
+
+# ==============================================================================
+# TACTICAL MANUAL & CODEX MODAL
+# ==============================================================================
+var _codex_active_topic: int = 0
+var _codex_content_vbox: VBoxContainer
+var _codex_topic_buttons: Array[Button] = []
+
+func _build_codex_modal() -> void:
+	_codex_modal = Control.new()
+	_codex_modal.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_codex_modal.visible = false
+	add_child(_codex_modal)
+
+	var bg_dim := ColorRect.new()
+	bg_dim.color = Color(0.008, 0.02, 0.04, 0.88)
+	bg_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_codex_modal.add_child(bg_dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_codex_modal.add_child(center)
+
+	var window := PanelContainer.new()
+	window.custom_minimum_size = Vector2(980, 620)
+	var win_style := StyleBoxFlat.new()
+	win_style.bg_color = Color(0.018, 0.045, 0.088, 0.96)
+	win_style.border_color = Color(0.28, 0.78, 0.98, 0.85)
+	win_style.set_border_width_all(2)
+	win_style.set_corner_radius_all(8)
+	win_style.set_content_margin_all(20)
+	window.add_theme_stylebox_override("panel", win_style)
+	center.add_child(window)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 12)
+	window.add_child(vbox)
+
+	var hdr := HBoxContainer.new()
+	vbox.add_child(hdr)
+
+	var hdr_titles := VBoxContainer.new()
+	hdr_titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hdr.add_child(hdr_titles)
+
+	var title_lbl := Label.new()
+	title_lbl.text = "MANUAL TÁCTICO DEL MAR ESTELAR // FLEET CODEX"
+	title_lbl.add_theme_font_size_override("font_size", 18)
+	title_lbl.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
+	hdr_titles.add_child(title_lbl)
+
+	var sub_lbl := Label.new()
+	sub_lbl.text = "Fundamentos de Combate Naval Espacial en 3D: Fases, Inercia Newtoniana, Viento y Héroes Ases"
+	sub_lbl.add_theme_font_size_override("font_size", 11)
+	sub_lbl.add_theme_color_override("font_color", Color(0.65, 0.82, 0.94))
+	hdr_titles.add_child(sub_lbl)
+
+	var close_btn := Button.new()
+	close_btn.text = "✕ CERRAR"
+	close_btn.custom_minimum_size = Vector2(100, 32)
+	close_btn.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		_codex_modal.visible = false
+	)
+	hdr.add_child(close_btn)
+
+	vbox.add_child(HSeparator.new())
+
+	var body_row := HBoxContainer.new()
+	body_row.add_theme_constant_override("separation", 16)
+	body_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(body_row)
+
+	# Left Column: Topics List
+	var left_panel := PanelContainer.new()
+	left_panel.custom_minimum_size = Vector2(280, 0)
+	var lp_style := StyleBoxFlat.new()
+	lp_style.bg_color = Color(0.012, 0.028, 0.060, 0.75)
+	lp_style.border_color = Color(0.20, 0.55, 0.75, 0.45)
+	lp_style.set_border_width_all(1)
+	lp_style.set_corner_radius_all(6)
+	lp_style.set_content_margin_all(10)
+	left_panel.add_theme_stylebox_override("panel", lp_style)
+	body_row.add_child(left_panel)
+
+	var topics_vbox := VBoxContainer.new()
+	topics_vbox.add_theme_constant_override("separation", 8)
+	left_panel.add_child(topics_vbox)
+
+	var topics := [
+		"1. LAS DOS FASES DE COMBATE",
+		"2. EL VIENTO Y EL ÉTER (BARLOVENTO)",
+		"3. DINÁMICA NEWTONIANA Y DERAPE",
+		"4. BLINDAJE DIRECCIONAL Y SINERGIAS",
+		"5. CONTROLES Y COMBOS TÁCTICOS"
+	]
+
+	_codex_topic_buttons.clear()
+	for i in range(topics.size()):
+		var t_idx := i
+		var btn := Button.new()
+		btn.text = topics[i]
+		btn.custom_minimum_size = Vector2(0, 42)
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		btn.pressed.connect(func() -> void:
+			AudioManager.play_sfx("ui_click", -8.0)
+			_set_codex_topic(t_idx)
+		)
+		topics_vbox.add_child(btn)
+		_codex_topic_buttons.append(btn)
+
+	var tp_spacer := Control.new()
+	tp_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	topics_vbox.add_child(tp_spacer)
+
+	# Right Column: Content Scroll
+	var right_panel := PanelContainer.new()
+	right_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var rp_style := StyleBoxFlat.new()
+	rp_style.bg_color = Color(0.012, 0.028, 0.060, 0.75)
+	rp_style.border_color = Color(0.20, 0.55, 0.75, 0.45)
+	rp_style.set_border_width_all(1)
+	rp_style.set_corner_radius_all(6)
+	rp_style.set_content_margin_all(18)
+	right_panel.add_theme_stylebox_override("panel", rp_style)
+	body_row.add_child(right_panel)
+
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	right_panel.add_child(scroll)
+
+	_codex_content_vbox = VBoxContainer.new()
+	_codex_content_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_codex_content_vbox.add_theme_constant_override("separation", 12)
+	scroll.add_child(_codex_content_vbox)
+
+	_set_codex_topic(0)
+
+func _open_codex_modal() -> void:
+	if _codex_modal == null:
+		return
+	_codex_modal.visible = true
+	_set_codex_topic(_codex_active_topic)
+
+func _set_codex_topic(topic_idx: int) -> void:
+	_codex_active_topic = topic_idx
+	for i in range(_codex_topic_buttons.size()):
+		var b := _codex_topic_buttons[i]
+		if i == topic_idx:
+			var act_st := StyleBoxFlat.new()
+			act_st.bg_color = Color(0.08, 0.22, 0.38, 0.95)
+			act_st.border_color = Color(0.35, 0.95, 1.0)
+			act_st.set_border_width_all(2)
+			act_st.set_corner_radius_all(5)
+			b.add_theme_stylebox_override("normal", act_st)
+		else:
+			b.remove_theme_stylebox_override("normal")
+
+	for child in _codex_content_vbox.get_children():
+		child.queue_free()
+
+	match topic_idx:
+		0:
+			_add_codex_section("1. LAS DOS FASES DE COMBATE", "El núcleo táctico de BARLOVENTO equilibra estrategia a nivel de flota con el combate de cazas/mechas Ases.")
+			_add_codex_paragraph("FASE 1: ALMIRANTE (SIMULTÁNEA Y ESTRATÉGICA)\nEn esta fase no disparas armas directamente. Asignas vectores de desplazamiento a tu flota completa y ajustas cuadrantes de combate en 3D (Vanguardia, Babor, Estribor, Retaguardia). Ambos bandos comprometen sus órdenes a la vez y la simulación avanza simultáneamente.")
+			_add_codex_paragraph("FASE 2: ASES (TÁCTICA POR TURNOS Y DUELOS)\nCuando las naves entran en alcance de fuego, la batalla pasa al control de los pilotos Ases y comandantes de línea. Cada navío recibe Puntos de Acción (AP) individuales según su clase. Puedes maniobrar, disparar cañones primarios, orientar el blindaje hacia el enemigo o desatar habilidades exclusivas de facción.")
+			_add_codex_tip("CONSEJO DE GUERRA: El 50% de la batalla se gana en la colocación de la Fase Almirante; un mal posicionamiento no puede salvarse fácilmente solo con potencia de fuego en la Fase As.")
+
+		1:
+			_add_codex_section("2. EL VIENTO Y EL ÉTER (BARLOVENTO)", "El espacio no está vacío; es el Mar Estelar surcado por corrientes de Éter.")
+			_add_codex_paragraph("LA VENTAJA DE BARLOVENTO (WEATHER GAUGE)\nEn la era de la navegación a vela, la flota 'a barlovento' tenía la iniciativa y el viento a favor. En BARLOVENTO ocurre lo mismo con las corrientes de Éter:")
+			_add_codex_paragraph("✦ Naves que avanzan CON la corriente (+Éter): Ganan +25% de aceleración máxima, menor fricción térmica y recuperan +1 AP al inicio de su turno.")
+			_add_codex_paragraph("✦ Naves forzadas a virar CONTRA la corriente (-Éter): Sufren mayor calentamiento en los disipadores y sus giros requieren más potencia de maniobra.")
+			_add_codex_tip("TELEMETRÍA: Consulta siempre el indicador 'WEATHER-GAUGE' en la esquina superior izquierda para conocer el vector y la intensidad activa del Éter (1 a 5).")
+
+		2:
+			_add_codex_section("3. DINÁMICA NEWTONIANA Y DERRAPE", "Las naves espaciales no se detienen instantáneamente: tienen masa, inercia y momento.")
+			_add_codex_paragraph("VECTORES DE RUMBO VS. VECTOR DE VELOCIDAD\nCuando ordenas a tu nave cambiar de rumbo (orientación de morro), los propulsores de maniobra giran el casco, pero el vector de velocidad acumulado continúa empujando la nave en su dirección previa. Esto produce un derrape táctico (drift) que puedes aprovechar para disparar andanadas laterales mientras te desplazas lateralmente.")
+			_add_codex_paragraph("HIGH-G BURN (QUEMADO DE ALTO G)\nPermite a las unidades más ágiles gastar AP o combustible de éteron para contrarrestar la inercia bruscamente y cambiar su vector de escape de inmediato.")
+			_add_codex_tip("CUIDADO CON LA INERCIA: Un acorazado de Acero de 12.000 toneladas tardará varios turnos en frenar una vez que adquiera velocidad crucero hacia un asteroide o estación.")
+
+		3:
+			_add_codex_section("4. BLINDAJE DIRECCIONAL Y SINERGIAS", "Cada navío posee 4 sectores independientes de blindaje: Proa, Babor, Estribor y Popa.")
+			_add_codex_paragraph("PROTECCIÓN POR SECTORES\nEl blindaje absorbe el daño de los proyectiles antes de que afecte la integridad del casco interno:")
+			_add_codex_paragraph("✦ ARMADA DE ACERO: Posee el blindaje de proa más grueso de la galaxia. Su táctica es avanzar en punta de lanza y desatar baterías de andanada.")
+			_add_codex_paragraph("✦ LOS VINCULADOS: Blindaje cerámico ligero con escudos resonantes. Esquivan ataques mediante saltos de vector y sus lanzas de resonancia perforan escudos al impactar flancos.")
+			_add_codex_paragraph("✦ LA MAREA LIBRE: Cascos reforzados de madera presurizada y aleaciones de bronce. Utilizan arpones y abordajes corsarios de corto alcance.")
+			_add_codex_tip("FOCO DE DISPARO: Ataca continuamente el flanco cuyo blindaje ya haya caído para infligir daño crítico directo a los módulos del casco enemigo.")
+
+		4:
+			_add_codex_section("5. CONTROLES Y COMBOS TÁCTICOS", "Guía rápida de teclas y atajos para el mando táctico.")
+			_add_codex_paragraph("CÁMARA TÁCTICA 3D:\n✦ Clic Derecho + Arrastrar: Rotar cámara orbital 3D alrededor de la flota.\n✦ Rueda del Ratón: Zoom de acercamiento / alejamiento táctico.\n✦ Teclas W, A, S, D: Desplazamiento panorámico de cámara sobre el Mar Estelar.\n✦ Tecla R: Restablecer cámara al centro del combate.")
+			_add_codex_paragraph("GESTIÓN DE FASES Y ACCIONES:\n✦ Clic Izquierdo en Nave: Seleccionar nave aliada u objetivo hostil.\n✦ Barra Espaciadora / ENTER: Confirmar orden / Finalizar Fase activa.\n✦ Tecla F5: Guardado Rápido (Crea estado táctico en tiempo real).\n✦ Tecla F9: Carga Rápida de última batalla guardada.\n✦ Tecla ESC: Menú de Pausa / Descartar selección / Cerrar modales.")
+			_add_codex_tip("COMBOS DE HÉROE: Activa 'Puntería de Precisión' en el Almirante Vane antes de disparar el cañón de riel para garantizar impactos en la popa del objetivo.")
+
+func _add_codex_section(title_text: String, subtitle_text: String) -> void:
+	var t := Label.new()
+	t.text = title_text
+	t.add_theme_font_size_override("font_size", 16)
+	t.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
+	_codex_content_vbox.add_child(t)
+
+	var st := Label.new()
+	st.text = subtitle_text
+	st.add_theme_font_size_override("font_size", 11)
+	st.add_theme_color_override("font_color", Color(0.65, 0.82, 0.94))
+	_codex_content_vbox.add_child(st)
+
+	_codex_content_vbox.add_child(HSeparator.new())
+
+func _add_codex_paragraph(text_content: String) -> void:
+	var p := Label.new()
+	p.text = text_content
+	p.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	p.add_theme_font_size_override("font_size", 12)
+	p.add_theme_color_override("font_color", Color(0.88, 0.94, 1.0))
+	_codex_content_vbox.add_child(p)
+
+func _add_codex_tip(tip_content: String) -> void:
+	var tip_panel := PanelContainer.new()
+	var st := StyleBoxFlat.new()
+	st.bg_color = Color(0.04, 0.12, 0.18, 0.85)
+	st.border_color = Color(1.0, 0.78, 0.35, 0.85)
+	st.set_border_width_all(1)
+	st.set_corner_radius_all(4)
+	st.set_content_margin_all(10)
+	tip_panel.add_theme_stylebox_override("panel", st)
+
+	var l := Label.new()
+	l.text = tip_content
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_font_size_override("font_size", 11)
+	l.add_theme_color_override("font_color", Color(1.0, 0.85, 0.45))
+	tip_panel.add_child(l)
+
+	_codex_content_vbox.add_child(tip_panel)

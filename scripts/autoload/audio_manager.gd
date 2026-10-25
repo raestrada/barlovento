@@ -22,15 +22,25 @@ const BATTLE_PLAYLIST: Array[String] = [
 ]
 
 const TRACK_TITLES: Dictionary = {
-	"res://assets/audio/music_prologue.ogg": "Gustav Holst — Venus, the Bringer of Peace",
-	"res://assets/audio/music_battle_march.ogg": "Gustav Holst — Mars, the Bringer of War (Armada of Acero)",
-	"res://assets/audio/music/music_marea.ogg": "Gustav Holst — Jupiter, the Bringer of Jollity (The Free Tide)",
+	"res://assets/audio/music_prologue.ogg": "Gustav Holst — Venus, Bringer of Peace (Prologue Master)",
+	"res://assets/audio/music_battle_march.ogg": "Gustav Holst — Mars, Bringer of War (Armada of Acero)",
+	"res://assets/audio/music/music_marea.ogg": "Gustav Holst — Jupiter, Bringer of Jollity (The Free Tide)",
 	"res://assets/audio/music/music_vinculados.ogg": "Gustav Holst — Uranus, the Magician (The Vinculados)",
-	"res://assets/audio/music/music_ace_tactical.ogg": "Gustav Holst — Mercury, the Winged Messenger (Ace Tactical Dogfight)",
-	"res://assets/audio/music/music_climax.ogg": "Antonín Dvořák — Symphony No. 9 'New World' IV. Allegro con fuoco",
+	"res://assets/audio/music/music_ace_tactical.ogg": "Gustav Holst — Mercury, Winged Messenger (Ace Dogfight)",
+	"res://assets/audio/music/music_climax.ogg": "Antonín Dvořák — Symphony No. 9 'New World' Allegro con fuoco",
+	"res://assets/audio/music/out_there.ogg": "Deep Space Overture — Out There (Atmospheric Star Sea)",
+	"res://assets/audio/music/insistent.ogg": "Dramatic Overture — Insistent March",
 	"res://assets/audio/music/music_victory.wav": "Symphonic Fanfare — Mission Accomplished",
 	"res://assets/audio/music/music_defeat.wav": "Symphonic Elegy — Flagship Down",
 }
+
+var master_volume: float = 1.0
+var music_volume: float = 0.85
+var sfx_volume: float = 1.0
+var ambient_volume: float = 0.80
+
+var _base_music_db: float = -11.0
+var _base_ambient_db: float = -24.0
 
 var _sfx: Dictionary = {}
 var _sfx_players: Array[AudioStreamPlayer] = []
@@ -76,13 +86,37 @@ func _load_sfx() -> void:
 		if ResourceLoader.exists(files[key]):
 			_sfx[key] = load(files[key])
 
+func set_master_volume(linear: float) -> void:
+	master_volume = clampf(linear, 0.0, 1.0)
+	_apply_volumes()
+
+func set_music_volume(linear: float) -> void:
+	music_volume = clampf(linear, 0.0, 1.0)
+	_apply_volumes()
+
+func set_sfx_volume(linear: float) -> void:
+	sfx_volume = clampf(linear, 0.0, 1.0)
+
+func set_ambient_volume(linear: float) -> void:
+	ambient_volume = clampf(linear, 0.0, 1.0)
+	_apply_volumes()
+
+func _apply_volumes() -> void:
+	if _music != null and _music.playing:
+		var effective_music := clampf(master_volume * music_volume, 0.0001, 1.0)
+		_music.volume_db = _base_music_db + linear_to_db(effective_music)
+	if _ambient != null and _ambient.playing:
+		var effective_ambient := clampf(master_volume * ambient_volume, 0.0001, 1.0)
+		_ambient.volume_db = _base_ambient_db + linear_to_db(effective_ambient)
+
 func play_sfx(sfx_name: String, volume_db: float = 0.0) -> void:
 	if not _sfx.has(sfx_name):
 		return
 	var player := _sfx_players[_sfx_index]
 	_sfx_index = (_sfx_index + 1) % SFX_POOL_SIZE
 	player.stream = _sfx[sfx_name]
-	player.volume_db = volume_db
+	var effective_sfx := clampf(master_volume * sfx_volume, 0.0001, 1.0)
+	player.volume_db = volume_db + linear_to_db(effective_sfx)
 	player.play()
 
 func play_music(volume_db: float = -10.0) -> void:
@@ -179,7 +213,9 @@ func _start_music_track(path: String, volume_db: float) -> void:
 		stream.loop = true
 	_current_music_path = path
 	_music.stream = stream
-	_music.volume_db = volume_db
+	_base_music_db = volume_db
+	var effective_music := clampf(master_volume * music_volume, 0.0001, 1.0)
+	_music.volume_db = volume_db + linear_to_db(effective_music)
 	_music.play()
 
 func _play_one_shot_music(path: String, volume_db: float) -> void:
@@ -198,7 +234,9 @@ func _play_one_shot_music(path: String, volume_db: float) -> void:
 		stream.loop_mode = AudioStreamWAV.LOOP_DISABLED
 	_current_music_path = path
 	_music.stream = stream
-	_music.volume_db = volume_db
+	_base_music_db = volume_db
+	var effective_music := clampf(master_volume * music_volume, 0.0001, 1.0)
+	_music.volume_db = volume_db + linear_to_db(effective_music)
 	_music.play()
 
 func start_ambient(volume_db: float = -26.0) -> void:
@@ -209,7 +247,9 @@ func start_ambient(volume_db: float = -26.0) -> void:
 		stream.loop = true
 	if stream != null:
 		_ambient.stream = stream
-		_ambient.volume_db = volume_db
+		_base_ambient_db = volume_db
+		var effective_ambient := clampf(master_volume * ambient_volume, 0.0001, 1.0)
+		_ambient.volume_db = volume_db + linear_to_db(effective_ambient)
 		_ambient.play()
 
 func stop_music() -> void:

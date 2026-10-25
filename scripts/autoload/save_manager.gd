@@ -2,6 +2,7 @@ extends Node
 
 const CAMPAIGN_SAVE_PATH := "user://barlovento_campaign.json"
 const TACTICAL_SAVE_PATH := "user://barlovento_tactical_save.json"
+const SETTINGS_PATH := "user://barlovento_settings.json"
 
 signal tactical_saved(summary: String)
 signal campaign_updated
@@ -22,6 +23,7 @@ var pending_load_battle: bool = false
 
 func _ready() -> void:
     load_campaign()
+    apply_settings(load_settings())
 
 func save_campaign() -> void:
     var data := {
@@ -263,6 +265,124 @@ func _serialize_ship(s: Node) -> Dictionary:
         "stance": int(s.stance),
         "is_evading": s.is_evading
     }
+
+func get_faction_summary(fac: String) -> Dictionary:
+    var max_stage := 1
+    for s in range(1, 13):
+        var sid := fac + "_stage_" + str(s)
+        if bool(unlocked_stages.get(sid, false)):
+            max_stage = s
+    var latest_stage_id := fac + "_stage_" + str(max_stage)
+    var completed_count := 0
+    for s in range(1, 13):
+        var sid := fac + "_stage_" + str(s)
+        if bool(completed_stages.get(sid, false)):
+            completed_count += 1
+
+    var fac_name := "The Armada of Acero"
+    var motto := "Steel Endures. The Sea is Fuel."
+    var emblem_color := Color(1.0, 0.58, 0.22)
+    var art_path := "res://assets/factions/card_acero.png"
+    if fac == "vinculados":
+        fac_name = "The Vinculados"
+        motto = "Soul & Resonance. We Sing Before the Silence."
+        emblem_color = Color(0.35, 0.92, 1.0)
+        art_path = "res://assets/factions/card_vinculados.png"
+    elif fac == "marea_libre":
+        fac_name = "The Free Tide (Marea Libre)"
+        motto = "Wind & Liberty. Break the Dams, Re-Awaken the Sea."
+        emblem_color = Color(0.98, 0.78, 0.28)
+        art_path = "res://assets/factions/card_marea.png"
+
+    var st_data := StoryDB.get_story_data(latest_stage_id)
+    var st_title := String(st_data.get("title", latest_stage_id.to_upper()))
+
+    var has_tactical := false
+    var tactical_summary := ""
+    if has_tactical_save():
+        var tac := load_tactical_state()
+        var tac_fac := String(tac.get("faction", ""))
+        var tac_stg := String(tac.get("stage_id", ""))
+        if tac_fac == fac or tac_stg.begins_with(fac):
+            has_tactical = true
+            tactical_summary = get_tactical_save_summary()
+
+    return {
+        "faction": fac,
+        "faction_name": fac_name,
+        "motto": motto,
+        "emblem_color": emblem_color,
+        "art_path": art_path,
+        "latest_stage_id": latest_stage_id,
+        "stage_title": st_title,
+        "stage_number": max_stage,
+        "stages_completed": completed_count,
+        "total_stages": 12,
+        "is_conquered": completed_count >= 12,
+        "has_tactical_save": has_tactical,
+        "tactical_summary": tactical_summary
+    }
+
+func reset_faction_progress(fac: String) -> void:
+    for s in range(1, 13):
+        var sid := fac + "_stage_" + str(s)
+        if s > 1:
+            unlocked_stages.erase(sid)
+        else:
+            unlocked_stages[sid] = true
+        completed_stages.erase(sid)
+    save_campaign()
+
+func get_default_settings() -> Dictionary:
+    return {
+        "master_volume": 1.0,
+        "music_volume": 0.85,
+        "sfx_volume": 1.0,
+        "ambient_volume": 0.80,
+        "fullscreen": false,
+        "msaa_3d": 2,
+        "glow_enabled": true,
+        "ssao_enabled": true,
+        "max_fps": 0,
+        "preferred_menu_music": "res://assets/audio/music_prologue.ogg"
+    }
+
+func load_settings() -> Dictionary:
+    var settings := get_default_settings()
+    if not FileAccess.file_exists(SETTINGS_PATH):
+        return settings
+    var f := FileAccess.open(SETTINGS_PATH, FileAccess.READ)
+    if f != null:
+        var txt := f.get_as_text()
+        f.close()
+        var parsed: Variant = JSON.parse_string(txt)
+        if parsed is Dictionary:
+            for k in parsed.keys():
+                settings[k] = parsed[k]
+    return settings
+
+func save_settings(settings: Dictionary) -> void:
+    var f := FileAccess.open(SETTINGS_PATH, FileAccess.WRITE)
+    if f != null:
+        f.store_string(JSON.stringify(settings, "\t"))
+        f.close()
+    apply_settings(settings)
+
+func apply_settings(settings: Dictionary) -> void:
+    if AudioManager != null:
+        AudioManager.set_master_volume(float(settings.get("master_volume", 1.0)))
+        AudioManager.set_music_volume(float(settings.get("music_volume", 0.85)))
+        AudioManager.set_sfx_volume(float(settings.get("sfx_volume", 1.0)))
+        AudioManager.set_ambient_volume(float(settings.get("ambient_volume", 0.80)))
+
+    var is_full: bool = bool(settings.get("fullscreen", false))
+    if DisplayServer.has_feature(DisplayServer.FEATURE_SUBWINDOWS):
+        DisplayServer.window_set_mode(
+            DisplayServer.WINDOW_MODE_FULLSCREEN if is_full else DisplayServer.WINDOW_MODE_WINDOWED
+        )
+
+    var max_fps: int = int(settings.get("max_fps", 0))
+    Engine.max_fps = max_fps
 
 func arr_to_vec3(arr: Array) -> Vector3:
     if arr.size() >= 3:
