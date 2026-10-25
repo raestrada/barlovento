@@ -526,335 +526,411 @@ def build_acero_warship(collection, texture_path, name_prefix="Acero_Dreadnought
     root.scale = (scale_factor, scale_factor, scale_factor)
     return root, turret_pivots
 
+def part_chamfer_box(name, size, parent, col, mat, loc=(0,0,0), rot=(0,0,0), scale=(1,1,1), chamfer=0.022):
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0)
+    bmesh.ops.scale(bm, vec=size, verts=bm.verts)
+    if chamfer > 0.0:
+        bmesh.ops.bevel(bm, geom=bm.edges, offset=chamfer, segments=1, profile=0.5)
+    return make_part(name, bm, parent, col, mat, loc, rot, scale=scale, subsurf=0, smooth=False)
+
+def part_chamfer_wedge(name, size_bot, size_top, height, parent, col, mat, loc=(0,0,0), rot=(0,0,0), chamfer=0.018, top_offset=(0.0, 0.0)):
+    bm = bmesh.new()
+    bx, by = size_bot[0] * 0.5, size_bot[1] * 0.5
+    tx, ty = size_top[0] * 0.5, size_top[1] * 0.5
+    ox, oy = top_offset
+    hz = height * 0.5
+    v0 = bm.verts.new((-bx, -by, -hz))
+    v1 = bm.verts.new(( bx, -by, -hz))
+    v2 = bm.verts.new(( bx,  by, -hz))
+    v3 = bm.verts.new((-bx,  by, -hz))
+    v4 = bm.verts.new((-tx + ox, -ty + oy,  hz))
+    v5 = bm.verts.new(( tx + ox, -ty + oy,  hz))
+    v6 = bm.verts.new(( tx + ox,  ty + oy,  hz))
+    v7 = bm.verts.new((-tx + ox,  ty + oy,  hz))
+    bm.faces.new((v0, v3, v2, v1))
+    bm.faces.new((v4, v5, v6, v7))
+    bm.faces.new((v0, v1, v5, v4))
+    bm.faces.new((v1, v2, v6, v5))
+    bm.faces.new((v2, v3, v7, v6))
+    bm.faces.new((v3, v0, v4, v7))
+    if chamfer > 0.0:
+        bmesh.ops.bevel(bm, geom=bm.edges, offset=chamfer, segments=1, profile=0.5)
+    return make_part(name, bm, parent, col, mat, loc, rot, subsurf=0, smooth=False)
+
 # -------------------------------------------------------------------------
-# 3. THE VINCULADOS — SCULPTED SUBSURF-2 SERAPH-PRIME COLOSSAL MOBILE ARMOR & CARRIER CRADLE
+# 3. THE VINCULADOS — HARD-SURFACE ANGULAR GUNDAM MECHA (SERAPH-PRIME & ESCORT WING)
 # -------------------------------------------------------------------------
 def build_vinculados_colossus(collection, texture_path, name_prefix="Seraph_Prime", scale_factor=1.0, is_wingman=False):
-    subsurf_lvl = 1 if is_wingman else 2
     root = bpy.data.objects.new(name_prefix, None)
     collection.objects.link(root)
 
-    torso = make_pivot(f"{name_prefix}_TorsoPiv", root, collection, loc=(0.0, 0.0, 1.58))
-    head = make_pivot(f"{name_prefix}_HeadPiv", torso, collection, loc=(0.0, 0.0, 1.40))
+    torso = make_pivot(f"{name_prefix}_TorsoPiv", root, collection, loc=(0.0, 0.0, 1.56))
+    head = make_pivot(f"{name_prefix}_HeadPiv", torso, collection, loc=(0.0, 0.0, 1.24))
     binder_L = make_pivot(f"{name_prefix}_BinderPiv_L", torso, collection, loc=(-0.38, 0.44, 1.05))
     binder_R = make_pivot(f"{name_prefix}_BinderPiv_R", torso, collection, loc=( 0.38, 0.44, 1.05))
-    sh_L = make_pivot(f"{name_prefix}_ShoulderPiv_L", torso, collection, loc=(-0.74, 0.02, 0.98))
-    sh_R = make_pivot(f"{name_prefix}_ShoulderPiv_R", torso, collection, loc=( 0.74, 0.02, 0.98))
-    el_L = make_pivot(f"{name_prefix}_ElbowPiv_L", sh_L, collection, loc=(-0.18, 0.02, -0.66))
-    el_R = make_pivot(f"{name_prefix}_ElbowPiv_R", sh_R, collection, loc=( 0.18, 0.02, -0.66))
-    hip_L = make_pivot(f"{name_prefix}_HipPiv_L", root, collection, loc=(-0.40, 0.0, 1.18))
-    hip_R = make_pivot(f"{name_prefix}_HipPiv_R", root, collection, loc=( 0.40, 0.0, 1.18))
+    sh_L = make_pivot(f"{name_prefix}_ShoulderPiv_L", torso, collection, loc=(-0.78, 0.02, 1.00))
+    sh_R = make_pivot(f"{name_prefix}_ShoulderPiv_R", torso, collection, loc=( 0.78, 0.02, 1.00))
+    el_L = make_pivot(f"{name_prefix}_ElbowPiv_L", sh_L, collection, loc=(-0.16, 0.02, -0.68))
+    el_R = make_pivot(f"{name_prefix}_ElbowPiv_R", sh_R, collection, loc=( 0.16, 0.02, -0.68))
+    hip_L = make_pivot(f"{name_prefix}_HipPiv_L", root, collection, loc=(-0.42, 0.0, 1.18))
+    hip_R = make_pivot(f"{name_prefix}_HipPiv_R", root, collection, loc=( 0.42, 0.0, 1.18))
     kn_L = make_pivot(f"{name_prefix}_KneePiv_L", hip_L, collection, loc=(-0.02, 0.0, -0.98))
     kn_R = make_pivot(f"{name_prefix}_KneePiv_R", hip_R, collection, loc=( 0.02, 0.0, -0.98))
     ank_L = make_pivot(f"{name_prefix}_AnklePiv_L", kn_L, collection, loc=(-0.04, 0.02, -1.04))
     ank_R = make_pivot(f"{name_prefix}_AnklePiv_R", kn_R, collection, loc=( 0.04, 0.02, -1.04))
 
-    # Canonical Vinculados Gundam Materials (High-Contrast Cobalt Blue, Pearl White, Crimson, Gold & Magenta Soul Core!)
+    # Canonical Vinculados Gundam Materials (Hard-Surface Matte/Semi-Gloss Ceramic White, Deep Cobalt Blue, Crimson, Gold & Psycho-Frame)
     mat_ceramic = create_pbr_hull_material(
-        f"{name_prefix}_CeramicWhite", (0.92, 0.95, 1.0, 1.0),
-        metallic=0.24, roughness=0.18, texture_path=texture_path, tex_scale=0.65, bump_strength=0.22, coat=0.88, tex_color_mix=0.22
+        f"{name_prefix}_CeramicWhite", (0.93, 0.96, 1.0, 1.0),
+        metallic=0.32, roughness=0.22, texture_path=texture_path, tex_scale=0.68, bump_strength=0.36, coat=0.65, tex_color_mix=0.24
     )
     mat_cobalt = create_pbr_hull_material(
-        f"{name_prefix}_CobaltBlue", (0.04, 0.13, 0.44, 1.0),
-        metallic=0.52, roughness=0.22, texture_path=texture_path, tex_scale=0.65, bump_strength=0.22, coat=0.75, tex_color_mix=0.06
+        f"{name_prefix}_CobaltBlue", (0.04, 0.14, 0.48, 1.0),
+        metallic=0.58, roughness=0.24, texture_path=texture_path, tex_scale=0.68, bump_strength=0.34, coat=0.55, tex_color_mix=0.10
     )
     mat_crimson = create_pbr_hull_material(
-        f"{name_prefix}_CrimsonRed", (0.82, 0.10, 0.14, 1.0),
-        metallic=0.38, roughness=0.24, coat=0.65, tex_color_mix=0.0
+        f"{name_prefix}_CrimsonRed", (0.86, 0.10, 0.14, 1.0),
+        metallic=0.45, roughness=0.25, coat=0.55, tex_color_mix=0.0
     )
     mat_gold = create_pbr_hull_material(
-        f"{name_prefix}_GoldCrest", (0.98, 0.78, 0.15, 1.0),
-        metallic=0.92, roughness=0.16, emission_col=(0.95, 0.70, 0.10, 1.0), emission_str=0.65
+        f"{name_prefix}_GoldCrest", (0.98, 0.78, 0.16, 1.0),
+        metallic=0.94, roughness=0.18, emission_col=(0.95, 0.70, 0.10, 1.0), emission_str=0.60
     )
-    mat_sinew = create_ribbed_sinew_material(f"{name_prefix}_DarkFrame")
-    mat_amber = create_emissive_material(f"{name_prefix}_AmberIntake", (1.0, 0.65, 0.06, 1.0), strength=10.5)
-    mat_core = create_emissive_material(f"{name_prefix}_SoulCore", (1.0, 0.15, 0.88, 1.0), strength=16.0)
+    mat_frame = create_pbr_hull_material(
+        f"{name_prefix}_DarkMechaFrame", (0.10, 0.12, 0.17, 1.0),
+        metallic=0.84, roughness=0.32, texture_path=texture_path, tex_scale=0.85, bump_strength=0.38, tex_color_mix=0.12
+    )
+    mat_amber = create_emissive_material(f"{name_prefix}_AmberIntake", (1.0, 0.68, 0.06, 1.0), strength=10.5)
+    mat_core = create_emissive_material(f"{name_prefix}_SoulCore", (1.0, 0.16, 0.88, 1.0), strength=16.0)
     mat_cyan = create_emissive_material(f"{name_prefix}_CyanVisor", (0.06, 0.94, 1.0, 1.0), strength=14.0)
-    mat_plume = create_emissive_material(f"{name_prefix}_CyanPlume", (0.08, 0.88, 1.0, 0.80), strength=14.0, alpha=0.80)
 
-    oct_prof = [
-        (0.0, -1.0), (0.52, -0.90), (0.90, -0.52), (1.0, 0.0),
-        (0.88, 0.58), (0.45, 0.95), (0.0, 1.0), (-0.45, 0.95),
-        (-0.88, 0.58), (-1.0, 0.0), (-0.90, -0.52), (-0.52, -0.90)
-    ]
-    cuirass_prof = [
-        (0.0,  -0.86), (0.44, -1.04), (0.84, -0.80), (1.02, -0.30),
-        (0.95,  0.28), (0.62,  0.88), (0.0,   1.02), (-0.62, 0.88),
-        (-0.95, 0.28), (-1.02,-0.30), (-0.84,-0.80), (-0.44,-1.04),
-    ]
-
-    # 1. SCULPTED PELVIS, SKIRT ARMOR & SLEEK HIP-MOUNTED MEGA-BUSTER RAIL-CANNONS
-    pelvis_stations = [
-        (1.00, 0.14, 0.20, 0.0, -0.02),
-        (1.20, 0.34, 0.30, 0.0, -0.03),
-        (1.42, 0.49, 0.35, 0.0, -0.01),
-        (1.56, 0.36, 0.28, 0.0,  0.00),
-    ]
-    build_vertical_loft(f"{name_prefix}_PelvisArmor", cuirass_prof, pelvis_stations, root, collection, mat_ceramic, subsurf=subsurf_lvl, smooth=True, sharp_caps=True)
-
+    # 1. ANGULAR GUNDAM WAIST, CROTCH THRUSTER V-BLOCK, SPLIT SKIRT ARMOR & RECTANGULAR HIP RAIL-CANNONS
+    part_chamfer_box(f"{name_prefix}_PelvisCoreFrame", (0.64, 0.46, 0.34), root, collection, mat_frame,
+                     loc=(0.0, 0.0, 1.34), chamfer=0.02)
+    # Central forward-jutting angular crotch block (RX-93 / Freedom style)
+    part_chamfer_wedge(f"{name_prefix}_CrotchCenterBlock", (0.24, 0.32), (0.30, 0.42), 0.52, root, collection, mat_ceramic,
+                       loc=(0.0, -0.18, 1.26), rot=rads((10, 0, 0)), chamfer=0.018, top_offset=(0.0, -0.04))
+    part_chamfer_wedge(f"{name_prefix}_CrotchCobaltCap", (0.18, 0.16), (0.24, 0.20), 0.26, root, collection, mat_cobalt,
+                       loc=(0.0, -0.34, 1.38), rot=rads((12, 0, 0)), chamfer=0.012)
+    part_chamfer_box(f"{name_prefix}_CrotchCrimsonVane", (0.12, 0.12, 0.18), root, collection, mat_crimson,
+                     loc=(0.0, -0.36, 1.12), rot=rads((-12, 0, 0)), chamfer=0.01)
+    # Golden V-Emblem on Crotch Block
     for side in [-1.0, 1.0]:
-        part_taper_box(f"{name_prefix}_FrontSkirt_{side}", (0.24, 0.08), (0.20, 0.06), 0.36, root, collection, mat_ceramic,
-                       loc=(side * 0.22, -0.30, 1.24), rot=rads((-14, side * 6, 0)), bevel=0.015, smooth=True)
-        part_box(f"{name_prefix}_FrontSkirtBlue_{side}", (0.14, 0.04, 0.16), root, collection, mat_cobalt,
-                 loc=(side * 0.22, -0.33, 1.25), rot=rads((-14, side * 6, 0)), bevel=0.01)
-        part_taper_box(f"{name_prefix}_SideSkirt_{side}", (0.14, 0.36), (0.10, 0.28), 0.38, root, collection, mat_ceramic,
-                       loc=(side * 0.50, 0.0, 1.28), rot=rads((0, side * -16, 0)), bevel=0.015, smooth=True)
+        part_chamfer_box(f"{name_prefix}_CrotchGoldV_{side}", (0.035, 0.04, 0.14), root, collection, mat_gold,
+                         loc=(side * 0.045, -0.43, 1.38), rot=rads((12, side * 28, 0)), chamfer=0.004)
 
-        # Sleek Hip-Mounted Mega-Buster Rail-Cannons (Strike Freedom style: tucked cleanly along the side hips!)
+        # Angular Split Front Skirt Armor Plates (Layered White + Cobalt Vent + Gold Lower Lip)
+        part_chamfer_wedge(f"{name_prefix}_FrontSkirt_{side}", (0.28, 0.10), (0.34, 0.12), 0.48, root, collection, mat_ceramic,
+                           loc=(side * 0.29, -0.29, 1.20), rot=rads((-14, side * 6, side * -4)), chamfer=0.016)
+        part_chamfer_box(f"{name_prefix}_FrontSkirtCobalt_{side}", (0.20, 0.07, 0.22), root, collection, mat_cobalt,
+                         loc=(side * 0.29, -0.33, 1.24), rot=rads((-14, side * 6, side * -4)), chamfer=0.012)
+        part_chamfer_box(f"{name_prefix}_FrontSkirtVent_{side}", (0.14, 0.05, 0.06), root, collection, mat_amber,
+                         loc=(side * 0.29, -0.36, 1.10), rot=rads((-14, side * 6, side * -4)), chamfer=0.005)
+
+        # Angular Rear Skirt Armor & Verniers
+        part_chamfer_wedge(f"{name_prefix}_RearSkirt_{side}", (0.30, 0.10), (0.34, 0.12), 0.44, root, collection, mat_ceramic,
+                           loc=(side * 0.26, 0.28, 1.22), rot=rads((16, side * -5, 0)), chamfer=0.016)
+        part_chamfer_box(f"{name_prefix}_RearSkirtCobalt_{side}", (0.20, 0.08, 0.20), root, collection, mat_cobalt,
+                         loc=(side * 0.26, 0.33, 1.26), rot=rads((16, side * -5, 0)), chamfer=0.012)
+
+        # Boxy Side Skirt Binders
+        part_chamfer_wedge(f"{name_prefix}_SideSkirt_{side}", (0.14, 0.44), (0.18, 0.50), 0.44, root, collection, mat_ceramic,
+                           loc=(side * 0.54, 0.0, 1.26), rot=rads((0, side * -14, 0)), chamfer=0.016)
+        part_chamfer_box(f"{name_prefix}_SideSkirtCrimson_{side}", (0.10, 0.28, 0.16), root, collection, mat_crimson,
+                         loc=(side * 0.60, 0.0, 1.32), rot=rads((0, side * -14, 0)), chamfer=0.01)
+
+        # Rectangular Hard-Surface Xiphias Hip Mega-Buster Rail-Cannons (Blocky Mecha Barrels, NOT round tubes!)
         if not is_wingman:
-            cx = side * 0.64
-            part_box(f"{name_prefix}_BusterHousing_{side}", (0.16, 0.95, 0.22), root, collection, mat_cobalt,
-                     loc=(cx, -0.15, 1.26), rot=rads((14, 0, side * -5)), bevel=0.015)
-            part_cyl(f"{name_prefix}_BusterBarrel_{side}", 0.065, 0.055, 1.95, root, collection, mat_sinew,
-                     loc=(cx + side * 0.06, -1.15, 1.02), rot=rads((104, 0, side * -5)), segs=14)
+            cx = side * 0.68
+            part_chamfer_box(f"{name_prefix}_BusterHousing_{side}", (0.18, 1.05, 0.28), root, collection, mat_cobalt,
+                             loc=(cx, -0.10, 1.26), rot=rads((14, 0, side * -4)), chamfer=0.018)
+            part_chamfer_box(f"{name_prefix}_BusterUpperShroud_{side}", (0.14, 1.85, 0.12), root, collection, mat_ceramic,
+                             loc=(cx + side * 0.04, -0.95, 1.14), rot=rads((14, 0, side * -4)), chamfer=0.014)
+            part_chamfer_box(f"{name_prefix}_BusterLowerRail_{side}", (0.12, 1.95, 0.10), root, collection, mat_frame,
+                             loc=(cx + side * 0.04, -1.00, 0.99), rot=rads((14, 0, side * -4)), chamfer=0.012)
+            part_chamfer_box(f"{name_prefix}_BusterPlasmaCore_{side}", (0.06, 1.75, 0.05), root, collection, mat_cyan,
+                             loc=(cx + side * 0.05, -1.02, 1.06), rot=rads((14, 0, side * -4)), chamfer=0.005)
             for r_i in range(3):
-                d_step = 0.65 + r_i * 0.38
-                part_cyl(f"{name_prefix}_BusterGoldRing_{side}_{r_i}", 0.085, 0.085, 0.06, root, collection, mat_gold,
-                         loc=(cx + side * 0.05, -0.35 - d_step, 1.22 - d_step * 0.24), rot=rads((104, 0, side * -5)), segs=14)
-            part_cyl(f"{name_prefix}_BusterEmitter_{side}", 0.055, 0.075, 0.24, root, collection, mat_cyan,
-                     loc=(cx + side * 0.09, -2.10, 0.78), rot=rads((104, 0, side * -5)), segs=12)
+                d_step = 0.55 + r_i * 0.42
+                part_chamfer_box(f"{name_prefix}_BusterGoldClamp_{side}_{r_i}", (0.17, 0.08, 0.24), root, collection, mat_gold,
+                                 loc=(cx + side * 0.04, -0.25 - d_step, 1.22 - d_step * 0.25), rot=rads((14, 0, side * -4)), chamfer=0.008)
 
-    # 2. SCULPTED TORSO, COBALT BLUE CHEST CUIRASS, DUAL AMBER LOUVERS, CRIMSON COCKPIT & SOUL CORE
-    sinew_stations = [
-        (-0.18, 0.30, 0.23, 0.0, 0.0),
-        ( 0.14, 0.35, 0.25, 0.0, 0.02),
-        ( 0.50, 0.44, 0.31, 0.0, 0.0),
-        ( 0.90, 0.54, 0.35, 0.0, 0.0),
-        ( 1.24, 0.38, 0.27, 0.0, 0.02),
-        ( 1.38, 0.21, 0.21, 0.0, 0.01),
-        ( 1.56, 0.17, 0.17, 0.0, 0.01),
-    ]
-    build_vertical_loft(f"{name_prefix}_BioTorso", oct_prof, sinew_stations, torso, collection, mat_sinew, subsurf=subsurf_lvl, smooth=True, sharp_caps=False)
-
-    ab_configs = [
-        (0.44, 0.60, 0.38, 0.44, 0.31, 0.34),
-        (0.24, 0.40, 0.31, 0.36, 0.28, 0.30),
-        (0.04, 0.20, 0.24, 0.29, 0.25, 0.27),
-    ]
-    for idx, (z_bot, z_top, sx_b, sx_t, sy_b, sy_t) in enumerate(ab_configs):
-        ab_st = [
-            (z_bot, sx_b, sy_b, 0.0, -0.05),
-            (0.5 * (z_bot + z_top), 0.5 * (sx_b + sx_t) * 1.03, 0.5 * (sy_b + sy_t) * 1.03, 0.0, -0.06),
-            (z_top, sx_t, sy_t, 0.0, -0.05),
-        ]
-        build_vertical_loft(f"{name_prefix}_AbPlate_{idx}", cuirass_prof, ab_st, torso, collection, mat_ceramic, subsurf=subsurf_lvl, smooth=True, sharp_caps=True)
-
-    # Crimson Cockpit Hatch Block on Center Abdomen
-    part_taper_box(f"{name_prefix}_CockpitCrimson", (0.20, 0.16), (0.16, 0.14), 0.34, torso, collection, mat_crimson,
-                   loc=(0, -0.35, 0.44), rot=rads((-10, 0, 0)), bevel=0.015, smooth=True)
-
-    # Sculpted Cobalt Blue Upper Pectoral Chest Cuirass!
-    chest_stations = [
-        (0.64, 0.48, 0.36, 0.0, -0.04),
-        (0.80, 0.66, 0.45, 0.0, -0.05),
-        (1.06, 0.68, 0.44, 0.0, -0.04),
-        (1.24, 0.46, 0.32, 0.0,  0.01),
-        (1.30, 0.28, 0.24, 0.0,  0.03),
-    ]
-    build_vertical_loft(f"{name_prefix}_UpperChestCobalt", cuirass_prof, chest_stations, torso, collection, mat_cobalt, subsurf=subsurf_lvl, smooth=True, sharp_caps=True)
-
-    # Dual Classic Gundam Amber Cooling Intake Louvers on Left & Right Pectorals!
+    # 2. ANGULAR GUNDAM TORSO: STEPPED ABDOMEN, CRIMSON COCKPIT BLOCK, FACETED COBALT CHEST & YELLOW LOUVER VENTS
+    # Mechanical inner spine & stepped abdominal armor blocks
+    part_chamfer_box(f"{name_prefix}_InnerSpineFrame", (0.56, 0.44, 1.24), torso, collection, mat_frame,
+                     loc=(0.0, 0.02, 0.48), chamfer=0.02)
+    part_chamfer_wedge(f"{name_prefix}_WaistBeltCobalt", (0.64, 0.50), (0.60, 0.48), 0.22, torso, collection, mat_cobalt,
+                       loc=(0.0, -0.02, -0.04), chamfer=0.016)
+    part_chamfer_wedge(f"{name_prefix}_AbLowerWhite", (0.58, 0.48), (0.68, 0.54), 0.34, torso, collection, mat_ceramic,
+                       loc=(0.0, -0.04, 0.16), chamfer=0.018)
+    part_chamfer_wedge(f"{name_prefix}_AbUpperWhite", (0.66, 0.52), (0.78, 0.60), 0.36, torso, collection, mat_ceramic,
+                       loc=(0.0, -0.05, 0.46), chamfer=0.018)
+    # Side hydraulic waist pistons
     for side in [-1.0, 1.0]:
-        part_taper_box(f"{name_prefix}_LouverFrame_{side}", (0.22, 0.08), (0.19, 0.08), 0.16, torso, collection, mat_sinew,
-                       loc=(side * 0.34, -0.44, 0.88), rot=rads((-10, side * 14, side * -12)), bevel=0.01)
-        part_box(f"{name_prefix}_AmberLouver_{side}", (0.18, 0.06, 0.12), torso, collection, mat_amber,
-                 loc=(side * 0.34, -0.47, 0.88), rot=rads((-10, side * 14, side * -12)))
+        part_cyl(f"{name_prefix}_WaistPiston_{side}", 0.04, 0.04, 0.52, torso, collection, mat_gold,
+                 loc=(side * 0.36, -0.10, 0.28), rot=rads((0, side * -8, 0)), segs=8, smooth=False)
 
-    # Central Exposed Pulsing Magenta Soul Core + Golden Magnetic Accelerator Ring!
-    part_cyl(f"{name_prefix}_CoreFrame", 0.21, 0.18, 0.08, torso, collection, mat_sinew,
-             loc=(0, -0.43, 0.88), rot=(math.radians(90), 0, 0), segs=12, smooth=False)
-    part_cyl(f"{name_prefix}_CoreGoldRing", 0.17, 0.15, 0.09, torso, collection, mat_gold,
-             loc=(0, -0.45, 0.88), rot=(math.radians(90), 0, 0), segs=18)
-    part_sphere(f"{name_prefix}_SoulCoreOrb", 0.11, torso, collection, mat_core, loc=(0, -0.47, 0.88), subdiv=3)
+    # Angular Forward-Jutting Crimson Cockpit Block & Upper Hatch
+    part_chamfer_wedge(f"{name_prefix}_CockpitCrimsonLower", (0.28, 0.24), (0.34, 0.32), 0.38, torso, collection, mat_crimson,
+                       loc=(0.0, -0.32, 0.34), rot=rads((-8, 0, 0)), chamfer=0.016, top_offset=(0.0, -0.04))
+    part_chamfer_wedge(f"{name_prefix}_CockpitCrimsonUpper", (0.32, 0.28), (0.26, 0.20), 0.32, torso, collection, mat_crimson,
+                       loc=(0.0, -0.36, 0.64), rot=rads((14, 0, 0)), chamfer=0.015)
 
-    # 3. DORSAL VERNIER BACKPACK & 4 SWEPT AERODYNAMIC SERAPH WING-BINDERS + DOCKED FUNNELS
-    part_taper_box(f"{name_prefix}_BackpackMain", (0.68, 0.38), (0.54, 0.30), 0.72, torso, collection, mat_sinew,
-                   loc=(0.0, 0.38, 0.88), bevel=0.02, smooth=True)
-    part_taper_box(f"{name_prefix}_BackpackCowl", (0.58, 0.32), (0.44, 0.24), 0.56, torso, collection, mat_cobalt,
-                   loc=(0.0, 0.44, 0.92), bevel=0.02, smooth=True)
+    # Multi-Planar Cobalt Blue Pectoral Chest Armor (Left, Right & Center Sternum Blocks)
+    part_chamfer_wedge(f"{name_prefix}_ChestCenterBlock", (0.44, 0.56), (0.52, 0.64), 0.62, torso, collection, mat_cobalt,
+                       loc=(0.0, -0.04, 0.94), chamfer=0.022, top_offset=(0.0, -0.04))
+    for side in [-1.0, 1.0]:
+        part_chamfer_wedge(f"{name_prefix}_ChestPectoral_{side}", (0.42, 0.58), (0.54, 0.72), 0.58, torso, collection, mat_cobalt,
+                           loc=(side * 0.40, -0.06, 0.94), rot=rads((0, side * -10, side * -8)), chamfer=0.022, top_offset=(0.0, -0.06))
+        # White Upper Shoulder-Collar Armor Plates
+        part_chamfer_wedge(f"{name_prefix}_CollarPlate_{side}", (0.32, 0.46), (0.24, 0.36), 0.18, torso, collection, mat_ceramic,
+                           loc=(side * 0.36, 0.02, 1.28), rot=rads((0, side * -12, 0)), chamfer=0.014)
+        # Classic Gundam Recessed Trapezoidal Chest Vent Housing + 3 Angled Amber Louver Slats!
+        part_chamfer_wedge(f"{name_prefix}_ChestVentFrame_{side}", (0.28, 0.14), (0.24, 0.14), 0.22, torso, collection, mat_frame,
+                           loc=(side * 0.38, -0.42, 0.88), rot=rads((-14, side * 14, side * -10)), chamfer=0.010)
+        for slat_i in range(3):
+            sz_off = -0.055 + slat_i * 0.055
+            part_chamfer_box(f"{name_prefix}_ChestLouverSlat_{side}_{slat_i}", (0.21, 0.06, 0.032), torso, collection, mat_amber,
+                             loc=(side * 0.38, -0.46, 0.88 + sz_off), rot=rads((-28, side * 14, side * -10)), chamfer=0.004)
+        # Chest Vulcan Ports above Vents
+        part_chamfer_box(f"{name_prefix}_ChestSensorCyan_{side}", (0.12, 0.06, 0.05), torso, collection, mat_cyan,
+                         loc=(side * 0.36, -0.38, 1.16), rot=rads((12, side * 10, 0)), chamfer=0.004)
+
+    # Central Octagonal Resonance Soul Core Chamber (Faceted 8-Sided Frame + Crystalline Core)
+    part_cyl(f"{name_prefix}_CoreOctCollar", 0.22, 0.19, 0.12, torso, collection, mat_frame,
+             loc=(0, -0.40, 0.94), rot=(math.radians(90), 0, math.radians(22.5)), segs=8, smooth=False)
+    part_cyl(f"{name_prefix}_CoreGoldOct", 0.18, 0.16, 0.14, torso, collection, mat_gold,
+             loc=(0, -0.42, 0.94), rot=(math.radians(90), 0, math.radians(22.5)), segs=8, smooth=False)
+    part_sphere(f"{name_prefix}_SoulCoreCrystal", 0.12, torso, collection, mat_core, loc=(0, -0.45, 0.94), subdiv=1)
+
+    # Neck Collar & Mechanical Neck Block
+    part_chamfer_box(f"{name_prefix}_NeckCollarBase", (0.42, 0.42, 0.14), torso, collection, mat_frame,
+                     loc=(0.0, 0.0, 1.30), chamfer=0.015)
+    part_cyl(f"{name_prefix}_NeckPost", 0.13, 0.11, 0.24, torso, collection, mat_frame,
+             loc=(0.0, 0.0, 1.40), segs=8, smooth=False)
+
+    # 3. ANGULAR DORSAL BACKPACK & 4 SHARP MECHANICAL SERAPH WING-BINDERS + DOCKED FUNNELS
+    part_chamfer_wedge(f"{name_prefix}_BackpackMain", (0.76, 0.42), (0.64, 0.34), 0.78, torso, collection, mat_frame,
+                       loc=(0.0, 0.36, 0.88), chamfer=0.022)
+    part_chamfer_wedge(f"{name_prefix}_BackpackCobaltCowl", (0.64, 0.36), (0.50, 0.28), 0.64, torso, collection, mat_cobalt,
+                       loc=(0.0, 0.44, 0.92), chamfer=0.020)
+    part_chamfer_box(f"{name_prefix}_BackpackCenterSpine", (0.22, 0.28, 0.72), torso, collection, mat_ceramic,
+                     loc=(0.0, 0.52, 0.92), chamfer=0.016)
 
     for side, b_piv in [(-1.0, binder_L), (1.0, binder_R)]:
-        # Docked Beam Saber Hilts
-        part_cyl(f"{name_prefix}_SaberHilt_{side}", 0.032, 0.036, 0.55, torso, collection, mat_ceramic,
-                 loc=(side * 0.32, 0.42, 1.38), rot=rads((26, side * 14, 0)), segs=10)
-        # Upper Swept Seraph Wing-Binder Blade (White Ceramic + Cobalt Inlay + Gold Crest Tip + Cyan Resonance Vein)
-        part_taper_box(f"{name_prefix}_BinderUpper_{side}", (0.22, 0.42), (0.08, 0.18), 2.15, b_piv, collection, mat_ceramic,
-                       loc=(side * 0.58, 0.26, 0.64), rot=rads((-18, side * 42, side * -12)), bevel=0.018, smooth=True)
-        part_taper_box(f"{name_prefix}_BinderUpperBlue_{side}", (0.16, 0.32), (0.06, 0.14), 1.65, b_piv, collection, mat_cobalt,
-                       loc=(side * 0.56, 0.22, 0.62), rot=rads((-18, side * 42, side * -12)), bevel=0.015, smooth=True)
-        part_taper_box(f"{name_prefix}_BinderGoldFin_{side}", (0.06, 0.18), (0.02, 0.08), 0.85, b_piv, collection, mat_gold,
-                       loc=(side * 0.92, 0.32, 1.15), rot=rads((-18, side * 48, side * -14)), bevel=0.008)
-        part_box(f"{name_prefix}_BinderVeinU_{side}", (0.035, 0.06, 1.75), b_piv, collection, mat_cyan,
-                 loc=(side * 0.59, 0.14, 0.64), rot=rads((-18, side * 42, side * -12)))
-        # Docked Autonomous Beam Funnels along Upper Wing Trailing Edge!
+        # Angular Beam Saber Racks & Hexagonal Hilts
+        part_chamfer_box(f"{name_prefix}_SaberRack_{side}", (0.12, 0.16, 0.24), torso, collection, mat_frame,
+                         loc=(side * 0.30, 0.42, 1.24), rot=rads((22, side * 16, 0)), chamfer=0.01)
+        part_cyl(f"{name_prefix}_SaberHilt_{side}", 0.04, 0.04, 0.58, torso, collection, mat_ceramic,
+                 loc=(side * 0.34, 0.48, 1.48), rot=rads((22, side * 16, 0)), segs=8, smooth=False)
+        part_cyl(f"{name_prefix}_SaberGoldCap_{side}", 0.048, 0.048, 0.08, torso, collection, mat_gold,
+                 loc=(side * 0.38, 0.56, 1.72), rot=rads((22, side * 16, 0)), segs=8, smooth=False)
+
+        # Upper Hard-Surface Mechanical Wing-Binder Blade (Sharp Flat Planes, Zero Subsurf!)
+        part_chamfer_wedge(f"{name_prefix}_BinderUpper_{side}", (0.22, 0.48), (0.08, 0.20), 2.25, b_piv, collection, mat_ceramic,
+                           loc=(side * 0.62, 0.26, 0.68), rot=rads((-18, side * 42, side * -12)), chamfer=0.016)
+        part_chamfer_wedge(f"{name_prefix}_BinderUpperBlue_{side}", (0.16, 0.36), (0.06, 0.14), 1.75, b_piv, collection, mat_cobalt,
+                           loc=(side * 0.58, 0.22, 0.64), rot=rads((-18, side * 42, side * -12)), chamfer=0.014)
+        part_chamfer_wedge(f"{name_prefix}_BinderGoldBlade_{side}", (0.08, 0.22), (0.02, 0.08), 0.95, b_piv, collection, mat_gold,
+                           loc=(side * 0.96, 0.32, 1.20), rot=rads((-18, side * 48, side * -14)), chamfer=0.008)
+        part_chamfer_box(f"{name_prefix}_BinderVeinU_{side}", (0.04, 0.07, 1.85), b_piv, collection, mat_cyan,
+                         loc=(side * 0.60, 0.13, 0.66), rot=rads((-18, side * 42, side * -12)), chamfer=0.004)
+
+        # Docked Rectangular Fin-Funnels along Upper Wing Trailing Edge (Nu Gundam / Strike Freedom style!)
         for f_i in range(3):
-            f_off = -0.35 + f_i * 0.42
-            part_cyl(f"{name_prefix}_DockedFunnel_{side}_{f_i}", 0.045, 0.035, 0.38, b_piv, collection, mat_gold,
-                     loc=(side * (0.48 + f_i * 0.22), 0.42, 0.35 + f_off), rot=rads((-18, side * 42, 0)), segs=10)
-            part_sphere(f"{name_prefix}_DockedFunnelTip_{side}_{f_i}", 0.035, b_piv, collection, mat_cyan,
-                        loc=(side * (0.48 + f_i * 0.22), 0.42, 0.14 + f_off), subdiv=2)
+            f_off = -0.38 + f_i * 0.44
+            part_chamfer_box(f"{name_prefix}_DockedFunnelBody_{side}_{f_i}", (0.08, 0.14, 0.46), b_piv, collection, mat_ceramic,
+                             loc=(side * (0.50 + f_i * 0.22), 0.44, 0.36 + f_off), rot=rads((-18, side * 42, 0)), chamfer=0.008)
+            part_chamfer_box(f"{name_prefix}_DockedFunnelGold_{side}_{f_i}", (0.09, 0.15, 0.10), b_piv, collection, mat_gold,
+                             loc=(side * (0.50 + f_i * 0.22), 0.44, 0.36 + f_off), rot=rads((-18, side * 42, 0)), chamfer=0.006)
+            part_chamfer_box(f"{name_prefix}_DockedFunnelTip_{side}_{f_i}", (0.06, 0.10, 0.08), b_piv, collection, mat_cyan,
+                             loc=(side * (0.50 + f_i * 0.22), 0.44, 0.12 + f_off), rot=rads((-18, side * 42, 0)), chamfer=0.004)
 
-        # Lower Sub-Wing Stabilizer Fin (Cobalt Blue + White Ceramic + Cyan Vein)
-        part_taper_box(f"{name_prefix}_BinderLower_{side}", (0.16, 0.32), (0.06, 0.14), 1.45, b_piv, collection, mat_cobalt,
-                       loc=(side * 0.46, 0.28, -0.38), rot=rads((22, side * 54, side * 12)), bevel=0.015, smooth=True)
-        part_box(f"{name_prefix}_BinderVeinL_{side}", (0.025, 0.04, 1.18), b_piv, collection, mat_cyan,
-                 loc=(side * 0.47, 0.19, -0.38), rot=rads((22, side * 54, side * 12)))
-        # Recessed Vernier Thruster Bell & Glowing Cyan Plasma Core
-        part_cyl(f"{name_prefix}_VernierBell_{side}", 0.13, 0.09, 0.24, b_piv, collection, mat_sinew,
-                 loc=(side * 0.18, 0.18, -0.10), rot=rads((55, side * 18, 0)), segs=16)
-        part_sphere(f"{name_prefix}_VernierCore_{side}", 0.09, b_piv, collection, mat_cyan,
-                    loc=(side * 0.22, 0.26, -0.16), subdiv=2)
+        # Lower Sub-Wing Stabilizer Blade (Sharp Angular Wedge)
+        part_chamfer_wedge(f"{name_prefix}_BinderLower_{side}", (0.18, 0.36), (0.06, 0.14), 1.55, b_piv, collection, mat_cobalt,
+                           loc=(side * 0.48, 0.28, -0.40), rot=rads((22, side * 54, side * 12)), chamfer=0.014)
+        part_chamfer_box(f"{name_prefix}_BinderVeinL_{side}", (0.03, 0.05, 1.25), b_piv, collection, mat_cyan,
+                         loc=(side * 0.48, 0.18, -0.40), rot=rads((22, side * 54, side * 12)), chamfer=0.004)
+        # Octagonal Vernier Thruster Bell & Cyan Core
+        part_cyl(f"{name_prefix}_VernierBell_{side}", 0.14, 0.09, 0.26, b_piv, collection, mat_frame,
+                 loc=(side * 0.18, 0.18, -0.10), rot=rads((55, side * 18, 0)), segs=8, smooth=False)
+        part_cyl(f"{name_prefix}_VernierCore_{side}", 0.09, 0.05, 0.12, b_piv, collection, mat_cyan,
+                 loc=(side * 0.22, 0.26, -0.16), rot=rads((55, side * 18, 0)), segs=8, smooth=False)
 
-    # 4. SCULPTED GUNDAM HEAD WITH RECESSED CYAN V-VISOR, CRIMSON CHIN & MAGNIFICENT GOLDEN V-FIN CREST
-    helm_prof = [
-        (0.0, -1.18), (0.42, -0.96), (0.80, -0.46), (0.88, 0.12),
-        (0.78, 0.70), (0.40, 1.04), (0.0, 1.12), (-0.40, 1.04),
-        (-0.78, 0.70), (-0.88, 0.12), (-0.80, -0.46), (-0.42, -0.96)
-    ]
-    inner_helm_st = [
-        (0.06, 0.10, 0.13, 0.0, -0.10),
-        (0.28, 0.22, 0.26, 0.0, -0.03),
-        (0.50, 0.21, 0.26, 0.0,  0.01),
-    ]
-    build_vertical_loft(f"{name_prefix}_HelmetInner", helm_prof, inner_helm_st, head, collection, mat_sinew, subsurf=subsurf_lvl, smooth=True, sharp_caps=False)
+    # 4. ANGULAR GUNDAM HEAD: FACETED HELMET, CHEEK GUARDS, FACEPLATE VENTS, CRIMSON CHIN, CAMERA CREST & 4-BLADE V-FIN
+    # Inner Dark Mechanical Head Core & Eye Socket Block
+    part_chamfer_box(f"{name_prefix}_HeadInnerBlock", (0.34, 0.38, 0.36), head, collection, mat_frame,
+                     loc=(0.0, -0.02, 0.28), chamfer=0.015)
+    # Angular White Faceplate Mask + Crimson Chin Goatee
+    part_chamfer_wedge(f"{name_prefix}_FaceMaskWhite", (0.20, 0.18), (0.24, 0.22), 0.18, head, collection, mat_ceramic,
+                       loc=(0.0, -0.20, 0.17), rot=rads((8, 0, 0)), chamfer=0.010)
+    part_chamfer_wedge(f"{name_prefix}_CrimsonChin", (0.08, 0.10), (0.11, 0.12), 0.10, head, collection, mat_crimson,
+                       loc=(0.0, -0.26, 0.07), rot=rads((6, 0, 0)), chamfer=0.006)
+    # Angular Main Helmet Sides, Crown & Rear Overhang (Hard-Surface Faceted Wedges!)
+    part_chamfer_wedge(f"{name_prefix}_HelmetMainCrown", (0.46, 0.54), (0.38, 0.48), 0.32, head, collection, mat_ceramic,
+                       loc=(0.0, 0.02, 0.38), chamfer=0.018, top_offset=(0.0, 0.04))
+    part_chamfer_wedge(f"{name_prefix}_HelmetRearSkirt", (0.48, 0.26), (0.42, 0.22), 0.22, head, collection, mat_ceramic,
+                       loc=(0.0, 0.18, 0.18), rot=rads((-16, 0, 0)), chamfer=0.014)
+    # Raised Central Forehead/Crown Camera Ridge + Glowing Cyan Front/Rear Main Cameras
+    part_chamfer_wedge(f"{name_prefix}_HelmetCameraCrest", (0.14, 0.56), (0.10, 0.46), 0.16, head, collection, mat_ceramic,
+                       loc=(0.0, 0.02, 0.56), chamfer=0.012)
+    part_chamfer_box(f"{name_prefix}_MainCamFrontCyan", (0.08, 0.06, 0.09), head, collection, mat_cyan,
+                     loc=(0.0, -0.23, 0.56), rot=rads((14, 0, 0)), chamfer=0.004)
+    part_chamfer_box(f"{name_prefix}_MainCamRearCyan", (0.08, 0.06, 0.07), head, collection, mat_cyan,
+                     loc=(0.0, 0.26, 0.55), rot=rads((-14, 0, 0)), chamfer=0.004)
 
-    jaw_helm_st = [
-        (0.02, 0.09, 0.12, 0.0, -0.14),
-        (0.14, 0.19, 0.24, 0.0, -0.08),
-        (0.26, 0.24, 0.28, 0.0, -0.03),
-    ]
-    build_vertical_loft(f"{name_prefix}_HelmetJaw", helm_prof, jaw_helm_st, head, collection, mat_ceramic, subsurf=subsurf_lvl, smooth=True, sharp_caps=True)
+    # Crimson Pentagonal V-Fin Forehead Crest Mount + Cyan Sensor Jewel
+    part_chamfer_wedge(f"{name_prefix}_VFinMountCrimson", (0.10, 0.10), (0.07, 0.08), 0.14, head, collection, mat_crimson,
+                       loc=(0.0, -0.28, 0.40), rot=rads((18, 0, 0)), chamfer=0.006)
+    part_chamfer_box(f"{name_prefix}_VFinJewelCyan", (0.05, 0.05, 0.06), head, collection, mat_cyan,
+                     loc=(0.0, -0.31, 0.42), rot=rads((18, 0, 0)), chamfer=0.004)
 
-    dome_helm_st = [
-        (0.32, 0.26, 0.31, 0.0, -0.04),
-        (0.46, 0.25, 0.32, 0.0,  0.01),
-        (0.57, 0.15, 0.22, 0.0,  0.05),
-        (0.62, 0.05, 0.08, 0.0,  0.07),
-    ]
-    build_vertical_loft(f"{name_prefix}_HelmetDome", helm_prof, dome_helm_st, head, collection, mat_ceramic, subsurf=subsurf_lvl, smooth=True, sharp_caps=True)
-
-    # Crimson Chin Goatee & Forehead Crest Mount + Magnificent Spreading Golden V-Fin Blades!
-    part_taper_box(f"{name_prefix}_CrimsonChin", (0.07, 0.08), (0.04, 0.05), 0.09, head, collection, mat_crimson,
-                   loc=(0.0, -0.27, 0.08), bevel=0.005)
-    part_taper_box(f"{name_prefix}_VFinMountCrimson", (0.08, 0.09), (0.06, 0.07), 0.12, head, collection, mat_crimson,
-                   loc=(0.0, -0.31, 0.38), rot=rads((18, 0, 0)), bevel=0.005)
-    part_taper_box(f"{name_prefix}_VFinJewelCyan", (0.05, 0.06), (0.03, 0.04), 0.08, head, collection, mat_cyan,
-                   loc=(0.0, -0.33, 0.40), rot=rads((18, 0, 0)), bevel=0.004)
     for side in [-1.0, 1.0]:
-        # Primary Spreading Golden V-Fin Blade!
-        part_taper_box(f"{name_prefix}_GoldVFinBlade_{side}", (0.045, 0.055), (0.012, 0.02), 0.56, head, collection, mat_gold,
-                       loc=(side * 0.21, -0.32, 0.53), rot=rads((16, side * 45, side * -12)), bevel=0.004)
-        # Auxiliary Swept White Antenna Blade
-        part_taper_box(f"{name_prefix}_WhiteSubVFin_{side}", (0.032, 0.042), (0.010, 0.016), 0.38, head, collection, mat_ceramic,
-                       loc=(side * 0.14, -0.26, 0.51), rot=rads((12, side * 28, side * -8)), bevel=0.004)
-        # Glowing Cyan Dual-Optic Visor Eyes
-        part_box(f"{name_prefix}_Visor_{side}", (0.16, 0.04, 0.032), head, collection, mat_cyan,
-                 loc=(side * 0.075, -0.29, 0.29), rot=(0, math.radians(side * -14), math.radians(side * 22)))
+        # Sharp Angular Cheek Guards & Side Vulcan Pods
+        part_chamfer_wedge(f"{name_prefix}_CheekGuard_{side}", (0.10, 0.28), (0.08, 0.24), 0.24, head, collection, mat_ceramic,
+                           loc=(side * 0.21, -0.10, 0.18), rot=rads((10, side * -12, side * 14)), chamfer=0.010)
+        part_chamfer_box(f"{name_prefix}_CheekVentGray_{side}", (0.04, 0.12, 0.10), head, collection, mat_frame,
+                         loc=(side * 0.24, -0.14, 0.18), rot=rads((10, side * -12, side * 14)), chamfer=0.005)
+        part_cyl(f"{name_prefix}_HeadVulcan_{side}", 0.022, 0.018, 0.10, head, collection, mat_gold,
+                 loc=(side * 0.19, -0.16, 0.42), rot=rads((90, 0, 0)), segs=8, smooth=False)
+        # Dual Angular Glowing Cyan Gundam Eyes
+        part_chamfer_box(f"{name_prefix}_VisorEye_{side}", (0.13, 0.05, 0.042), head, collection, mat_cyan,
+                         loc=(side * 0.075, -0.23, 0.29), rot=rads((6, side * -14, side * 18)), chamfer=0.004)
+        # Primary Razor-Sharp Golden V-Fin Blade + Tip Flag
+        part_chamfer_wedge(f"{name_prefix}_GoldVFinBlade_{side}", (0.05, 0.06), (0.014, 0.022), 0.62, head, collection, mat_gold,
+                           loc=(side * 0.23, -0.30, 0.56), rot=rads((16, side * 46, side * -12)), chamfer=0.004)
+        # Secondary Swept White V-Fin Blade
+        part_chamfer_wedge(f"{name_prefix}_WhiteSubVFin_{side}", (0.038, 0.048), (0.012, 0.018), 0.44, head, collection, mat_ceramic,
+                           loc=(side * 0.16, -0.25, 0.54), rot=rads((12, side * 30, side * -8)), chamfer=0.004)
 
-    # 5. SCULPTED WING-PAULDRONS, ARMS, SERAPH AEGIS SHIELD (L) & RESONANCE BEAM LANCE (R)
+    # 5. BOXY LAYERED GUNDAM SHOULDER PAULDRONS, MECHANICAL ARMS, HEX SHIELD (L) & BEAM LANCE (R)
     for side, sh_piv, el_piv in [(-1.0, sh_L, el_L), (1.0, sh_R, el_R)]:
-        wing_prof = [(-0.42, -0.08), (0.42, -0.08), (0.30, 0.13), (-0.30, 0.13)]
-        wing_stations = [
-            (0.00, 0.65, 0.85, -0.02),
-            (0.28, 1.08, 1.28,  0.08),
-            (0.64, 0.84, 0.98,  0.05),
-            (0.96, 0.24, 0.28, -0.03),
-            (1.12, 0.04, 0.05, -0.07),
-        ]
-        build_lofted_mesh(f"{name_prefix}_WingPauldron_{side}", wing_prof, wing_stations, sh_piv, collection, mat_ceramic,
-                          loc=(side * -0.26, 0.0, 0.15), rot=(0, 0, math.radians(-90 if side > 0 else 90)), subsurf=subsurf_lvl, smooth=True)
-        # Cobalt Blue Upper Pauldron Trim Cap
-        part_taper_box(f"{name_prefix}_PauldronBlueCap_{side}", (0.38, 0.52), (0.22, 0.36), 0.14, sh_piv, collection, mat_cobalt,
-                       loc=(side * 0.12, 0.0, 0.28), rot=rads((0, side * -18, 0)), bevel=0.015, smooth=True)
+        # Massive Layered Angular Shoulder Pauldron Armor (Freedom / Nu Gundam style!)
+        part_chamfer_wedge(f"{name_prefix}_PauldronCore_{side}", (0.58, 0.62), (0.48, 0.52), 0.46, sh_piv, collection, mat_ceramic,
+                           loc=(side * 0.14, 0.0, 0.08), rot=rads((0, side * -16, 0)), chamfer=0.020)
+        # Sloped Cobalt Blue Upper Shoulder Cap + Sensor Fin
+        part_chamfer_wedge(f"{name_prefix}_PauldronCobaltTop_{side}", (0.46, 0.52), (0.32, 0.40), 0.20, sh_piv, collection, mat_cobalt,
+                           loc=(side * 0.10, 0.0, 0.32), rot=rads((0, side * -20, 0)), chamfer=0.016)
+        part_chamfer_wedge(f"{name_prefix}_PauldronTopFin_{side}", (0.08, 0.34), (0.04, 0.20), 0.24, sh_piv, collection, mat_ceramic,
+                           loc=(side * 0.04, 0.02, 0.46), rot=rads((0, side * -28, 0)), chamfer=0.008)
+        # Swept Outer Winglet Armor Flap + Crimson Inner Trim + Rectangular Vernier Thruster Pod
+        part_chamfer_wedge(f"{name_prefix}_PauldronOuterWing_{side}", (0.48, 0.56), (0.16, 0.28), 0.68, sh_piv, collection, mat_ceramic,
+                           loc=(side * 0.48, 0.02, 0.14), rot=rads((0, side * -58, 0)), chamfer=0.016)
+        part_chamfer_wedge(f"{name_prefix}_PauldronCrimsonTrim_{side}", (0.38, 0.46), (0.14, 0.24), 0.52, sh_piv, collection, mat_crimson,
+                           loc=(side * 0.45, 0.02, 0.06), rot=rads((0, side * -58, 0)), chamfer=0.012)
+        part_chamfer_box(f"{name_prefix}_PauldronVernierBox_{side}", (0.16, 0.28, 0.18), sh_piv, collection, mat_frame,
+                         loc=(side * 0.36, 0.02, -0.08), rot=rads((0, side * -32, 0)), chamfer=0.010)
+        part_chamfer_box(f"{name_prefix}_PauldronGlowCyan_{side}", (0.08, 0.18, 0.08), sh_piv, collection, mat_cyan,
+                         loc=(side * 0.42, 0.02, -0.14), rot=rads((0, side * -32, 0)), chamfer=0.004)
 
-        part_cyl(f"{name_prefix}_ShNozzle_{side}", 0.07, 0.055, 0.16, sh_piv, collection, mat_sinew,
-                 loc=(side * 0.26, 0.06, -0.01), rot=(math.radians(-12), math.radians(side * 26), 0), segs=14)
-        part_sphere(f"{name_prefix}_ShGlow_{side}", 0.045, sh_piv, collection, mat_cyan, loc=(side * 0.30, 0.07, -0.08))
+        # Mechanical Shoulder Block, Boxy Bicep Armor & Double-Jointed Elbow Frame
+        part_chamfer_box(f"{name_prefix}_ShoulderJointBlock_{side}", (0.26, 0.28, 0.26), sh_piv, collection, mat_frame,
+                         loc=(0.0, 0.0, -0.04), chamfer=0.016)
+        part_chamfer_wedge(f"{name_prefix}_BicepArmor_{side}", (0.28, 0.30), (0.32, 0.34), 0.48, sh_piv, collection, mat_ceramic,
+                           loc=(side * 0.08, 0.0, -0.36), rot=rads((0, side * -8, 0)), chamfer=0.016)
+        part_chamfer_box(f"{name_prefix}_BicepGoldBand_{side}", (0.31, 0.33, 0.06), sh_piv, collection, mat_gold,
+                         loc=(side * 0.10, 0.0, -0.52), rot=rads((0, side * -8, 0)), chamfer=0.006)
 
-        part_sphere(f"{name_prefix}_ShoulderJoint_{side}", 0.15, sh_piv, collection, mat_sinew, loc=(0.0, 0.0, 0.0))
-        part_cyl(f"{name_prefix}_ArmSinew_{side}", 0.11, 0.09, 0.68, sh_piv, collection, mat_sinew,
-                 loc=(side * 0.09, 0.01, -0.34), rot=(0, math.radians(side * -14), 0), segs=14)
-        bicep_stations = [
-            (-0.54, 0.13, 0.14, side * 0.14, 0.01),
-            (-0.30, 0.16, 0.17, side * 0.09, 0.00),
-            (-0.08, 0.15, 0.16, side * 0.04, 0.00),
-        ]
-        build_vertical_loft(f"{name_prefix}_BicepCuff_{side}", oct_prof, bicep_stations, sh_piv, collection, mat_ceramic, subsurf=subsurf_lvl, smooth=True, sharp_caps=True)
+        # Mechanical Elbow Hinge Block + Side Drum Capacitors
+        part_chamfer_box(f"{name_prefix}_ElbowJointBlock_{side}", (0.22, 0.28, 0.24), el_piv, collection, mat_frame,
+                         loc=(0.0, 0.0, 0.0), chamfer=0.014)
+        part_cyl(f"{name_prefix}_ElbowDrum_{side}", 0.11, 0.11, 0.26, el_piv, collection, mat_frame,
+                 loc=(0.0, 0.0, 0.0), rot=rads((0, 90, 0)), segs=8, smooth=False)
 
-        part_sphere(f"{name_prefix}_ElbowJoint_{side}", 0.12, el_piv, collection, mat_sinew, loc=(0.0, 0.0, 0.0))
-        vambrace_stations = [
-            (-0.74, 0.10, 0.11, side * 0.10, -0.14),
-            (-0.50, 0.15, 0.17, side * 0.07, -0.09),
-            (-0.22, 0.18, 0.20, side * 0.03, -0.02),
-            (-0.08, 0.13, 0.14, 0.0,          0.00),
-        ]
-        build_vertical_loft(f"{name_prefix}_Vambrace_{side}", oct_prof, vambrace_stations, el_piv, collection, mat_ceramic, subsurf=subsurf_lvl, smooth=True, sharp_caps=True)
+        # Heavy Boxy Gundam Forearm Vambrace + Cobalt Blue Outer Guard + Wrist Cuff
+        part_chamfer_wedge(f"{name_prefix}_ForearmMain_{side}", (0.24, 0.28), (0.34, 0.38), 0.66, el_piv, collection, mat_ceramic,
+                           loc=(side * 0.06, -0.06, -0.42), rot=rads((8, side * -4, 0)), chamfer=0.018)
+        part_chamfer_wedge(f"{name_prefix}_ForearmCobaltGuard_{side}", (0.12, 0.22), (0.16, 0.30), 0.52, el_piv, collection, mat_cobalt,
+                           loc=(side * 0.18, -0.06, -0.40), rot=rads((8, side * -4, 0)), chamfer=0.012)
+        part_chamfer_box(f"{name_prefix}_WristCuffCrimson_{side}", (0.26, 0.28, 0.10), el_piv, collection, mat_crimson,
+                         loc=(side * 0.08, -0.10, -0.74), rot=rads((8, 0, 0)), chamfer=0.010)
+        # Angular Mechanical Manipulator Hand + White Backhand Plate
+        part_chamfer_box(f"{name_prefix}_HandBlock_{side}", (0.16, 0.20, 0.20), el_piv, collection, mat_frame,
+                         loc=(side * 0.09, -0.14, -0.88), rot=rads((14, 0, 0)), chamfer=0.012)
+        part_chamfer_box(f"{name_prefix}_HandArmorWhite_{side}", (0.17, 0.10, 0.16), el_piv, collection, mat_ceramic,
+                         loc=(side * 0.12, -0.14, -0.87), rot=rads((14, 0, 0)), chamfer=0.008)
 
-        part_box(f"{name_prefix}_HandPalm_{side}", (0.08, 0.14, 0.16), el_piv, collection, mat_sinew,
-                 loc=(side * 0.11, -0.18, -0.84), rot=(math.radians(15), 0, 0), subsurf=1)
+    # Left Forearm Angular Hexagonal Gundam Shield (Multi-Layered Faceted Armor)
+    part_chamfer_wedge(f"{name_prefix}_ShieldOuterWhite", (0.12, 0.68), (0.08, 0.44), 1.68, el_L, collection, mat_ceramic,
+                       loc=(-0.28, -0.10, -0.44), rot=rads((10, -14, 15)), chamfer=0.018)
+    part_chamfer_wedge(f"{name_prefix}_ShieldInnerCobalt", (0.10, 0.52), (0.06, 0.34), 1.32, el_L, collection, mat_cobalt,
+                       loc=(-0.32, -0.10, -0.42), rot=rads((10, -14, 15)), chamfer=0.014)
+    part_chamfer_wedge(f"{name_prefix}_ShieldTopCrownCrimson", (0.12, 0.56), (0.10, 0.42), 0.34, el_L, collection, mat_crimson,
+                       loc=(-0.31, -0.04, 0.22), rot=rads((10, -14, 15)), chamfer=0.012)
+    part_chamfer_box(f"{name_prefix}_ShieldGoldCrossV", (0.06, 0.10, 0.68), el_L, collection, mat_gold,
+                     loc=(-0.35, -0.12, -0.34), rot=rads((10, -14, 15)), chamfer=0.006)
+    part_chamfer_box(f"{name_prefix}_ShieldGoldCrossH", (0.06, 0.36, 0.12), el_L, collection, mat_gold,
+                     loc=(-0.35, -0.12, -0.24), rot=rads((10, -14, 15)), chamfer=0.006)
+    part_chamfer_box(f"{name_prefix}_ShieldCyanSensor", (0.06, 0.16, 0.16), el_L, collection, mat_cyan,
+                     loc=(-0.37, -0.12, -0.24), rot=rads((10, -14, 15)), chamfer=0.006)
 
-    # Left Forearm Seraph Aegis Shield (White Ceramic + Cobalt Inner Plate + Crimson Emblem + Cyan Edge)
-    part_taper_box(f"{name_prefix}_ShieldBody", (0.12, 0.58), (0.06, 0.36), 1.54, el_L, collection, mat_ceramic,
-                   loc=(-0.26, -0.10, -0.45), rot=rads((10, -14, 15)), bevel=0.018, smooth=True)
-    part_taper_box(f"{name_prefix}_ShieldCobalt", (0.08, 0.44), (0.04, 0.28), 1.18, el_L, collection, mat_cobalt,
-                   loc=(-0.30, -0.10, -0.42), rot=rads((10, -14, 15)), bevel=0.015, smooth=True)
-    part_box(f"{name_prefix}_ShieldCrimsonCross", (0.06, 0.18, 0.18), el_L, collection, mat_crimson,
-             loc=(-0.33, -0.14, -0.15), rot=rads((10, -14, 15)), bevel=0.01)
-    part_sphere(f"{name_prefix}_ShieldCyanOrb", 0.065, el_L, collection, mat_cyan, loc=(-0.36, -0.15, -0.15), subdiv=2)
+    # Right Hand Hard-Surface Mechanical Beam Lance / Halberd (Angular Housing + Diamond Beam Blade)
+    part_cyl(f"{name_prefix}_LanceShaft", 0.042, 0.040, 2.45, el_R, collection, mat_frame,
+             loc=(0.12, -0.18, -1.10), rot=rads((-18, 0, 0)), segs=8, smooth=False)
+    part_chamfer_wedge(f"{name_prefix}_LanceAcceleratorHousing", (0.22, 0.34), (0.14, 0.22), 0.52, el_R, collection, mat_cobalt,
+                       loc=(0.12, -0.52, -2.10), rot=rads((162, 0, 0)), chamfer=0.014)
+    part_chamfer_box(f"{name_prefix}_LanceWhiteCollar", (0.26, 0.38, 0.18), el_R, collection, mat_ceramic,
+                     loc=(0.12, -0.46, -1.94), rot=rads((-18, 0, 0)), chamfer=0.012)
+    part_chamfer_box(f"{name_prefix}_LanceGoldRing", (0.28, 0.42, 0.08), el_R, collection, mat_gold,
+                     loc=(0.12, -0.58, -2.28), rot=rads((-18, 0, 0)), chamfer=0.008)
+    part_chamfer_wedge(f"{name_prefix}_LanceBeamBlade", (0.06, 0.28), (0.01, 0.02), 2.35, el_R, collection, mat_cyan,
+                       loc=(0.12, -0.96, -3.42), rot=rads((162, 0, 0)), chamfer=0.004)
 
-    # Right Hand High-Energy Resonance Beam Lance (with Gold Magnetic Ring & Cyan Plasma Blade)
-    part_cyl(f"{name_prefix}_LanceShaft", 0.038, 0.035, 2.4, el_R, collection, mat_sinew,
-             loc=(0.12, -0.18, -1.10), rot=rads((-18, 0, 0)), segs=14)
-    part_cyl(f"{name_prefix}_LanceGuard", 0.16, 0.05, 0.36, el_R, collection, mat_cobalt,
-             loc=(0.12, -0.52, -2.12), rot=rads((162, 0, 0)), segs=16)
-    part_cyl(f"{name_prefix}_LanceGoldRing", 0.19, 0.19, 0.06, el_R, collection, mat_gold,
-             loc=(0.12, -0.57, -2.26), rot=rads((-18, 0, 0)), segs=18)
-    part_cyl(f"{name_prefix}_LanceBeamBlade", 0.10, 0.008, 2.25, el_R, collection, mat_cyan,
-             loc=(0.12, -0.94, -3.36), rot=rads((162, 0, 0)), segs=16)
-
-    # 6. SCULPTED HIPS, KNEES (COBALT BLUE), SHIN GREAVES & BOOTS (COBALT & CRIMSON)
+    # 6. BLOCKY GUNDAM LEGS: LAYERED THIGH PLATES, PROTRUDING KNEE SPIKE BLOCK, FLARED SHIN GREAVES, ANKLE GUARD & BLOCKY FEET
     for side, hip_piv, kn_piv, ank_piv in [(-1.0, hip_L, kn_L, ank_L), (1.0, hip_R, kn_R, ank_R)]:
-        part_cyl(f"{name_prefix}_InnerThigh_{side}", 0.20, 0.14, 0.96, hip_piv, collection, mat_sinew,
-                 loc=(side * -0.04, -0.01, -0.44), rot=(0, math.radians(side * -3), 0), segs=16)
+        # Mechanical Hip Joint & Inner Thigh Frame
+        part_chamfer_box(f"{name_prefix}_ThighInnerFrame_{side}", (0.28, 0.34, 0.96), hip_piv, collection, mat_frame,
+                         loc=(0.0, 0.0, -0.46), chamfer=0.018)
+        # Layered Rectangular/Wedge White Thigh Armor Plates + Psycho-Frame Slits
+        part_chamfer_wedge(f"{name_prefix}_ThighMainArmor_{side}", (0.34, 0.42), (0.42, 0.52), 0.84, hip_piv, collection, mat_ceramic,
+                           loc=(side * 0.02, -0.02, -0.44), chamfer=0.020)
+        part_chamfer_wedge(f"{name_prefix}_ThighFrontPlate_{side}", (0.24, 0.16), (0.30, 0.20), 0.72, hip_piv, collection, mat_ceramic,
+                           loc=(side * 0.02, -0.22, -0.44), chamfer=0.014)
+        part_chamfer_box(f"{name_prefix}_ThighSidePlate_{side}", (0.12, 0.34, 0.68), hip_piv, collection, mat_ceramic,
+                         loc=(side * 0.22, 0.0, -0.42), chamfer=0.014)
+        part_chamfer_box(f"{name_prefix}_ThighCyanSlit_{side}", (0.18, 0.06, 0.58), hip_piv, collection, mat_cyan,
+                         loc=(side * 0.02, -0.26, -0.44), chamfer=0.004)
 
-        thigh_stations = [
-            (-0.92, 0.16, 0.19, side * 0.02, -0.03),
-            (-0.58, 0.23, 0.28, side * 0.03, -0.04),
-            (-0.22, 0.26, 0.32, side * 0.02, -0.02),
-            ( 0.06, 0.19, 0.24, 0.0,          0.00),
-            ( 0.18, 0.12, 0.16, side * -0.02, 0.02),
-        ]
-        build_vertical_loft(f"{name_prefix}_ThighArmor_{side}", oct_prof, thigh_stations, hip_piv, collection, mat_ceramic, subsurf=subsurf_lvl, smooth=True, sharp_caps=True)
+        # Mechanical Double-Jointed Knee Block + Tall Protruding Gundam Knee Armor Spike!
+        part_chamfer_box(f"{name_prefix}_KneeJointFrame_{side}", (0.28, 0.34, 0.30), kn_piv, collection, mat_frame,
+                         loc=(0.0, 0.0, 0.0), chamfer=0.016)
+        part_chamfer_wedge(f"{name_prefix}_KneeArmorCobalt_{side}", (0.26, 0.26), (0.32, 0.32), 0.46, kn_piv, collection, mat_cobalt,
+                           loc=(0.0, -0.22, -0.04), rot=rads((-10, 0, 0)), chamfer=0.016)
+        part_chamfer_wedge(f"{name_prefix}_KneeSpikeTopWhite_{side}", (0.22, 0.22), (0.14, 0.14), 0.28, kn_piv, collection, mat_ceramic,
+                           loc=(0.0, -0.26, 0.22), rot=rads((14, 0, 0)), chamfer=0.012)
+        part_chamfer_box(f"{name_prefix}_KneeVentGold_{side}", (0.16, 0.08, 0.10), kn_piv, collection, mat_gold,
+                         loc=(0.0, -0.34, 0.08), rot=rads((-10, 0, 0)), chamfer=0.006)
 
-        part_sphere(f"{name_prefix}_KneeJoint_{side}", 0.15, kn_piv, collection, mat_sinew, loc=(0.0, -0.01, 0.0))
-        knee_st = [
-            (-0.14, 0.10, 0.10, 0.0, -0.15),
-            ( 0.02, 0.13, 0.12, 0.0, -0.18),
-            ( 0.18, 0.09, 0.09, 0.0, -0.14),
-        ]
-        build_vertical_loft(f"{name_prefix}_KneeCapCobalt_{side}", oct_prof, knee_st, kn_piv, collection, mat_cobalt, subsurf=subsurf_lvl, smooth=True, sharp_caps=True)
+        # Flared Angular Gundam Shin Greaves, Side Flare Plates & Rear Calf Thruster Pods
+        part_chamfer_wedge(f"{name_prefix}_ShinMainBlock_{side}", (0.38, 0.48), (0.34, 0.42), 0.92, kn_piv, collection, mat_ceramic,
+                           loc=(side * 0.02, 0.02, -0.52), chamfer=0.020)
+        part_chamfer_wedge(f"{name_prefix}_ShinFrontRidge_{side}", (0.24, 0.24), (0.28, 0.22), 0.80, kn_piv, collection, mat_ceramic,
+                           loc=(side * 0.02, -0.18, -0.54), rot=rads((-4, 0, 0)), chamfer=0.016)
+        part_chamfer_wedge(f"{name_prefix}_ShinOuterFlare_{side}", (0.18, 0.44), (0.12, 0.34), 0.78, kn_piv, collection, mat_ceramic,
+                           loc=(side * 0.22, 0.02, -0.56), rot=rads((0, side * 8, 0)), chamfer=0.016)
+        # Rear Calf Vernier Thruster Pod
+        part_chamfer_wedge(f"{name_prefix}_CalfPodCobalt_{side}", (0.26, 0.28), (0.32, 0.34), 0.56, kn_piv, collection, mat_cobalt,
+                           loc=(side * 0.02, 0.24, -0.44), rot=rads((18, 0, 0)), chamfer=0.014)
+        part_cyl(f"{name_prefix}_CalfNozzle_{side}", 0.08, 0.055, 0.18, kn_piv, collection, mat_frame,
+                 loc=(side * 0.02, 0.34, -0.68), rot=rads((38, 0, 0)), segs=8, smooth=False)
+        part_cyl(f"{name_prefix}_CalfCore_{side}", 0.055, 0.035, 0.08, kn_piv, collection, mat_cyan,
+                 loc=(side * 0.02, 0.38, -0.74), rot=rads((38, 0, 0)), segs=8, smooth=False)
 
-        shin_stations = [
-            (-1.02, 0.13, 0.16, side * 0.04,  0.03),
-            (-0.68, 0.18, 0.23, side * 0.03,  0.03),
-            (-0.26, 0.23, 0.28, side * 0.02,  0.02),
-            (-0.02, 0.16, 0.20, 0.0,         -0.02),
-        ]
-        build_vertical_loft(f"{name_prefix}_ShinGreave_{side}", oct_prof, shin_stations, kn_piv, collection, mat_ceramic, subsurf=subsurf_lvl, smooth=True, sharp_caps=True)
-
-        part_cyl(f"{name_prefix}_CalfNozzle_{side}", 0.075, 0.055, 0.16, kn_piv, collection, mat_sinew,
-                 loc=(side * 0.03, 0.25, -0.45), rot=rads((42, 0, 0)), segs=12)
-        part_sphere(f"{name_prefix}_CalfCore_{side}", 0.05, kn_piv, collection, mat_cyan,
-                    loc=(side * 0.03, 0.30, -0.50), subdiv=2)
-
-        foot_stations = [
-            ( 0.04, 0.14, 0.18, 0.0,  0.00),
-            (-0.10, 0.18, 0.32, 0.0, -0.10),
-            (-0.18, 0.15, 0.36, 0.0, -0.14),
-        ]
-        build_vertical_loft(f"{name_prefix}_FootCobalt_{side}", oct_prof, foot_stations, ank_piv, collection, mat_cobalt, subsurf=subsurf_lvl, smooth=True, sharp_caps=True)
-        part_taper_box(f"{name_prefix}_BootSoleCrimson_{side}", (0.28, 0.56), (0.24, 0.50), 0.06, ank_piv, collection, mat_crimson,
-                       loc=(0.0, -0.10, -0.20), bevel=0.01)
+        # Floating Angular Gundam Ankle Guard Armor + Side Ankle Pistons
+        part_chamfer_wedge(f"{name_prefix}_AnkleGuardWhite_{side}", (0.38, 0.36), (0.32, 0.28), 0.24, ank_piv, collection, mat_ceramic,
+                           loc=(0.0, -0.08, 0.08), rot=rads((14, 0, 0)), chamfer=0.014)
+        part_chamfer_box(f"{name_prefix}_AnkleGuardCobalt_{side}", (0.24, 0.14, 0.14), ank_piv, collection, mat_cobalt,
+                         loc=(0.0, -0.22, 0.08), rot=rads((14, 0, 0)), chamfer=0.010)
+        # Classic Blocky Gundam Foot: Angular Cobalt Blue Toe Box + Crimson Platform Sole & Heel Block
+        part_chamfer_wedge(f"{name_prefix}_FootInstepCobalt_{side}", (0.34, 0.52), (0.26, 0.34), 0.18, ank_piv, collection, mat_cobalt,
+                           loc=(0.0, -0.14, -0.09), rot=rads((8, 0, 0)), chamfer=0.014, top_offset=(0.0, 0.06))
+        part_chamfer_wedge(f"{name_prefix}_FootToeCobalt_{side}", (0.30, 0.36), (0.24, 0.26), 0.14, ank_piv, collection, mat_cobalt,
+                           loc=(0.0, -0.34, -0.12), chamfer=0.012, top_offset=(0.0, 0.04))
+        part_chamfer_wedge(f"{name_prefix}_BootSoleCrimson_{side}", (0.36, 0.64), (0.32, 0.58), 0.08, ank_piv, collection, mat_crimson,
+                           loc=(0.0, -0.18, -0.20), chamfer=0.010)
+        part_chamfer_box(f"{name_prefix}_BootHeelCrimson_{side}", (0.32, 0.24, 0.14), ank_piv, collection, mat_crimson,
+                         loc=(0.0, 0.18, -0.17), chamfer=0.010)
 
     root.scale = (scale_factor, scale_factor, scale_factor)
     return {

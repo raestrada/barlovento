@@ -20,8 +20,11 @@ if TOOLS_DIR not in sys.path:
 from intro_models_3d import (
     rads,
     create_emissive_material,
+    create_pbr_hull_material,
     part_cyl,
     part_sphere,
+    part_chamfer_box,
+    part_chamfer_wedge,
     build_star_sea_environment,
     build_acero_warship,
     build_vinculados_colossus,
@@ -95,18 +98,25 @@ def sanitize_all_keyframes():
             fcurve.update()
 
 def build_deployed_funnels(collection, count=6):
-    """Builds autonomous floating Gundam Beam Funnels with glowing cyan emitter tips and plasma trails."""
-    mat_dark = create_emissive_material("Funnel_Chassis", (0.14, 0.22, 0.42, 1.0), strength=1.2)
+    """Builds autonomous floating angular Gundam Fin-Funnels / Dragoon pods with white ceramic wings, cobalt core, gold clamp, and cyan beam emitter."""
+    mat_white = create_pbr_hull_material("Funnel_Ceramic", (0.93, 0.96, 1.0, 1.0), metallic=0.35, roughness=0.22, coat=0.60)
+    mat_cobalt = create_pbr_hull_material("Funnel_Cobalt", (0.04, 0.14, 0.48, 1.0), metallic=0.58, roughness=0.24, coat=0.55)
     mat_gold = create_emissive_material("Funnel_GoldRing", (0.98, 0.80, 0.18, 1.0), strength=2.8)
     mat_cyan = create_emissive_material("Funnel_CyanEmitter", (0.10, 0.95, 1.0, 1.0), strength=14.0)
     funnels = []
     for i in range(count):
         f_root = bpy.data.objects.new(f"Floating_Funnel_{i}", None)
         collection.objects.link(f_root)
-        part_cyl(f"FunnelBody_{i}", 0.075, 0.052, 0.46, f_root, collection, mat_dark, rot=(math.radians(90), 0, 0), segs=10)
-        part_cyl(f"FunnelGold_{i}", 0.090, 0.090, 0.065, f_root, collection, mat_gold, loc=(0, -0.10, 0), rot=(math.radians(90), 0, 0), segs=12)
-        part_sphere(f"FunnelTip_{i}", 0.062, f_root, collection, mat_cyan, loc=(0, -0.26, 0), subdiv=2)
-        part_cyl(f"FunnelThruster_{i}", 0.048, 0.008, 0.42, f_root, collection, mat_cyan, loc=(0, 0.44, 0), rot=(math.radians(-90), 0, 0), segs=8)
+        # Angular central cobalt housing + two white ceramic fin-funnel blades
+        part_chamfer_box(f"FunnelCore_{i}", (0.12, 0.56, 0.14), f_root, collection, mat_cobalt, loc=(0, 0.0, 0), chamfer=0.012)
+        for side in [-1.0, 1.0]:
+            part_chamfer_wedge(f"FunnelWing_{i}_{side}", (0.06, 0.62), (0.04, 0.42), 0.18, f_root, collection, mat_white,
+                               loc=(side * 0.10, 0.02, side * 0.02), rot=rads((0, side * 62, 0)), chamfer=0.010)
+        part_chamfer_box(f"FunnelGold_{i}", (0.16, 0.10, 0.18), f_root, collection, mat_gold, loc=(0, -0.14, 0), chamfer=0.008)
+        part_chamfer_wedge(f"FunnelTip_{i}", (0.10, 0.12), (0.04, 0.06), 0.22, f_root, collection, mat_cyan,
+                           loc=(0, -0.32, 0), rot=rads((90, 0, 0)), chamfer=0.006)
+        part_chamfer_wedge(f"FunnelThruster_{i}", (0.08, 0.10), (0.02, 0.02), 0.38, f_root, collection, mat_cyan,
+                           loc=(0, 0.44, 0), rot=rads((-90, 0, 0)), chamfer=0.004)
         f_root.location = (0, 0, 500)
         funnels.append(f_root)
     return funnels
