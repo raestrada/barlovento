@@ -203,70 +203,71 @@ static func _build_vinculados_colossus_mobile_armor(_ship: Ship, root: Node3D, t
 	ma_node.add_child(flight)
 
 	# =========================================================================
-	# 1. CENTRAL SCULPTED HUMANOID GUNDAM MECHA TORSO & PSY-FRAME CORE
+	# 1. CENTRAL HARD-SURFACE HUMANOID GUNDAM MECHA TORSO & PSY-FRAME CORE
 	# =========================================================================
-	flight.add_child(_sculpted_block(Vector3(1.40, 1.15, 1.12), ceramic, Vector3(0.0, 0.12, 0.20), Vector3.ZERO, 0.94, 0.82))
-	flight.add_child(_cyl(0.55, 0.65, 0.95, 12, frame_dark, Vector3(0.0, -0.22, 0.20)))
+	flight.add_child(_box(Vector3(1.40, 1.15, 1.12), ceramic, Vector3(0.0, 0.12, 0.20)))
+	flight.add_child(_cyl(0.55, 0.65, 0.95, 8, frame_dark, Vector3(0.0, -0.22, 0.20)))
 
-	# Massive Sculpted Cobalt Blue Pectoral Chest Block
-	flight.add_child(_sculpted_block(Vector3(2.42, 1.38, 1.60), cobalt_blue, Vector3(0.0, 1.18, 0.0), Vector3.ZERO, 0.88, 0.86))
+	# Massive Faceted Cobalt Blue Pectoral Chest Block
+	flight.add_child(_box(Vector3(2.42, 1.38, 1.60), cobalt_blue, Vector3(0.0, 1.18, 0.0)))
 	for side in [-1.0, 1.0]:
 		flight.add_child(_prism(
 			Vector3(0.95, 1.15, 0.48), cobalt_blue,
 			Vector3(side * 0.65, 1.18, -0.88), Vector3(90.0, 0.0, side * 14.0)
 		))
 
-	# Dual Classic Gundam Amber Cooling Intake Louvers
+	# Dual Classic Gundam Amber Cooling Intake Louvers with Dark Bezels
 	for side in [-1.0, 1.0]:
+		flight.add_child(_box(
+			Vector3(0.54, 0.42, 0.06), frame_dark,
+			Vector3(side * 0.68, 1.28, -0.88), Vector3(8.0, side * 12.0, 0.0)
+		))
 		flight.add_child(_box(
 			Vector3(0.46, 0.34, 0.12), amber_intake,
 			Vector3(side * 0.68, 1.28, -0.92), Vector3(8.0, side * 12.0, 0.0)
 		))
-		flight.add_child(_box(
-			Vector3(0.52, 0.40, 0.06), frame_dark,
-			Vector3(side * 0.68, 1.28, -0.87), Vector3(8.0, side * 12.0, 0.0)
-		))
 
-	# Central Exposed Soul-Core Resonance Reactor Sphere
+	# Central Exposed Soul-Core Resonance Reactor
+	flight.add_child(_box(Vector3(0.54, 0.54, 0.20), frame_dark, Vector3(0.0, 1.14, -0.88)))
 	flight.add_child(_sphere(0.48, 0.72, soul_core_mat, Vector3(0.0, 1.14, -0.96)))
-	flight.add_child(_cyl(0.52, 0.58, 0.24, 16, frame_dark, Vector3(0.0, 1.14, -0.90), Vector3(90.0, 0.0, 0.0)))
-	flight.add_child(_cyl(0.60, 0.62, 0.07, 16, gold_crest, Vector3(0.0, 1.14, -0.95), Vector3(90.0, 0.0, 0.0)))
+	flight.add_child(_cyl(0.60, 0.62, 0.07, 8, gold_crest, Vector3(0.0, 1.14, -0.95), Vector3(90.0, 0.0, 0.0)))
 
-	# Cockpit Hatch Armor Plate (Crimson Block with Cyan Sensor)
-	flight.add_child(_sculpted_block(Vector3(0.54, 0.54, 0.34), crimson_accent, Vector3(0.0, 0.64, -0.74), Vector3(15.0, 0.0, 0.0), 0.85, 0.90))
+	# Protruding Forward-Jutting Cockpit Hatch Armor (Crimson Wedge)
+	flight.add_child(_box(Vector3(0.54, 0.54, 0.34), crimson_accent, Vector3(0.0, 0.64, -0.74), Vector3(15.0, 0.0, 0.0)))
+	flight.add_child(_prism(Vector3(0.54, 0.40, 0.26), crimson_accent, Vector3(0.0, 0.88, -0.86), Vector3(15.0, 0.0, 0.0)))
 	flight.add_child(_box(Vector3(0.16, 0.10, 0.08), cyan_visor, Vector3(0.0, 0.76, -0.90)))
 
-	# Multi-Segmented Sculpted Skirt Armor
+	# Multi-Segmented Angular Skirt Armor (Freedom / Nu Gundam Style)
 	for side in [-1.0, 1.0]:
-		flight.add_child(_sculpted_block(
+		flight.add_child(_box(
 			Vector3(0.64, 0.84, 0.18), ceramic,
-			Vector3(side * 0.46, -0.48, -0.54), Vector3(18.0, side * -10.0, 0.0), 0.88, 0.80
+			Vector3(side * 0.46, -0.48, -0.54), Vector3(18.0, side * -10.0, 0.0)
 		))
 		flight.add_child(_box(
 			Vector3(0.42, 0.28, 0.06), cobalt_blue,
 			Vector3(side * 0.46, -0.44, -0.63), Vector3(18.0, side * -10.0, 0.0)
 		))
-		flight.add_child(_sculpted_block(
+		flight.add_child(_box(
 			Vector3(0.26, 0.94, 0.94), ceramic,
-			Vector3(side * 0.94, -0.48, 0.18), Vector3(0.0, 0.0, side * -12.0), 0.86, 0.82
+			Vector3(side * 0.94, -0.48, 0.18), Vector3(0.0, 0.0, side * -12.0)
 		))
-		var s_v := _cyl(0.08, 0.13, 0.22, 8, cyan_energy, Vector3(side * 1.04, -0.68, 0.18), Vector3(0.0, 0.0, side * 90.0))
+		var s_v := _cyl(0.08, 0.13, 0.22, 6, cyan_energy, Vector3(side * 1.04, -0.68, 0.18), Vector3(0.0, 0.0, side * 90.0))
 		flight.add_child(s_v)
 		thrusters.append(s_v)
-	flight.add_child(_sculpted_block(Vector3(1.28, 0.88, 0.18), ceramic, Vector3(0.0, -0.48, 0.78), Vector3(-18.0, 0.0, 0.0), 0.88, 0.80))
+	flight.add_child(_box(Vector3(1.28, 0.88, 0.18), ceramic, Vector3(0.0, -0.48, 0.78), Vector3(-18.0, 0.0, 0.0)))
 
 	# =========================================================================
-	# 2. SCULPTED GUNDAM HEAD & ICONIC GOLDEN V-FIN CREST
+	# 2. HARD-SURFACE GUNDAM HEAD & ICONIC GOLDEN V-FIN CREST
 	# =========================================================================
-	flight.add_child(_cyl(0.26, 0.34, 0.42, 12, frame_dark, Vector3(0.0, 1.95, -0.05)))
-	flight.add_child(_sculpted_block(Vector3(0.86, 0.86, 0.96), ceramic, Vector3(0.0, 2.42, -0.05), Vector3.ZERO, 0.84, 0.86))
-	flight.add_child(_sculpted_block(Vector3(0.74, 0.34, 0.84), cobalt_blue, Vector3(0.0, 2.82, 0.0), Vector3.ZERO, 0.82, 0.92))
+	flight.add_child(_cyl(0.26, 0.34, 0.42, 8, frame_dark, Vector3(0.0, 1.95, -0.05)))
+	flight.add_child(_box(Vector3(0.86, 0.86, 0.96), ceramic, Vector3(0.0, 2.42, -0.05)))
+	flight.add_child(_prism(Vector3(0.74, 0.34, 0.84), cobalt_blue, Vector3(0.0, 2.82, 0.0), Vector3(-90.0, 0.0, 0.0)))
 	for side in [-1.0, 1.0]:
-		flight.add_child(_sculpted_block(
+		flight.add_child(_prism(
 			Vector3(0.18, 0.54, 0.64), ceramic,
 			Vector3(side * 0.44, 2.32, -0.15), Vector3(0.0, side * -8.0, 0.0)
 		))
-		flight.add_child(_cyl(0.035, 0.035, 0.32, 8, frame_dark, Vector3(side * 0.30, 2.62, -0.54), Vector3(90.0, 0.0, 0.0)))
+		flight.add_child(_cyl(0.035, 0.035, 0.32, 6, frame_dark, Vector3(side * 0.30, 2.62, -0.54), Vector3(90.0, 0.0, 0.0)))
 
 	# Chin Cowl Guard (Crimson Goatee & Faceplate)
 	flight.add_child(_prism(Vector3(0.30, 0.32, 0.20), crimson_accent, Vector3(0.0, 2.02, -0.54), Vector3(180.0, 0.0, 0.0)))
@@ -291,37 +292,45 @@ static func _build_vinculados_colossus_mobile_armor(_ship: Ship, root: Node3D, t
 		))
 
 	# =========================================================================
-	# 3. COLOSSAL ARTICULATED SHOULDERS, AEGIS SHIELD & RESONANCE BEAM LANCE
+	# 3. COLOSSAL BOXY SHOULDERS, AEGIS SHIELD & RESONANCE BEAM LANCE
 	# =========================================================================
 	for side in [-1.0, 1.0]:
 		var sh_pos := Vector3(side * 1.82, 1.22, 0.0)
-		flight.add_child(_sphere(0.42, 0.82, frame_dark, sh_pos))
-		flight.add_child(_sculpted_block(Vector3(1.14, 0.94, 1.64), ceramic, sh_pos + Vector3(side * 0.32, 0.14, 0.0), Vector3(0.0, 0.0, side * -10.0), 0.86, 0.88))
-		flight.add_child(_sculpted_block(Vector3(0.94, 0.34, 1.42), cobalt_blue, sh_pos + Vector3(side * 0.32, 0.62, 0.0), Vector3(0.0, 0.0, side * -10.0), 0.84, 0.92))
+		flight.add_child(_box(Vector3(0.48, 0.48, 0.56), frame_dark, sh_pos))
+		flight.add_child(_box(Vector3(1.14, 0.94, 1.64), ceramic, sh_pos + Vector3(side * 0.32, 0.14, 0.0), Vector3(0.0, 0.0, side * -10.0)))
+		flight.add_child(_box(Vector3(0.94, 0.34, 1.42), cobalt_blue, sh_pos + Vector3(side * 0.32, 0.62, 0.0), Vector3(0.0, 0.0, side * -10.0)))
 		for v_z in [-0.38, 0.38]:
-			var sh_v := _cyl(0.09, 0.15, 0.26, 8, cyan_energy, sh_pos + Vector3(side * 1.02, 0.14, v_z), Vector3(0.0, 0.0, side * 90.0))
+			var sh_v := _cyl(0.09, 0.15, 0.26, 6, cyan_energy, sh_pos + Vector3(side * 1.02, 0.14, v_z), Vector3(0.0, 0.0, side * 90.0))
 			flight.add_child(sh_v)
 			thrusters.append(sh_v)
 
-	# Left Arm & Tower Shield (Seraph Aegis)
-	flight.add_child(_capsule(0.22, 0.82, frame_dark, Vector3(-1.72, 0.62, -0.32), Vector3(25.0, 0.0, -15.0)))
-	flight.add_child(_capsule(0.22, 0.84, ceramic, Vector3(-1.82, 0.14, -0.82), Vector3(45.0, 15.0, 0.0)))
+	# Left Arm & Tower Shield (Hard-surface faceted!)
+	flight.add_child(_box(Vector3(0.42, 0.74, 0.42), frame_dark, Vector3(-1.72, 0.62, -0.32), Vector3(25.0, 0.0, -15.0)))
+	flight.add_child(_box(Vector3(0.46, 0.64, 0.16), ceramic, Vector3(-1.72, 0.62, -0.48), Vector3(25.0, 0.0, -15.0)))
+	flight.add_child(_cyl(0.20, 0.20, 0.44, 8, frame_dark, Vector3(-1.76, 0.28, -0.58), Vector3(0.0, 0.0, 90.0)))
+	flight.add_child(_box(Vector3(0.46, 0.74, 0.64), ceramic, Vector3(-1.82, 0.14, -0.82), Vector3(45.0, 15.0, 0.0)))
+
 	var shield_root := Node3D.new()
 	shield_root.position = Vector3(-2.20, 0.24, -0.92)
 	shield_root.rotation_degrees = Vector3(12.0, 22.0, -6.0)
 	flight.add_child(shield_root)
-	shield_root.add_child(_sculpted_block(Vector3(0.76, 3.16, 0.18), ceramic, Vector3.ZERO, Vector3.ZERO, 0.82, 0.72))
-	shield_root.add_child(_sculpted_block(Vector3(0.54, 2.34, 0.22), cobalt_blue, Vector3(0.0, 0.14, 0.04), Vector3.ZERO, 0.84, 0.76))
+	shield_root.add_child(_box(Vector3(0.76, 2.60, 0.16), ceramic, Vector3.ZERO))
+	shield_root.add_child(_prism(Vector3(0.76, 0.56, 0.16), ceramic, Vector3(0.0, 1.58, 0.0)))
+	shield_root.add_child(_prism(Vector3(0.76, 0.56, 0.16), ceramic, Vector3(0.0, -1.58, 0.0), Vector3(180.0, 0.0, 0.0)))
+	shield_root.add_child(_box(Vector3(0.54, 2.04, 0.22), cobalt_blue, Vector3(0.0, 0.14, 0.04)))
 	shield_root.add_child(_box(Vector3(0.34, 0.34, 0.24), crimson_accent, Vector3(0.0, 0.82, 0.06)))
-	shield_root.add_child(_sphere(0.16, 0.30, cyan_visor, Vector3(0.0, 0.82, 0.11)))
+	shield_root.add_child(_box(Vector3(0.16, 0.16, 0.30), cyan_visor, Vector3(0.0, 0.82, 0.11)))
 
-	# Right Arm & Colossal Resonance Beam Lance
-	flight.add_child(_capsule(0.22, 0.82, frame_dark, Vector3(1.72, 0.62, -0.28), Vector3(20.0, 0.0, 10.0)))
-	flight.add_child(_capsule(0.22, 0.84, ceramic, Vector3(1.82, 0.18, -0.78), Vector3(65.0, -10.0, 0.0)))
-	flight.add_child(_cyl(0.09, 0.10, 2.40, 10, frame_dark, Vector3(1.82, 0.18, -1.65), Vector3(90.0, 0.0, 0.0)))
-	flight.add_child(_cyl(0.26, 0.14, 0.65, 12, cobalt_blue, Vector3(1.82, 0.18, -2.85), Vector3(90.0, 0.0, 0.0)))
-	flight.add_child(_cyl(0.32, 0.32, 0.16, 12, gold_crest, Vector3(1.82, 0.18, -3.15), Vector3(90.0, 0.0, 0.0)))
-	flight.add_child(_cyl(0.02, 0.20, 3.60, 12, beam_lance_mat, Vector3(1.82, 0.18, -5.00), Vector3(90.0, 0.0, 0.0)))
+	# Right Arm & Colossal Resonance Beam Lance (Hard-surface faceted!)
+	flight.add_child(_box(Vector3(0.42, 0.74, 0.42), frame_dark, Vector3(1.72, 0.62, -0.28), Vector3(20.0, 0.0, 10.0)))
+	flight.add_child(_box(Vector3(0.46, 0.64, 0.16), ceramic, Vector3(1.72, 0.62, -0.44), Vector3(20.0, 0.0, 10.0)))
+	flight.add_child(_cyl(0.20, 0.20, 0.44, 8, frame_dark, Vector3(1.76, 0.28, -0.54), Vector3(0.0, 0.0, 90.0)))
+	flight.add_child(_box(Vector3(0.46, 0.74, 0.64), ceramic, Vector3(1.82, 0.18, -0.78), Vector3(65.0, -10.0, 0.0)))
+
+	flight.add_child(_cyl(0.09, 0.10, 2.40, 6, frame_dark, Vector3(1.82, 0.18, -1.65), Vector3(90.0, 0.0, 0.0)))
+	flight.add_child(_box(Vector3(0.48, 0.48, 0.65), cobalt_blue, Vector3(1.82, 0.18, -2.85), Vector3(90.0, 0.0, 0.0)))
+	flight.add_child(_cyl(0.32, 0.32, 0.16, 8, gold_crest, Vector3(1.82, 0.18, -3.15), Vector3(90.0, 0.0, 0.0)))
+	flight.add_child(_cyl(0.02, 0.20, 3.60, 6, beam_lance_mat, Vector3(1.82, 0.18, -5.00), Vector3(90.0, 0.0, 0.0)))
 
 	# =========================================================================
 	# 4. FOUR MASSIVE SWEPT SERAPH SHIELD-BINDER WINGS & FUNNEL BATTERIES
@@ -332,17 +341,17 @@ static func _build_vinculados_colossus_mobile_armor(_ship: Ship, root: Node3D, t
 		w_root.rotation_degrees = Vector3(-10.0, side * -24.0, side * -22.0)
 		flight.add_child(w_root)
 
-		w_root.add_child(_cyl(0.16, 0.22, 1.55, 8, frame_dark, Vector3(side * 0.68, 0.28, 0.0), Vector3(0.0, 0.0, side * 75.0)))
-		w_root.add_child(_sculpted_block(Vector3(0.84, 2.54, 4.15), ceramic, Vector3(side * 1.75, 0.38, 1.15), Vector3(0.0, side * 8.0, 0.0), 0.80, 0.84))
-		w_root.add_child(_sculpted_block(Vector3(0.64, 2.14, 3.35), cobalt_blue, Vector3(side * 1.95, 0.38, 1.05), Vector3.ZERO, 0.82, 0.86))
+		w_root.add_child(_cyl(0.16, 0.22, 1.55, 6, frame_dark, Vector3(side * 0.68, 0.28, 0.0), Vector3(0.0, 0.0, side * 75.0)))
+		w_root.add_child(_box(Vector3(0.84, 2.54, 4.15), ceramic, Vector3(side * 1.75, 0.38, 1.15), Vector3(0.0, side * 8.0, 0.0)))
+		w_root.add_child(_box(Vector3(0.64, 2.14, 3.35), cobalt_blue, Vector3(side * 1.95, 0.38, 1.05)))
 		w_root.add_child(_box(Vector3(0.08, 1.75, 2.15), gold_crest, Vector3(side * 2.30, 1.15, 1.35), Vector3(0.0, side * 15.0, side * -18.0)))
 		for f in 5:
 			var f_z: float = lerpf(-0.5, 2.6, float(f) / 4.0)
-			w_root.add_child(_cyl(0.13, 0.11, 1.05, 8, frame_dark, Vector3(side * 2.10, 0.24, f_z), Vector3(90.0, 0.0, 0.0)))
-			w_root.add_child(_cyl(0.15, 0.15, 0.12, 8, gold_crest, Vector3(side * 2.10, 0.24, f_z - 0.32), Vector3(90.0, 0.0, 0.0)))
-			w_root.add_child(_sphere(0.08, 0.15, cyan_energy, Vector3(side * 2.10, 0.24, f_z - 0.62)))
+			w_root.add_child(_cyl(0.13, 0.11, 1.05, 6, frame_dark, Vector3(side * 2.10, 0.24, f_z), Vector3(90.0, 0.0, 0.0)))
+			w_root.add_child(_cyl(0.15, 0.15, 0.12, 6, gold_crest, Vector3(side * 2.10, 0.24, f_z - 0.32), Vector3(90.0, 0.0, 0.0)))
+			w_root.add_child(_box(Vector3(0.12, 0.12, 0.15), cyan_energy, Vector3(side * 2.10, 0.24, f_z - 0.62)))
 		for vy in [-0.28, 0.58]:
-			var w_v := _cyl(0.13, 0.20, 0.52, 10, cyan_energy, Vector3(side * 1.75, vy, 3.30), Vector3(-90.0, 0.0, 0.0))
+			var w_v := _cyl(0.13, 0.20, 0.52, 6, cyan_energy, Vector3(side * 1.75, vy, 3.30), Vector3(-90.0, 0.0, 0.0))
 			w_root.add_child(w_v)
 			thrusters.append(w_v)
 
@@ -353,14 +362,14 @@ static func _build_vinculados_colossus_mobile_armor(_ship: Ship, root: Node3D, t
 		lw_root.rotation_degrees = Vector3(8.0, side * -18.0, side * 16.0)
 		flight.add_child(lw_root)
 
-		lw_root.add_child(_sculpted_block(Vector3(0.64, 1.78, 3.55), ceramic, Vector3(side * 1.45, -0.28, 1.35), Vector3.ZERO, 0.80, 0.84))
-		lw_root.add_child(_sculpted_block(Vector3(0.50, 1.38, 2.75), cobalt_blue, Vector3(side * 1.55, -0.28, 1.25), Vector3.ZERO, 0.82, 0.86))
+		lw_root.add_child(_box(Vector3(0.64, 1.78, 3.55), ceramic, Vector3(side * 1.45, -0.28, 1.35)))
+		lw_root.add_child(_box(Vector3(0.50, 1.38, 2.75), cobalt_blue, Vector3(side * 1.55, -0.28, 1.25)))
 		for f in 3:
 			var f_z: float = lerpf(0.1, 2.4, float(f) / 2.0)
-			lw_root.add_child(_cyl(0.11, 0.09, 0.90, 8, frame_dark, Vector3(side * 1.70, -0.18, f_z), Vector3(90.0, 0.0, 0.0)))
-			lw_root.add_child(_cyl(0.13, 0.13, 0.10, 8, gold_crest, Vector3(side * 1.70, -0.18, f_z - 0.28), Vector3(90.0, 0.0, 0.0)))
-			lw_root.add_child(_sphere(0.07, 0.13, cyan_energy, Vector3(side * 1.70, -0.18, f_z - 0.52)))
-		var lw_v := _cyl(0.11, 0.17, 0.48, 8, cyan_energy, Vector3(side * 1.45, -0.28, 3.20), Vector3(-90.0, 0.0, 0.0))
+			lw_root.add_child(_cyl(0.11, 0.09, 0.90, 6, frame_dark, Vector3(side * 1.70, -0.18, f_z), Vector3(90.0, 0.0, 0.0)))
+			lw_root.add_child(_cyl(0.13, 0.13, 0.10, 6, gold_crest, Vector3(side * 1.70, -0.18, f_z - 0.28), Vector3(90.0, 0.0, 0.0)))
+			lw_root.add_child(_box(Vector3(0.10, 0.10, 0.13), cyan_energy, Vector3(side * 1.70, -0.18, f_z - 0.52)))
+		var lw_v := _cyl(0.11, 0.17, 0.48, 6, cyan_energy, Vector3(side * 1.45, -0.28, 3.20), Vector3(-90.0, 0.0, 0.0))
 		lw_root.add_child(lw_v)
 		thrusters.append(lw_v)
 
@@ -369,37 +378,58 @@ static func _build_vinculados_colossus_mobile_armor(_ship: Ship, root: Node3D, t
 	# =========================================================================
 	for side in [-1.0, 1.0]:
 		var cx: float = side * 1.12
-		flight.add_child(_sculpted_block(Vector3(0.64, 0.64, 3.10), frame_dark, Vector3(cx, -0.82, -1.15)))
-		flight.add_child(_sculpted_block(Vector3(0.54, 0.54, 2.30), cobalt_blue, Vector3(cx, -0.82, -1.35)))
-		flight.add_child(_cyl(0.22, 0.26, 5.40, 12, frame_dark, Vector3(cx, -0.82, -3.75), Vector3(90.0, 0.0, 0.0)))
+		flight.add_child(_box(Vector3(0.64, 0.64, 3.10), frame_dark, Vector3(cx, -0.82, -1.15)))
+		flight.add_child(_box(Vector3(0.54, 0.54, 2.30), cobalt_blue, Vector3(cx, -0.82, -1.35)))
+		flight.add_child(_cyl(0.22, 0.26, 5.40, 8, frame_dark, Vector3(cx, -0.82, -3.75), Vector3(90.0, 0.0, 0.0)))
 		for r in 4:
 			var rz: float = -2.15 - float(r) * 0.88
-			flight.add_child(_cyl(0.30, 0.30, 0.16, 12, gold_crest, Vector3(cx, -0.82, rz), Vector3(90.0, 0.0, 0.0)))
-		flight.add_child(_cyl(0.19, 0.25, 0.82, 12, cyan_energy, Vector3(cx, -0.82, -6.65), Vector3(90.0, 0.0, 0.0)))
-		flight.add_child(_sphere(0.15, 0.30, beam_lance_mat, Vector3(cx, -0.82, -7.15)))
+			flight.add_child(_cyl(0.30, 0.30, 0.16, 8, gold_crest, Vector3(cx, -0.82, rz), Vector3(90.0, 0.0, 0.0)))
+		flight.add_child(_cyl(0.19, 0.25, 0.82, 8, cyan_energy, Vector3(cx, -0.82, -6.65), Vector3(90.0, 0.0, 0.0)))
+		flight.add_child(_box(Vector3(0.26, 0.26, 0.30), beam_lance_mat, Vector3(cx, -0.82, -7.15)))
 
 	# =========================================================================
-	# 6. SCULPTED ARTICULATED ZERO-G MECHA LEGS & HEAVY ROCKET BOOTS
+	# 6. HARD-SURFACE MECHA LEGS WITH COLOSSAL GUNDAM KNEE SPIKES!
 	# =========================================================================
 	for side in [-1.0, 1.0]:
 		var lx: float = side * 0.66
-		flight.add_child(_sphere(0.34, 0.62, frame_dark, Vector3(lx, -0.72, 0.24)))
-		flight.add_child(_sculpted_block(Vector3(0.66, 1.48, 0.76), ceramic, Vector3(lx, -1.45, 0.62), Vector3(-20.0, 0.0, 0.0), 0.90, 0.82))
-		flight.add_child(_sculpted_block(Vector3(0.54, 0.64, 0.44), cobalt_blue, Vector3(lx, -2.05, 0.62), Vector3(30.0, 0.0, 0.0)))
-		var leg_pod := _sculpted_block(Vector3(0.86, 2.34, 1.24), ceramic, Vector3(lx, -2.85, 1.75), Vector3(-35.0, 0.0, 0.0), 0.82, 0.94)
+		# Heavy hip joint block
+		flight.add_child(_cyl(0.28, 0.28, 0.56, 8, frame_dark, Vector3(lx, -0.72, 0.24), Vector3(0.0, 0.0, 90.0)))
+		# Upper Thigh Armor Box
+		flight.add_child(_box(Vector3(0.66, 1.48, 0.76), ceramic, Vector3(lx, -1.45, 0.62), Vector3(-20.0, 0.0, 0.0)))
+		flight.add_child(_box(Vector3(0.54, 0.64, 0.44), cobalt_blue, Vector3(lx, -2.05, 0.62), Vector3(30.0, 0.0, 0.0)))
+
+		# Double-Jointed Mechanical Knee Block & COLOSSAL GUNDAM KNEE SPIKE!
+		flight.add_child(_box(Vector3(0.56, 0.56, 0.64), frame_dark, Vector3(lx, -2.25, 0.48)))
+		flight.add_child(_prism(
+			Vector3(0.58, 0.85, 0.68), cobalt_blue,
+			Vector3(lx, -2.15, 0.22), Vector3(110.0, 0.0, 0.0)
+		))
+
+		# Flared Calf Armor Pod
+		var leg_pod := _box(Vector3(0.86, 2.34, 1.24), ceramic, Vector3(lx, -2.85, 1.75), Vector3(-35.0, 0.0, 0.0))
 		flight.add_child(leg_pod)
-		flight.add_child(_sculpted_block(Vector3(0.64, 1.72, 0.92), cobalt_blue, Vector3(lx, -2.85, 1.85), Vector3(-35.0, 0.0, 0.0)))
-		flight.add_child(_sculpted_block(Vector3(0.68, 0.42, 1.15), crimson_accent, Vector3(lx, -3.72, 2.35), Vector3(-35.0, 0.0, 0.0)))
+		flight.add_child(_prism(Vector3(0.24, 1.85, 0.85), cobalt_blue, Vector3(lx + side * 0.36, -2.85, 1.85), Vector3(0.0, side * 15.0, side * -18.0)))
+
+		# Pointed Sabaton Toe & Foot Assembly
+		flight.add_child(_box(Vector3(0.68, 0.38, 0.75), frame_dark, Vector3(lx, -3.72, 2.15), Vector3(-35.0, 0.0, 0.0)))
+		flight.add_child(_prism(Vector3(0.68, 0.42, 1.15), crimson_accent, Vector3(lx, -3.82, 2.45), Vector3(-35.0, 0.0, 0.0)))
 		for ty in [-3.75, -3.15]:
-			var nozzle := _cyl(0.19, 0.34, 0.72, 12, cyan_energy, Vector3(lx, ty, 3.05), Vector3(-90.0, 0.0, 0.0))
+			var nozzle := _cyl(0.19, 0.34, 0.72, 8, cyan_energy, Vector3(lx, ty, 3.05), Vector3(-90.0, 0.0, 0.0))
 			flight.add_child(nozzle)
 			thrusters.append(nozzle)
 
 	# =========================================================================
 	# 7. DORSAL HIGH-OUTPUT BACKPACK & MAIN PROPULSION
 	# =========================================================================
-	flight.add_child(_sculpted_block(Vector3(1.58, 1.78, 1.18), frame_dark, Vector3(0.0, 1.08, 0.88)))
-	flight.add_child(_sculpted_block(Vector3(1.38, 0.78, 0.88), cobalt_blue, Vector3(0.0, 1.85, 0.88)))
+	flight.add_child(_box(Vector3(1.58, 1.78, 1.18), frame_dark, Vector3(0.0, 1.08, 0.88)))
+	flight.add_child(_box(Vector3(1.38, 0.78, 0.88), cobalt_blue, Vector3(0.0, 1.85, 0.88)))
+	for side in [-1.0, 1.0]:
+		flight.add_child(_cyl(0.075, 0.085, 1.15, 6, ceramic, Vector3(side * 0.72, 2.25, 0.78), Vector3(30.0, side * 10.0, 0.0)))
+	for side in [-1.0, 1.0]:
+		for vy in [0.78, 1.45]:
+			var b_v := _cyl(0.20, 0.36, 0.82, 8, cyan_energy, Vector3(side * 0.52, vy, 1.55), Vector3(-90.0, 0.0, 0.0))
+			flight.add_child(b_v)
+			thrusters.append(b_v)
 	for side in [-1.0, 1.0]:
 		flight.add_child(_cyl(0.075, 0.085, 1.15, 8, ceramic, Vector3(side * 0.72, 2.25, 0.78), Vector3(30.0, side * 10.0, 0.0)))
 	for side in [-1.0, 1.0]:
@@ -508,171 +538,262 @@ static func _build_mobile_suit(
 	var soul_core_mat := _get_soul_core_material()
 	var beam_lance_mat := _emissive(Color(0.30, 0.96, 1.0), 1.40)
 
-	# 1. Sculpted Torso Assembly (Classic Real-Robot Military Layout)
-	flight_posture.add_child(_sculpted_block(Vector3(0.36, 0.34, 0.28), ceramic_white, Vector3(0.0, 0.0, 0.0), Vector3.ZERO, 0.92, 0.82))
-	flight_posture.add_child(_sculpted_block(Vector3(0.58, 0.42, 0.40), cobalt_blue, Vector3(0.0, 0.32, -0.02), Vector3.ZERO, 0.88, 0.86))
+	# 1. Hard-Surface Stepped Gundam Torso Assembly
+	# Abdominal inner mechanical frame
+	flight_posture.add_child(_box(Vector3(0.26, 0.24, 0.20), frame_dark, Vector3(0.0, 0.04, 0.0)))
+	flight_posture.add_child(_box(Vector3(0.22, 0.16, 0.08), crimson_accent if is_lead else cobalt_blue, Vector3(0.0, 0.08, -0.10)))
 
-	# Dual Angled Amber Cooling Intake Vents (Classic Gundam Chest Louvers)
+	# Main Pectoral Chest Block (Swept Angular Cobalt Armor)
+	flight_posture.add_child(_box(Vector3(0.48, 0.34, 0.34), cobalt_blue, Vector3(0.0, 0.32, -0.02)))
+	for side in [-1.0, 1.0]:
+		flight_posture.add_child(_prism(
+			Vector3(0.20, 0.32, 0.16), cobalt_blue,
+			Vector3(side * 0.22, 0.32, -0.16), Vector3(90.0, 0.0, side * 12.0)
+		))
+
+	# Dual Classic Gundam Amber Cooling Intake Vents with Dark Perimeter Bezels
 	for side in [-1.0, 1.0]:
 		flight_posture.add_child(_box(
-			Vector3(0.11, 0.085, 0.045), amber_intake,
-			Vector3(side * 0.16, 0.34, -0.21), Vector3(6.0, side * 8.0, 0.0)
+			Vector3(0.12, 0.10, 0.03), frame_dark,
+			Vector3(side * 0.16, 0.34, -0.20), Vector3(8.0, side * 10.0, 0.0)
+		))
+		flight_posture.add_child(_box(
+			Vector3(0.10, 0.08, 0.04), amber_intake,
+			Vector3(side * 0.16, 0.34, -0.21), Vector3(8.0, side * 10.0, 0.0)
 		))
 
-	# Central Exposed Pulsing Magenta Soul Core + Gold Ring
-	flight_posture.add_child(_sphere(0.085, 0.15, soul_core_mat, Vector3(0.0, 0.30, -0.21)))
-	flight_posture.add_child(_cyl(0.095, 0.10, 0.02, 12, gold_crest, Vector3(0.0, 0.30, -0.20), Vector3(90.0, 0.0, 0.0)))
+	# Central Exposed Pulsing Magenta Soul Core with Octagonal Gold Retention Bracket
+	flight_posture.add_child(_box(Vector3(0.10, 0.10, 0.04), frame_dark, Vector3(0.0, 0.30, -0.19)))
+	flight_posture.add_child(_box(Vector3(0.07, 0.07, 0.03), soul_core_mat, Vector3(0.0, 0.30, -0.21)))
+	flight_posture.add_child(_prism(Vector3(0.05, 0.05, 0.02), gold_crest, Vector3(0.0, 0.34, -0.22)))
 
-	# Cockpit Hatch Block (Angled Crimson Plate)
-	flight_posture.add_child(_sculpted_block(
-		Vector3(0.13, 0.15, 0.07), crimson_accent if (is_lead or is_nous) else cobalt_blue,
-		Vector3(0.0, 0.18, -0.16)
+	# Protruding Forward-Jutting Cockpit Hatch Plate (Angular Crimson Wedge)
+	flight_posture.add_child(_box(
+		Vector3(0.14, 0.16, 0.14), crimson_accent if (is_lead or is_nous) else cobalt_blue,
+		Vector3(0.0, 0.20, -0.18), Vector3(14.0, 0.0, 0.0)
 	))
-
-	# Waist & Segmented Skirt Armor Plates
-	for side in [-1.0, 1.0]:
-		flight_posture.add_child(_sculpted_block(
-			Vector3(0.15, 0.19, 0.05), ceramic_white,
-			Vector3(side * 0.10, -0.16, -0.14), Vector3(14.0, 0.0, side * -4.0)
-		))
-		flight_posture.add_child(_sculpted_block(
-			Vector3(0.05, 0.19, 0.21), ceramic_white,
-			Vector3(side * 0.21, -0.16, 0.0)
-		))
-	flight_posture.add_child(_sculpted_block(
-		Vector3(0.32, 0.16, 0.05), ceramic_white,
-		Vector3(0.0, -0.16, 0.14), Vector3(-12.0, 0.0, 0.0)
-	))
-
-	# 2. Sculpted Head Unit & Golden V-Fin Crest
-	flight_posture.add_child(_cyl(0.06, 0.08, 0.10, 8, frame_dark, Vector3(0.0, 0.54, 0.0)))
-	var helmet := _sculpted_block(Vector3(0.24, 0.25, 0.26), ceramic_white, Vector3(0.0, 0.68, 0.0), Vector3.ZERO, 0.84, 0.86)
-	flight_posture.add_child(helmet)
 	flight_posture.add_child(_prism(
-		Vector3(0.08, 0.08, 0.06), crimson_accent if is_lead else cobalt_blue,
-		Vector3(0.0, 0.58, -0.13), Vector3(180.0, 0.0, 0.0)
+		Vector3(0.14, 0.12, 0.08), crimson_accent if (is_lead or is_nous) else cobalt_blue,
+		Vector3(0.0, 0.28, -0.22), Vector3(14.0, 0.0, 0.0)
+	))
+
+	# Pelvis Core Frame & Gundam Crotch Block (RX-93 / Freedom Style)
+	flight_posture.add_child(_box(Vector3(0.26, 0.16, 0.20), frame_dark, Vector3(0.0, -0.10, 0.0)))
+	flight_posture.add_child(_box(Vector3(0.14, 0.18, 0.18), ceramic_white, Vector3(0.0, -0.14, -0.10)))
+	flight_posture.add_child(_prism(Vector3(0.12, 0.18, 0.12), ceramic_white, Vector3(0.0, -0.14, -0.20), Vector3(-90.0, 0.0, 0.0)))
+	flight_posture.add_child(_box(Vector3(0.08, 0.03, 0.04), gold_crest, Vector3(0.0, -0.07, -0.22)))
+	flight_posture.add_child(_box(Vector3(0.07, 0.07, 0.03), crimson_accent, Vector3(0.0, -0.19, -0.19)))
+
+	# Layered Split Front Skirt Armor Plates with Cobalt Inserts & Vents
+	for side in [-1.0, 1.0]:
+		flight_posture.add_child(_box(
+			Vector3(0.14, 0.22, 0.04), ceramic_white,
+			Vector3(side * 0.12, -0.16, -0.16), Vector3(14.0, side * -8.0, side * -4.0)
+		))
+		flight_posture.add_child(_box(
+			Vector3(0.10, 0.12, 0.02), cobalt_blue,
+			Vector3(side * 0.12, -0.18, -0.18), Vector3(14.0, side * -8.0, side * -4.0)
+		))
+		flight_posture.add_child(_box(
+			Vector3(0.06, 0.04, 0.02), amber_intake,
+			Vector3(side * 0.12, -0.24, -0.19), Vector3(14.0, side * -8.0, side * -4.0)
+		))
+		# Angular Side Skirt Thruster Binders
+		flight_posture.add_child(_box(
+			Vector3(0.07, 0.22, 0.24), ceramic_white,
+			Vector3(side * 0.22, -0.14, 0.0), Vector3(0.0, 0.0, side * -10.0)
+		))
+		flight_posture.add_child(_box(
+			Vector3(0.04, 0.14, 0.12), crimson_accent,
+			Vector3(side * 0.26, -0.14, 0.0), Vector3(0.0, 0.0, side * -10.0)
+		))
+		var s_thr := _cyl(0.02, 0.04, 0.08, 6, cyan_thruster, Vector3(side * 0.26, -0.22, 0.04), Vector3(0.0, 0.0, side * 90.0))
+		flight_posture.add_child(s_thr)
+		thrusters.append(s_thr)
+
+	flight_posture.add_child(_box(
+		Vector3(0.30, 0.20, 0.05), ceramic_white,
+		Vector3(0.0, -0.16, 0.15), Vector3(-16.0, 0.0, 0.0)
+	))
+
+	# 2. Hard-Surface Angular Gundam Head & Razor Golden V-Fin Crest
+	flight_posture.add_child(_cyl(0.05, 0.07, 0.10, 8, frame_dark, Vector3(0.0, 0.52, 0.0)))
+	var helmet := _box(Vector3(0.20, 0.20, 0.22), ceramic_white, Vector3(0.0, 0.66, 0.0))
+	flight_posture.add_child(helmet)
+	for side in [-1.0, 1.0]:
+		flight_posture.add_child(_prism(
+			Vector3(0.06, 0.20, 0.16), ceramic_white,
+			Vector3(side * 0.11, 0.62, -0.05), Vector3(0.0, side * -8.0, side * -6.0)
+		))
+	flight_posture.add_child(_prism(
+		Vector3(0.18, 0.08, 0.20), cobalt_blue,
+		Vector3(0.0, 0.76, 0.02), Vector3(-90.0, 0.0, 0.0)
+	))
+	flight_posture.add_child(_prism(
+		Vector3(0.06, 0.09, 0.06), crimson_accent if is_lead else cobalt_blue,
+		Vector3(0.0, 0.54, -0.13), Vector3(180.0, 0.0, 0.0)
 	))
 	flight_posture.add_child(_box(
-		Vector3(0.16, 0.036, 0.05), cyan_visor,
-		Vector3(0.0, 0.68, -0.13)
+		Vector3(0.14, 0.035, 0.05), cyan_visor,
+		Vector3(0.0, 0.64, -0.12), Vector3(6.0, 0.0, 0.0)
 	))
 	flight_posture.add_child(_box(
-		Vector3(0.05, 0.05, 0.06), crimson_accent,
-		Vector3(0.0, 0.81, -0.10)
+		Vector3(0.05, 0.06, 0.06), crimson_accent,
+		Vector3(0.0, 0.77, -0.10)
 	))
 	for side in [-1.0, 1.0]:
 		flight_posture.add_child(_box(
-			Vector3(0.022, 0.28, 0.06), gold_crest if is_lead else ceramic_white,
-			Vector3(side * 0.12, 0.86, -0.08),
-			Vector3(-16.0, side * 14.0, side * -38.0)
+			Vector3(0.022, 0.36, 0.06), gold_crest if is_lead else ceramic_white,
+			Vector3(side * 0.14, 0.92, -0.08),
+			Vector3(-16.0, side * 18.0, side * -42.0)
 		))
 		if is_lead or is_anima or is_nous:
 			flight_posture.add_child(_box(
-				Vector3(0.018, 0.20, 0.05), ceramic_white,
-				Vector3(side * 0.07, 0.85, -0.04),
-				Vector3(-24.0, side * 10.0, side * -22.0)
+				Vector3(0.016, 0.22, 0.05), ceramic_white,
+				Vector3(side * 0.08, 0.88, -0.04),
+				Vector3(-26.0, side * 10.0, side * -24.0)
 			))
 	flight_posture.add_child(_box(Vector3(0.03, 0.06, 0.04), cyan_visor, Vector3(0.0, 0.82, -0.08)))
 
-	# 3. High-Mobility Backpack Unit & Verniers
-	flight_posture.add_child(_sculpted_block(Vector3(0.36, 0.38, 0.24), frame_dark, Vector3(0.0, 0.32, 0.22)))
-	flight_posture.add_child(_sculpted_block(Vector3(0.32, 0.14, 0.22), cobalt_blue, Vector3(0.0, 0.48, 0.22)))
+	# 3. High-Mobility Angular Backpack Unit & Main Rocket Verniers
+	flight_posture.add_child(_box(Vector3(0.34, 0.36, 0.22), frame_dark, Vector3(0.0, 0.32, 0.22)))
+	flight_posture.add_child(_box(Vector3(0.30, 0.12, 0.20), cobalt_blue, Vector3(0.0, 0.46, 0.22)))
 	for side in [-1.0, 1.0]:
 		flight_posture.add_child(_cyl(
-			0.04, 0.075, 0.16, 8, frame_dark,
+			0.04, 0.075, 0.16, 6, frame_dark,
 			Vector3(side * 0.11, 0.24, 0.32), Vector3(-72.0, 0.0, 0.0)
 		))
 		var vernier := _cyl(
-			0.025, 0.055, 0.24, 8, cyan_thruster,
-			Vector3(side * 0.11, 0.24, 0.40), Vector3(-72.0, 0.0, 0.0)
+			0.025, 0.055, 0.22, 6, cyan_thruster,
+			Vector3(side * 0.11, 0.24, 0.38), Vector3(-72.0, 0.0, 0.0)
 		)
 		flight_posture.add_child(vernier)
 		thrusters.append(vernier)
-		flight_posture.add_child(_cyl(
-			0.015, 0.02, 0.24, 6, ceramic_white,
-			Vector3(side * 0.14, 0.58, 0.20), Vector3(28.0, side * 8.0, 0.0)
-		))
 
 	if is_nous:
 		for side in [-1.0, 1.0]:
-			flight_posture.add_child(_cyl(
-				0.045, 0.06, 0.65, 10, ceramic_white,
+			flight_posture.add_child(_box(
+				Vector3(0.07, 0.09, 0.65), frame_dark,
 				Vector3(side * 0.22, 0.55, -0.15), Vector3(82.0, 0.0, 0.0)
 			))
 			flight_posture.add_child(_cyl(
-				0.025, 0.035, 0.18, 8, beam_lance_mat,
+				0.025, 0.035, 0.18, 6, beam_lance_mat,
 				Vector3(side * 0.22, 0.58, -0.52), Vector3(82.0, 0.0, 0.0)
 			))
-	elif is_anima:
+	elif is_anima or is_lead:
+		# Swept Seraph Wing Binders with Docked Funnels
 		for side in [-1.0, 1.0]:
-			flight_posture.add_child(_sculpted_block(
-				Vector3(0.04, 0.40, 0.26), cobalt_blue,
+			flight_posture.add_child(_box(
+				Vector3(0.04, 0.38, 0.24), cobalt_blue,
 				Vector3(side * 0.32, 0.40, 0.34), Vector3(-30.0, side * 24.0, side * -28.0)
 			))
+			flight_posture.add_child(_prism(
+				Vector3(0.038, 0.28, 0.22), ceramic_white,
+				Vector3(side * 0.34, 0.58, 0.42), Vector3(-30.0, side * 24.0, side * -28.0)
+			))
+			flight_posture.add_child(_cyl(
+				0.018, 0.022, 0.24, 6, gold_crest,
+				Vector3(side * 0.36, 0.48, 0.46), Vector3(60.0, side * 15.0, 0.0)
+			))
 
-	# 4. Sculpted Shoulders & Arms
+	# 4. Boxy Layered Gundam Shoulder Pauldrons & Hard-Surface Arms
 	for side in [-1.0, 1.0]:
-		var pld := _sculpted_block(Vector3(0.26, 0.24, 0.30), ceramic_white, Vector3(side * 0.42, 0.36, 0.0))
+		# Shoulder inner pivot
+		flight_posture.add_child(_box(Vector3(0.12, 0.12, 0.14), frame_dark, Vector3(side * 0.32, 0.36, 0.0)))
+		# Outer boxy pauldron
+		var pld := _box(Vector3(0.26, 0.24, 0.32), ceramic_white, Vector3(side * 0.44, 0.36, 0.0), Vector3(0.0, 0.0, side * -6.0))
 		flight_posture.add_child(pld)
-		flight_posture.add_child(_sculpted_block(Vector3(0.24, 0.07, 0.28), cobalt_blue, Vector3(side * 0.42, 0.48, 0.0)))
-		var sh_v := _cyl(0.02, 0.04, 0.08, 6, cyan_thruster, Vector3(side * 0.55, 0.36, 0.0), Vector3(0.0, 0.0, side * 90.0))
+		flight_posture.add_child(_box(Vector3(0.22, 0.08, 0.30), cobalt_blue, Vector3(side * 0.44, 0.48, 0.0), Vector3(0.0, 0.0, side * -6.0)))
+		flight_posture.add_child(_box(Vector3(0.24, 0.02, 0.04), crimson_accent, Vector3(side * 0.44, 0.23, 0.15), Vector3(0.0, 0.0, side * -6.0)))
+		var sh_v := _cyl(0.02, 0.04, 0.08, 6, cyan_thruster, Vector3(side * 0.58, 0.36, 0.0), Vector3(0.0, 0.0, side * 90.0))
 		flight_posture.add_child(sh_v)
 		thrusters.append(sh_v)
 
-	# Left Arm & Shield
-	flight_posture.add_child(_capsule(0.06, 0.18, frame_dark, Vector3(-0.38, 0.22, -0.10), Vector3(25.0, 0.0, -15.0)))
-	flight_posture.add_child(_capsule(0.06, 0.18, ceramic_white, Vector3(-0.40, 0.10, -0.24), Vector3(45.0, 10.0, 0.0)))
+	# Left Arm & Hexagonal Gundam Tower Shield (Hard-surface faceted!)
+	flight_posture.add_child(_box(Vector3(0.10, 0.18, 0.10), frame_dark, Vector3(-0.38, 0.20, -0.06), Vector3(20.0, 0.0, -10.0)))
+	flight_posture.add_child(_box(Vector3(0.12, 0.15, 0.04), ceramic_white, Vector3(-0.38, 0.20, -0.11), Vector3(20.0, 0.0, -10.0)))
+	flight_posture.add_child(_cyl(0.05, 0.05, 0.11, 8, frame_dark, Vector3(-0.38, 0.10, -0.14), Vector3(0.0, 0.0, 90.0)))
+	flight_posture.add_child(_box(Vector3(0.12, 0.14, 0.22), ceramic_white, Vector3(-0.38, 0.10, -0.26), Vector3(45.0, 10.0, 0.0)))
+	flight_posture.add_child(_box(Vector3(0.07, 0.07, 0.08), frame_dark, Vector3(-0.38, 0.08, -0.38)))
+
 	var shield_node := Node3D.new()
 	shield_node.position = Vector3(-0.48, 0.12, -0.26)
 	shield_node.rotation_degrees = Vector3(14.0, 26.0, -8.0)
 	flight_posture.add_child(shield_node)
-	shield_node.add_child(_sculpted_block(Vector3(0.20, 0.74, 0.05), ceramic_white, Vector3.ZERO))
-	shield_node.add_child(_sculpted_block(Vector3(0.15, 0.40, 0.06), cobalt_blue, Vector3(0.0, 0.06, 0.01)))
-	shield_node.add_child(_box(Vector3(0.08, 0.05, 0.07), crimson_accent, Vector3(0.0, 0.26, 0.01)))
+	shield_node.add_child(_box(Vector3(0.20, 0.68, 0.04), ceramic_white, Vector3.ZERO))
+	shield_node.add_child(_prism(Vector3(0.20, 0.16, 0.04), ceramic_white, Vector3(0.0, 0.42, 0.0)))
+	shield_node.add_child(_prism(Vector3(0.20, 0.18, 0.04), ceramic_white, Vector3(0.0, -0.42, 0.0), Vector3(180.0, 0.0, 0.0)))
+	shield_node.add_child(_box(Vector3(0.14, 0.46, 0.06), cobalt_blue, Vector3(0.0, 0.04, 0.01)))
+	shield_node.add_child(_box(Vector3(0.08, 0.06, 0.07), crimson_accent, Vector3(0.0, 0.22, 0.02)))
+	shield_node.add_child(_box(Vector3(0.04, 0.04, 0.08), cyan_visor, Vector3(0.0, 0.22, 0.03)))
 
-	# Right Arm & Precision Beam Carbine / Rifle
-	flight_posture.add_child(_capsule(0.06, 0.18, frame_dark, Vector3(0.38, 0.22, -0.08), Vector3(20.0, 0.0, 10.0)))
-	flight_posture.add_child(_capsule(0.06, 0.18, ceramic_white, Vector3(0.38, 0.12, -0.22), Vector3(70.0, 0.0, 0.0)))
+	# Right Arm & Precision Beam Rifle (Hard-surface faceted!)
+	flight_posture.add_child(_box(Vector3(0.10, 0.18, 0.10), frame_dark, Vector3(0.38, 0.20, -0.06), Vector3(20.0, 0.0, 10.0)))
+	flight_posture.add_child(_box(Vector3(0.12, 0.15, 0.04), ceramic_white, Vector3(0.38, 0.20, -0.11), Vector3(20.0, 0.0, 10.0)))
+	flight_posture.add_child(_cyl(0.05, 0.05, 0.11, 8, frame_dark, Vector3(0.38, 0.10, -0.14), Vector3(0.0, 0.0, 90.0)))
+	flight_posture.add_child(_box(Vector3(0.12, 0.14, 0.22), ceramic_white, Vector3(0.38, 0.10, -0.24), Vector3(70.0, 0.0, 0.0)))
+	flight_posture.add_child(_box(Vector3(0.07, 0.07, 0.08), frame_dark, Vector3(0.38, 0.08, -0.36)))
+
 	var gun_pos := Vector3(0.38, 0.12, -0.48)
-	flight_posture.add_child(_box(Vector3(0.07, 0.14, 0.38), frame_dark, gun_pos))
-	flight_posture.add_child(_cyl(0.025, 0.025, 0.12, 8, cobalt_blue, gun_pos + Vector3(0.0, 0.09, 0.02), Vector3(90.0, 0.0, 0.0)))
-	flight_posture.add_child(_sphere(0.02, 0.04, cyan_visor, gun_pos + Vector3(0.0, 0.09, -0.05)))
-	flight_posture.add_child(_cyl(0.02, 0.028, 0.48, 8, frame_dark, gun_pos + Vector3(0.0, 0.0, -0.36), Vector3(90.0, 0.0, 0.0)))
-	flight_posture.add_child(_cyl(0.005, 0.04, 0.16, 8, beam_lance_mat, gun_pos + Vector3(0.0, 0.0, -0.66), Vector3(90.0, 0.0, 0.0)))
+	flight_posture.add_child(_box(Vector3(0.07, 0.14, 0.36), frame_dark, gun_pos))
+	flight_posture.add_child(_box(Vector3(0.04, 0.05, 0.14), cobalt_blue, gun_pos + Vector3(0.0, 0.10, 0.02)))
+	flight_posture.add_child(_box(Vector3(0.03, 0.03, 0.02), cyan_visor, gun_pos + Vector3(0.0, 0.10, -0.06)))
+	flight_posture.add_child(_cyl(0.018, 0.024, 0.46, 6, frame_dark, gun_pos + Vector3(0.0, 0.0, -0.38), Vector3(90.0, 0.0, 0.0)))
+	flight_posture.add_child(_cyl(0.006, 0.03, 0.14, 6, beam_lance_mat, gun_pos + Vector3(0.0, 0.0, -0.66), Vector3(90.0, 0.0, 0.0)))
 
-	# 5. Sculpted Articulated Legs Trailing Backwards in Slipstream!
+	# 5. Hard-Surface Gundam Legs with SIGNATURE KNEE SPIKES & Flared Calves!
 	for side in [-1.0, 1.0]:
 		var lx: float = side * 0.15
-		flight_posture.add_child(_sphere(0.06, 0.12, frame_dark, Vector3(lx, -0.16, 0.0)))
-		flight_posture.add_child(_sculpted_block(
-			Vector3(0.15, 0.34, 0.19), ceramic_white,
-			Vector3(lx, -0.32, 0.08), Vector3(-15.0, 0.0, 0.0), 0.90, 0.82
+		flight_posture.add_child(_cyl(0.05, 0.05, 0.12, 8, frame_dark, Vector3(lx, -0.16, 0.0), Vector3(0.0, 0.0, 90.0)))
+		# Upper Thigh Armor Box
+		flight_posture.add_child(_box(
+			Vector3(0.14, 0.34, 0.16), ceramic_white,
+			Vector3(lx, -0.32, 0.06), Vector3(-14.0, 0.0, 0.0)
 		))
-		flight_posture.add_child(_sculpted_block(
-			Vector3(0.13, 0.15, 0.09), cobalt_blue,
-			Vector3(lx, -0.44, 0.09), Vector3(32.0, 0.0, 0.0)
+		flight_posture.add_child(_box(
+			Vector3(0.11, 0.14, 0.08), cobalt_blue,
+			Vector3(lx, -0.42, 0.07), Vector3(28.0, 0.0, 0.0)
 		))
-		flight_posture.add_child(_sculpted_block(
-			Vector3(0.16, 0.44, 0.22), ceramic_white,
-			Vector3(lx, -0.65, 0.32), Vector3(-38.0, 0.0, 0.0), 0.82, 0.94
+
+		# Double-Jointed Knee Block & TALL PROTRUDING GUNDAM KNEE SPIKE!
+		flight_posture.add_child(_box(Vector3(0.11, 0.11, 0.12), frame_dark, Vector3(lx, -0.46, 0.10)))
+		flight_posture.add_child(_prism(
+			Vector3(0.12, 0.18, 0.14), cobalt_blue,
+			Vector3(lx, -0.44, 0.01), Vector3(110.0, 0.0, 0.0)
 		))
-		flight_posture.add_child(_cyl(
-			0.035, 0.065, 0.14, 8, frame_dark,
-			Vector3(lx, -0.62, 0.44), Vector3(-65.0, 0.0, 0.0)
+
+		# Flared Shin & Calf Armor
+		flight_posture.add_child(_box(
+			Vector3(0.15, 0.42, 0.18), ceramic_white,
+			Vector3(lx, -0.65, 0.28), Vector3(-36.0, 0.0, 0.0)
+		))
+		flight_posture.add_child(_prism(
+			Vector3(0.045, 0.34, 0.16), cobalt_blue,
+			Vector3(lx + side * 0.08, -0.66, 0.30), Vector3(0.0, side * 14.0, side * -18.0)
 		))
 		var calf_v := _cyl(
-			0.02, 0.045, 0.20, 8, cyan_thruster,
-			Vector3(lx, -0.62, 0.52), Vector3(-65.0, 0.0, 0.0)
+			0.02, 0.045, 0.18, 6, cyan_thruster,
+			Vector3(lx, -0.62, 0.40), Vector3(-65.0, 0.0, 0.0)
 		)
 		flight_posture.add_child(calf_v)
 		thrusters.append(calf_v)
-		flight_posture.add_child(_sculpted_block(
-			Vector3(0.15, 0.15, 0.29), crimson_accent if is_lead else cobalt_blue,
-			Vector3(lx, -0.86, 0.50), Vector3(-50.0, 0.0, 0.0)
+
+		# Ankle Armor & Angular Sabaton Foot (Pointed Toe Wedge)
+		flight_posture.add_child(_box(
+			Vector3(0.14, 0.07, 0.11), crimson_accent,
+			Vector3(lx, -0.82, 0.42), Vector3(-50.0, 0.0, 0.0)
+		))
+		flight_posture.add_child(_prism(
+			Vector3(0.13, 0.09, 0.20), crimson_accent if is_lead else cobalt_blue,
+			Vector3(lx, -0.86, 0.40), Vector3(-50.0, 0.0, 0.0)
+		))
+		flight_posture.add_child(_box(
+			Vector3(0.13, 0.09, 0.12), frame_dark,
+			Vector3(lx, -0.82, 0.52), Vector3(-50.0, 0.0, 0.0)
 		))
 		var foot_v := _cyl(
-			0.02, 0.045, 0.16, 8, cyan_thruster,
-			Vector3(lx, -0.90, 0.62), Vector3(-50.0, 0.0, 0.0)
+			0.018, 0.04, 0.12, 6, cyan_thruster,
+			Vector3(lx, -0.86, 0.58), Vector3(-50.0, 0.0, 0.0)
 		)
 		flight_posture.add_child(foot_v)
 		thrusters.append(foot_v)
