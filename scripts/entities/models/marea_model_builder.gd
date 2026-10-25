@@ -9,28 +9,17 @@ static func _build_marea(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> 
 	var is_raider := (ship.ship_id == "marea_raider")
 	var is_brig := (ship.ship_id == "marea_brigantine")
 
-	var wood := _textured(load(MAREA_HULL), 0.12, 0.42, Vector3(2.2, 2.2, 1.0))
-	wood.albedo_color = Color(1.06, 0.96, 0.88)
-	wood.clearcoat_enabled = true
-	wood.clearcoat = 0.58
-	wood.clearcoat_roughness = 0.18
+	var wood := _textured(load(MAREA_HULL), 0.12, 0.48, Vector3(2.2, 2.2, 1.0))
+	wood.albedo_color = Color(0.78, 0.72, 0.65)
 	wood.cull_mode = BaseMaterial3D.CULL_DISABLED
 
 	var dark_timber := _colored(Color(0.18, 0.11, 0.07), 0.18, 0.44)
-	var brass := _colored(Color(0.92, 0.72, 0.26), 0.84, 0.22)
-	var dark_bronze := _colored(Color(0.42, 0.30, 0.14), 0.72, 0.30)
-	var glass_dome := _translucent(Color(0.98, 0.72, 0.28, 0.58), Color(0.96, 0.62, 0.18), 1.25)
+	var brass := _colored(Color(0.88, 0.68, 0.24), 0.78, 0.28)
+	var dark_bronze := _colored(Color(0.42, 0.30, 0.14), 0.72, 0.32)
+	var glass_dome := _translucent(Color(0.98, 0.72, 0.28, 0.55), Color(0.96, 0.62, 0.18), 0.75)
 	var sail_mat := _get_quantum_sail_material()
-	var hab := _emissive(Color(1.0, 0.70, 0.20), 2.2)
-	var oar_vane_mat := _translucent(Color(0.14, 0.88, 1.0, 0.78), Color(0.12, 0.82, 0.98), 1.45)
-
-	# Dedicated Warm Golden & Cyan Hull Fill Light so Mahogany & Brass Filigree Gleam
-	var hull_light := OmniLight3D.new()
-	hull_light.position = Vector3(0.0, s.y * 1.6, -s.z * 0.05)
-	hull_light.light_color = Color(0.98, 0.88, 0.72)
-	hull_light.light_energy = 1.25
-	hull_light.omni_range = maxf(s.z * 1.6, 14.0)
-	root.add_child(hull_light)
+	var hab := _emissive(Color(1.0, 0.70, 0.20), 1.15)
+	var oar_vane_mat := _translucent(Color(0.14, 0.88, 1.0, 0.75), Color(0.12, 0.82, 0.98), 0.85)
 
 	var half_len := s.z * 0.5
 	var hull_mesh := build_loft(_marea_profile(s), [

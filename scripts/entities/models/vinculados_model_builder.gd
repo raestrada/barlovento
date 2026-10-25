@@ -21,23 +21,15 @@ static func _build_vinculados(ship: Ship, root: Node3D, thrusters: Array[Node3D]
 
 static func _build_vinculados_carrier(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
 	var s := ship.body_size
-	var ceramic := _textured(load(VINCULADOS_HULL), 0.18, 0.20, Vector3(2.2, 2.2, 1.0))
-	ceramic.albedo_color = Color(1.04, 1.05, 1.08)
-	var cobalt_blue := _colored(Color(0.06, 0.18, 0.50), 0.48, 0.28)
-	var crimson_accent := _colored(Color(0.86, 0.12, 0.16), 0.38, 0.34)
-	var frame_dark := _colored(Color(0.12, 0.14, 0.20), 0.74, 0.34)
-	var amber_hab := _emissive(Color(1.0, 0.68, 0.10), 2.4)
-	var cyan_energy := _emissive(Color(0.18, 0.92, 1.0), 3.2)
-	var gold_crest := _colored(Color(0.96, 0.80, 0.22), 0.88, 0.22)
+	var ceramic := _textured(load(VINCULADOS_HULL), 0.14, 0.44, Vector3(2.2, 2.2, 1.0))
+	ceramic.albedo_color = Color(0.66, 0.70, 0.78)
+	var cobalt_blue := _colored(Color(0.06, 0.18, 0.50), 0.44, 0.36)
+	var crimson_accent := _colored(Color(0.86, 0.12, 0.16), 0.34, 0.38)
+	var frame_dark := _colored(Color(0.12, 0.14, 0.20), 0.68, 0.38)
+	var amber_hab := _emissive(Color(1.0, 0.68, 0.10), 1.15)
+	var cyan_energy := _emissive(Color(0.18, 0.92, 1.0), 1.25)
+	var gold_crest := _colored(Color(0.92, 0.76, 0.22), 0.80, 0.30)
 	var soul_core_mat := _get_soul_core_material()
-
-	# Dedicated Hull Fill Light
-	var hull_light := OmniLight3D.new()
-	hull_light.position = Vector3(0.0, s.y * 1.5, -s.z * 0.1)
-	hull_light.light_color = Color(0.85, 0.92, 1.0)
-	hull_light.light_energy = 1.45
-	hull_light.omni_range = maxf(s.z * 1.6, 16.0)
-	root.add_child(hull_light)
 
 	# 1. Central Hull & Spanning Keel
 	root.add_child(_sculpted_block(
@@ -188,25 +180,17 @@ static func _build_vinculados_platoon(ship: Ship, root: Node3D, thrusters: Array
 	_build_mobile_suit(root, 1.05, false, ship.ship_id, thrusters, 3.70, Vector3(1.85, -0.38, 1.35), Vector3(0.0, 6.0, -4.0))
 
 static func _build_vinculados_colossus_mobile_armor(_ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
-	var ceramic := _textured(load(VINCULADOS_HULL), 0.18, 0.20, Vector3(2.4, 2.4, 1.0))
-	ceramic.albedo_color = Color(1.04, 1.05, 1.08)
-	var cobalt_blue := _colored(Color(0.05, 0.16, 0.48), 0.48, 0.28)
-	var frame_dark := _colored(Color(0.11, 0.13, 0.18), 0.72, 0.34)
-	var gold_crest := _colored(Color(0.96, 0.80, 0.22), 0.88, 0.22)
-	var amber_intake := _emissive(Color(1.0, 0.68, 0.10), 2.8)
-	var cyan_energy := _emissive(Color(0.15, 0.92, 1.0), 3.2)
-	var cyan_visor := _emissive(Color(0.20, 0.96, 1.0), 3.6)
-	var crimson_accent := _colored(Color(0.86, 0.12, 0.16), 0.38, 0.34)
+	var ceramic := _textured(load(VINCULADOS_HULL), 0.14, 0.44, Vector3(2.4, 2.4, 1.0))
+	ceramic.albedo_color = Color(0.66, 0.70, 0.78)
+	var cobalt_blue := _colored(Color(0.05, 0.16, 0.48), 0.44, 0.36)
+	var frame_dark := _colored(Color(0.11, 0.13, 0.18), 0.68, 0.36)
+	var gold_crest := _colored(Color(0.92, 0.76, 0.22), 0.82, 0.28)
+	var amber_intake := _emissive(Color(1.0, 0.68, 0.10), 1.20)
+	var cyan_energy := _emissive(Color(0.15, 0.92, 1.0), 1.30)
+	var cyan_visor := _emissive(Color(0.20, 0.96, 1.0), 1.40)
+	var crimson_accent := _colored(Color(0.86, 0.12, 0.16), 0.36, 0.36)
 	var soul_core_mat := _get_soul_core_material()
-	var beam_lance_mat := _emissive(Color(0.25, 0.96, 1.0), 3.8)
-
-	# Dedicated illumination for the Colossal Mobile Armor
-	var ma_light := OmniLight3D.new()
-	ma_light.position = Vector3(0.0, 2.8, -2.2)
-	ma_light.light_color = Color(0.88, 0.94, 1.0)
-	ma_light.light_energy = 1.65
-	ma_light.omni_range = 24.0
-	root.add_child(ma_light)
+	var beam_lance_mat := _emissive(Color(0.25, 0.96, 1.0), 1.45)
 
 	var ma_node := GundamSuitNode.new()
 	ma_node.phase_offset = 0.0
@@ -425,13 +409,13 @@ static func _build_vinculados_colossus_mobile_armor(_ship: Ship, root: Node3D, t
 			thrusters.append(b_v)
 
 static func _build_vinculados_aegis_mobile_armor(_ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
-	var ceramic := _textured(load(VINCULADOS_HULL), 0.18, 0.20, Vector3(2.2, 2.2, 1.0))
-	ceramic.albedo_color = Color(1.02, 1.04, 1.08)
-	var cobalt_blue := _colored(Color(0.05, 0.16, 0.48), 0.48, 0.28)
-	var frame_dark := _colored(Color(0.11, 0.13, 0.18), 0.72, 0.34)
-	var cyan_energy := _emissive(Color(0.18, 0.92, 1.0), 3.0)
-	var cyan_visor := _emissive(Color(0.22, 0.96, 1.0), 3.4)
-	var gold_crest := _colored(Color(0.96, 0.80, 0.22), 0.88, 0.22)
+	var ceramic := _textured(load(VINCULADOS_HULL), 0.14, 0.44, Vector3(2.2, 2.2, 1.0))
+	ceramic.albedo_color = Color(0.66, 0.70, 0.78)
+	var cobalt_blue := _colored(Color(0.05, 0.16, 0.48), 0.44, 0.36)
+	var frame_dark := _colored(Color(0.11, 0.13, 0.18), 0.68, 0.36)
+	var cyan_energy := _emissive(Color(0.18, 0.92, 1.0), 1.25)
+	var cyan_visor := _emissive(Color(0.22, 0.96, 1.0), 1.35)
+	var gold_crest := _colored(Color(0.92, 0.76, 0.22), 0.82, 0.28)
 	var soul_core_mat := _get_soul_core_material()
 
 	var ma_node := GundamSuitNode.new()
@@ -506,23 +490,23 @@ static func _build_mobile_suit(
 	var is_anima := (ship_id == "vinculados_anima")
 	var is_nous := (ship_id == "vinculados_nous")
 
-	var ceramic_white := _textured(load(VINCULADOS_HULL), 0.18, 0.20, Vector3(2.0, 2.0, 1.0))
+	var ceramic_white := _textured(load(VINCULADOS_HULL), 0.14, 0.44, Vector3(2.0, 2.0, 1.0))
 	if is_anima:
-		ceramic_white.albedo_color = Color(0.96, 1.02, 1.08)
+		ceramic_white.albedo_color = Color(0.65, 0.70, 0.78)
 	elif is_nous:
-		ceramic_white.albedo_color = Color(1.00, 0.96, 1.08)
+		ceramic_white.albedo_color = Color(0.68, 0.67, 0.78)
 	else:
-		ceramic_white.albedo_color = Color(1.04, 1.05, 1.08)
+		ceramic_white.albedo_color = Color(0.66, 0.70, 0.78)
 
-	var cobalt_blue := _colored(Color(0.05, 0.16, 0.48), 0.48, 0.28)
-	var frame_dark := _colored(Color(0.11, 0.13, 0.18), 0.72, 0.34)
-	var gold_crest := _colored(Color(0.96, 0.80, 0.22), 0.88, 0.22)
-	var amber_intake := _emissive(Color(1.0, 0.68, 0.10), 2.4)
-	var cyan_visor := _emissive(Color(0.20, 0.94, 1.0), 3.0)
-	var cyan_thruster := _emissive(Color(0.25, 0.94, 1.0), 3.2)
-	var crimson_accent := _colored(Color(0.86, 0.12, 0.16), 0.38, 0.34)
+	var cobalt_blue := _colored(Color(0.05, 0.16, 0.48), 0.44, 0.36)
+	var frame_dark := _colored(Color(0.11, 0.13, 0.18), 0.68, 0.36)
+	var gold_crest := _colored(Color(0.92, 0.76, 0.22), 0.82, 0.28)
+	var amber_intake := _emissive(Color(1.0, 0.68, 0.10), 1.15)
+	var cyan_visor := _emissive(Color(0.20, 0.94, 1.0), 1.30)
+	var cyan_thruster := _emissive(Color(0.25, 0.94, 1.0), 1.35)
+	var crimson_accent := _colored(Color(0.86, 0.12, 0.16), 0.36, 0.36)
 	var soul_core_mat := _get_soul_core_material()
-	var beam_lance_mat := _emissive(Color(0.30, 0.96, 1.0), 3.4)
+	var beam_lance_mat := _emissive(Color(0.30, 0.96, 1.0), 1.40)
 
 	# 1. Sculpted Torso Assembly (Classic Real-Robot Military Layout)
 	flight_posture.add_child(_sculpted_block(Vector3(0.36, 0.34, 0.28), ceramic_white, Vector3(0.0, 0.0, 0.0), Vector3.ZERO, 0.92, 0.82))

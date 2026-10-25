@@ -29,7 +29,7 @@ void fragment() {
 	vec3 brass_edge = vec3(0.92, 0.74, 0.28);
 	vec3 col = mix(base_col, vein_col, clamp(rib_v * 0.60 + rib_h * 0.38 + pulse * 0.16, 0.0, 1.0));
 	col = mix(col, brass_edge, edge * 0.72);
-	ALBEDO = col * 1.28;
+	ALBEDO = col * 0.95;
 	ALPHA = clamp(0.60 + edge * 0.32 + rib_v * 0.20, 0.0, 0.92);
 }
 """
@@ -47,7 +47,7 @@ render_mode unshaded, cull_disabled;
 void fragment() {
 	float pulse = 0.55 + 0.45 * sin(TIME * 4.2);
 	vec3 col = mix(vec3(0.96, 0.14, 0.82), vec3(0.32, 0.92, 1.0), pulse * 0.36);
-	ALBEDO = col * (1.55 + pulse * 0.60);
+	ALBEDO = col * (1.02 + pulse * 0.22);
 }
 """
 	var sm := ShaderMaterial.new()
@@ -147,15 +147,15 @@ static func build_vertical_loft(profile: PackedVector2Array, stations: Array) ->
 		var a := j
 		var b := (j + 1) % n
 		indices.append(bot_center)
-		indices.append(a)
 		indices.append(b)
+		indices.append(a)
 
 	for j in range(n):
 		var a := (m - 1) * n + j
 		var b := (m - 1) * n + ((j + 1) % n)
 		indices.append(top_center)
-		indices.append(b)
 		indices.append(a)
+		indices.append(b)
 
 	var normals := PackedVector3Array()
 	normals.resize(verts.size())
@@ -167,7 +167,7 @@ static func build_vertical_loft(profile: PackedVector2Array, stations: Array) ->
 		var ia := indices[t * 3]
 		var ib := indices[t * 3 + 1]
 		var ic := indices[t * 3 + 2]
-		var face_normal := (verts[ib] - verts[ia]).cross(verts[ic] - verts[ia])
+		var face_normal := (verts[ic] - verts[ia]).cross(verts[ib] - verts[ia])
 		normals[ia] += face_normal
 		normals[ib] += face_normal
 		normals[ic] += face_normal
@@ -247,15 +247,15 @@ static func build_loft(profile: PackedVector2Array, stations: Array) -> ArrayMes
 		var a := j
 		var b := (j + 1) % n
 		indices.append(front_center)
-		indices.append(b)
 		indices.append(a)
+		indices.append(b)
 
 	for j in range(n):
 		var a := (m - 1) * n + j
 		var b := (m - 1) * n + ((j + 1) % n)
 		indices.append(back_center)
-		indices.append(a)
 		indices.append(b)
+		indices.append(a)
 
 	var normals := PackedVector3Array()
 	normals.resize(verts.size())
@@ -267,7 +267,7 @@ static func build_loft(profile: PackedVector2Array, stations: Array) -> ArrayMes
 		var ia := indices[t * 3]
 		var ib := indices[t * 3 + 1]
 		var ic := indices[t * 3 + 2]
-		var face_normal := (verts[ib] - verts[ia]).cross(verts[ic] - verts[ia])
+		var face_normal := (verts[ic] - verts[ia]).cross(verts[ib] - verts[ia])
 		normals[ia] += face_normal
 		normals[ib] += face_normal
 		normals[ic] += face_normal
@@ -357,33 +357,33 @@ static func _textured(tex: Texture2D, metallic: float, roughness: float, uv: Vec
 	mat.uv1_triplanar = true
 	mat.uv1_triplanar_sharpness = 4.0
 	mat.metallic = metallic
-	mat.roughness = roughness
+	mat.roughness = maxf(roughness, 0.42)
 	mat.normal_enabled = true
 	mat.normal_texture = _get_hull_normal_map()
-	mat.normal_scale = 0.55
+	mat.normal_scale = 0.65
 	mat.clearcoat_enabled = true
-	mat.clearcoat = 0.35
-	mat.clearcoat_roughness = 0.22
+	mat.clearcoat = 0.10
+	mat.clearcoat_roughness = 0.42
 	mat.rim_enabled = true
-	mat.rim = 0.38
-	mat.rim_tint = 0.30
+	mat.rim = 0.12
+	mat.rim_tint = 0.45
 	return mat
 
 static func _colored(color: Color, metallic: float, roughness: float) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
 	mat.metallic = metallic
-	mat.roughness = roughness
+	mat.roughness = maxf(roughness, 0.36)
 	mat.uv1_triplanar = true
 	mat.normal_enabled = true
 	mat.normal_texture = _get_hull_normal_map()
-	mat.normal_scale = 0.30
+	mat.normal_scale = 0.35
 	mat.clearcoat_enabled = true
-	mat.clearcoat = 0.32
-	mat.clearcoat_roughness = 0.24
+	mat.clearcoat = 0.10
+	mat.clearcoat_roughness = 0.42
 	mat.rim_enabled = true
-	mat.rim = 0.35
-	mat.rim_tint = 0.28
+	mat.rim = 0.12
+	mat.rim_tint = 0.45
 	return mat
 
 static func _emissive(color: Color, energy: float) -> StandardMaterial3D:

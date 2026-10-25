@@ -6,46 +6,21 @@ static func build(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
 
 static func _build_acero(ship: Ship, root: Node3D, thrusters: Array[Node3D]) -> void:
 	var s := ship.body_size
-	var hull := _textured(load(ACERO_HULL), 0.56, 0.36, Vector3(2.2, 2.2, 1.0))
-	hull.albedo_color = Color(1.08, 1.14, 1.24)
-	hull.rim_enabled = true
-	hull.rim = 0.52
-	hull.rim_tint = 0.25
-	hull.emission_enabled = true
-	hull.emission = Color(0.05, 0.08, 0.13)
-	hull.emission_energy_multiplier = 0.28
+	var hull := _textured(load(ACERO_HULL), 0.56, 0.44, Vector3(2.2, 2.2, 1.0))
+	hull.albedo_color = Color(0.72, 0.76, 0.84)
 	hull.cull_mode = BaseMaterial3D.CULL_DISABLED
 
-	var armor := _textured(load(ACERO_HULL), 0.62, 0.30, Vector3(2.8, 2.8, 1.0))
-	armor.albedo_color = Color(1.22, 1.28, 1.38)
-	armor.rim_enabled = true
-	armor.rim = 0.60
-	armor.rim_tint = 0.22
-	armor.emission_enabled = true
-	armor.emission = Color(0.07, 0.10, 0.16)
-	armor.emission_energy_multiplier = 0.32
+	var armor := _textured(load(ACERO_HULL), 0.62, 0.42, Vector3(2.8, 2.8, 1.0))
+	armor.albedo_color = Color(0.78, 0.82, 0.90)
 	armor.cull_mode = BaseMaterial3D.CULL_DISABLED
 
-	var dark_steel := _colored(Color(0.20, 0.24, 0.32), 0.58, 0.34)
-	dark_steel.rim_enabled = true
-	dark_steel.rim = 0.45
-	var gunmetal := _colored(Color(0.36, 0.42, 0.52), 0.64, 0.28)
-	gunmetal.rim_enabled = true
-	gunmetal.rim = 0.54
-	var steel_trim := _colored(Color(0.62, 0.68, 0.78), 0.72, 0.24)
-	var brass_accent := _colored(Color(0.86, 0.68, 0.26), 0.80, 0.24)
-	var engine_glow := _emissive(Color(1.0, 0.48, 0.10), 3.2)
-	var amber_vent := _emissive(Color(1.0, 0.56, 0.12), 2.2)
-	var bridge_lit := _emissive(Color(0.28, 0.90, 1.0), 2.4)
-
-	# Dedicated Hull Fill Light so dark steel armor plates and turrets are always readable
-	var hull_light := OmniLight3D.new()
-	hull_light.position = Vector3(0.0, s.y * 1.45, -s.z * 0.05)
-	hull_light.light_color = Color(0.82, 0.88, 1.0)
-	hull_light.light_energy = 1.25
-	hull_light.omni_range = maxf(s.z * 1.6, 12.0)
-	hull_light.omni_attenuation = 1.2
-	root.add_child(hull_light)
+	var dark_steel := _colored(Color(0.20, 0.24, 0.32), 0.58, 0.38)
+	var gunmetal := _colored(Color(0.36, 0.42, 0.52), 0.64, 0.34)
+	var steel_trim := _colored(Color(0.62, 0.68, 0.78), 0.72, 0.28)
+	var brass_accent := _colored(Color(0.86, 0.68, 0.26), 0.80, 0.28)
+	var engine_glow := _emissive(Color(1.0, 0.48, 0.10), 1.45)
+	var amber_vent := _emissive(Color(1.0, 0.56, 0.12), 1.15)
+	var bridge_lit := _emissive(Color(0.28, 0.90, 1.0), 1.25)
 
 	var half_len := s.z * 0.5
 	var hull_mesh := build_loft(_acero_profile(s), [

@@ -22,17 +22,17 @@ func spawn_laser_beam(from_pos: Vector3, to_pos: Vector3, color: Color, is_mega_
 	# Transient dynamic muzzle + midpoint OmniLight3D so beams illuminate nearby ship armor
 	var muzzle_light := OmniLight3D.new()
 	muzzle_light.light_color = color.lerp(Color(1.0, 0.96, 0.90), 0.35)
-	muzzle_light.light_energy = 8.5 if is_mega_beam else 4.8
-	muzzle_light.omni_range = 32.0 if is_mega_beam else 18.0
-	muzzle_light.omni_attenuation = 1.35
+	muzzle_light.light_energy = 2.8 if is_mega_beam else 1.8
+	muzzle_light.omni_range = 24.0 if is_mega_beam else 15.0
+	muzzle_light.omni_attenuation = 1.4
 	muzzle_light.position = from_pos
 	add_child(muzzle_light)
 
 	var mid_light := OmniLight3D.new()
 	mid_light.light_color = color
-	mid_light.light_energy = 6.5 if is_mega_beam else 3.2
-	mid_light.omni_range = 36.0 if is_mega_beam else 22.0
-	mid_light.omni_attenuation = 1.4
+	mid_light.light_energy = 2.2 if is_mega_beam else 1.4
+	mid_light.omni_range = 26.0 if is_mega_beam else 18.0
+	mid_light.omni_attenuation = 1.45
 	mid_light.position = (from_pos + to_pos) * 0.5
 	add_child(mid_light)
 
@@ -133,9 +133,9 @@ func spawn_impact_flash(pos: Vector3, color: Color) -> void:
 	# Transient dynamic impact OmniLight3D to cast specular highlights on nearby hulls
 	var impact_light := OmniLight3D.new()
 	impact_light.light_color = color.lerp(Color(1.0, 0.92, 0.78), 0.30)
-	impact_light.light_energy = 7.2
-	impact_light.omni_range = 28.0
-	impact_light.omni_attenuation = 1.3
+	impact_light.light_energy = 2.4
+	impact_light.omni_range = 22.0
+	impact_light.omni_attenuation = 1.35
 	impact_light.position = pos
 	add_child(impact_light)
 

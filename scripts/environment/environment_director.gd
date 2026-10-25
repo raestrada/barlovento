@@ -607,15 +607,15 @@ func _build_acero_sluice_station(pos: Vector3 = Vector3(-38.0, 0.0, 25.0), rot: 
 	var forge_light := OmniLight3D.new()
 	forge_light.position = Vector3(0.0, 8.0, 6.0)
 	forge_light.light_color = Color(1.0, 0.62, 0.25)
-	forge_light.light_energy = 1.8
-	forge_light.omni_range = 36.0
+	forge_light.light_energy = 0.85
+	forge_light.omni_range = 32.0
 	_stage_landmark_root.add_child(forge_light)
 
 	var ring_light := OmniLight3D.new()
 	ring_light.position = Vector3(0.0, 2.0, -14.0)
 	ring_light.light_color = Color(0.35, 0.85, 1.0)
-	ring_light.light_energy = 1.5
-	ring_light.omni_range = 32.0
+	ring_light.light_energy = 0.75
+	ring_light.omni_range = 28.0
 	_stage_landmark_root.add_child(ring_light)
 
 	# 1. Central Multi-Tiered Octagonal Blast-Furnace Citadel
@@ -819,29 +819,31 @@ func _build_vinculados_sanctuary_spire(pos: Vector3 = Vector3(36.0, 8.0, -35.0),
 
 	var ceramic := StandardMaterial3D.new()
 	ceramic.albedo_texture = load("res://assets/ships/vinculados/vinculados_mecha_armor.png")
-	ceramic.albedo_color = Color(1.04, 1.05, 1.08)
-	ceramic.metallic = 0.18
-	ceramic.roughness = 0.20
+	ceramic.albedo_color = Color(0.66, 0.70, 0.78)
+	ceramic.uv1_triplanar = true
+	ceramic.uv1_scale = Vector3(0.25, 0.25, 0.25)
+	ceramic.metallic = 0.14
+	ceramic.roughness = 0.44
 	ceramic.normal_enabled = true
 	ceramic.normal_texture = ProceduralMeshPrimitives._get_hull_normal_map()
 	ceramic.normal_scale = 0.50
 	ceramic.clearcoat_enabled = true
-	ceramic.clearcoat = 0.45
-	ceramic.clearcoat_roughness = 0.20
+	ceramic.clearcoat = 0.10
+	ceramic.clearcoat_roughness = 0.40
 	ceramic.rim_enabled = true
-	ceramic.rim = 0.65
+	ceramic.rim = 0.10
 	ceramic.rim_tint = 0.40
 
 	var cobalt_blue := StandardMaterial3D.new()
 	cobalt_blue.albedo_color = Color(0.06, 0.18, 0.50)
-	cobalt_blue.metallic = 0.48
-	cobalt_blue.roughness = 0.28
+	cobalt_blue.metallic = 0.45
+	cobalt_blue.roughness = 0.32
 	cobalt_blue.clearcoat_enabled = true
-	cobalt_blue.clearcoat = 0.40
+	cobalt_blue.clearcoat = 0.20
 
 	var frame_dark := StandardMaterial3D.new()
 	frame_dark.albedo_color = Color(0.12, 0.14, 0.20)
-	frame_dark.metallic = 0.72
+	frame_dark.metallic = 0.68
 	frame_dark.roughness = 0.36
 
 	var soul_core_mat := ProceduralMeshPrimitives._get_soul_core_material()
@@ -851,28 +853,28 @@ func _build_vinculados_sanctuary_spire(pos: Vector3 = Vector3(36.0, 8.0, -35.0),
 	cyan_glow.albedo_color = Color(0.30, 0.92, 1.0)
 	cyan_glow.emission_enabled = true
 	cyan_glow.emission = Color(0.25, 0.88, 1.0)
-	cyan_glow.emission_energy_multiplier = 2.4
+	cyan_glow.emission_energy_multiplier = 1.40
 
 	var violet_glow := StandardMaterial3D.new()
 	violet_glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	violet_glow.albedo_color = Color(0.85, 0.40, 1.0)
 	violet_glow.emission_enabled = true
 	violet_glow.emission = Color(0.78, 0.32, 0.95)
-	violet_glow.emission_energy_multiplier = 2.2
+	violet_glow.emission_energy_multiplier = 1.35
 
-	# Dedicated Sanctuary Ethereal Lights
+	# Subtle Sanctuary Ethereal Lights
 	var core_light := OmniLight3D.new()
 	core_light.position = Vector3(0.0, 18.0, 0.0)
 	core_light.light_color = Color(0.85, 0.35, 1.0)
-	core_light.light_energy = 2.4
-	core_light.omni_range = 45.0
+	core_light.light_energy = 0.65
+	core_light.omni_range = 32.0
 	_stage_landmark_root.add_child(core_light)
 
 	var crown_light := OmniLight3D.new()
 	crown_light.position = Vector3(0.0, 38.0, 0.0)
 	crown_light.light_color = Color(0.25, 0.90, 1.0)
-	crown_light.light_energy = 1.8
-	crown_light.omni_range = 38.0
+	crown_light.light_energy = 0.50
+	crown_light.omni_range = 28.0
 	_stage_landmark_root.add_child(crown_light)
 
 	# 1. Tiered Sanctuary Altar Platform
@@ -1104,15 +1106,15 @@ func _build_marea_corsair_haven(pos: Vector3 = Vector3(-26.0, 0.0, 4.0), rot: Ve
 	var tavern_light := OmniLight3D.new()
 	tavern_light.position = Vector3(0.0, 12.0, 2.0)
 	tavern_light.light_color = Color(1.0, 0.68, 0.25)
-	tavern_light.light_energy = 2.2
-	tavern_light.omni_range = 42.0
+	tavern_light.light_energy = 0.85
+	tavern_light.omni_range = 34.0
 	_stage_landmark_root.add_child(tavern_light)
 
 	var river_light := OmniLight3D.new()
 	river_light.position = Vector3(12.0, -2.0, 8.0)
 	river_light.light_color = Color(0.20, 0.85, 1.0)
-	river_light.light_energy = 1.6
-	river_light.omni_range = 35.0
+	river_light.light_energy = 0.70
+	river_light.omni_range = 30.0
 	_stage_landmark_root.add_child(river_light)
 
 	# 1. Colossal Hollowed Basalt Asteroid Megareef Base
@@ -1262,47 +1264,47 @@ func _build_acero_calm_bastion(pos: Vector3 = Vector3(-28.0, 0.0, 8.0), rot: Vec
 
 	var armor_mat := StandardMaterial3D.new()
 	armor_mat.albedo_texture = hull_tex
-	armor_mat.albedo_color = Color(1.14, 1.20, 1.30)
+	armor_mat.albedo_color = Color(0.76, 0.80, 0.88)
 	armor_mat.uv1_scale = Vector3(4.0, 4.0, 1.0)
 	armor_mat.metallic = 0.58
-	armor_mat.roughness = 0.34
+	armor_mat.roughness = 0.42
 	armor_mat.normal_enabled = true
 	armor_mat.normal_texture = ProceduralMeshPrimitives._get_hull_normal_map()
 	armor_mat.normal_scale = 0.50
 	armor_mat.rim_enabled = true
-	armor_mat.rim = 0.5
+	armor_mat.rim = 0.12
 
 	var dark_steel := StandardMaterial3D.new()
 	dark_steel.albedo_texture = hull_tex
-	dark_steel.albedo_color = Color(0.84, 0.90, 1.00)
+	dark_steel.albedo_color = Color(0.55, 0.60, 0.68)
 	dark_steel.uv1_scale = Vector3(5.0, 5.0, 1.0)
 	dark_steel.metallic = 0.65
-	dark_steel.roughness = 0.28
+	dark_steel.roughness = 0.36
 
 	var furnace_amber := StandardMaterial3D.new()
 	furnace_amber.albedo_color = Color(1.0, 0.55, 0.15)
 	furnace_amber.emission_enabled = true
 	furnace_amber.emission = Color(1.0, 0.50, 0.12)
-	furnace_amber.emission_energy_multiplier = 2.0
+	furnace_amber.emission_energy_multiplier = 1.4
 
 	var warning_red := StandardMaterial3D.new()
 	warning_red.albedo_color = Color(1.0, 0.18, 0.12)
 	warning_red.emission_enabled = true
 	warning_red.emission = Color(1.0, 0.15, 0.10)
-	warning_red.emission_energy_multiplier = 2.5
+	warning_red.emission_energy_multiplier = 1.6
 
 	var forge_light := OmniLight3D.new()
 	forge_light.position = Vector3(0.0, 6.0, 4.0)
 	forge_light.light_color = Color(1.0, 0.58, 0.22)
-	forge_light.light_energy = 2.0
-	forge_light.omni_range = 38.0
+	forge_light.light_energy = 0.60
+	forge_light.omni_range = 28.0
 	_stage_landmark_root.add_child(forge_light)
 
 	var beacon_light := OmniLight3D.new()
 	beacon_light.position = Vector3(0.0, 12.0, 0.0)
 	beacon_light.light_color = Color(1.0, 0.25, 0.20)
-	beacon_light.light_energy = 1.8
-	beacon_light.omni_range = 30.0
+	beacon_light.light_energy = 0.50
+	beacon_light.omni_range = 22.0
 	_stage_landmark_root.add_child(beacon_light)
 
 	var hub := MeshInstance3D.new()
@@ -1382,13 +1384,15 @@ func _build_vinculados_crystal_chasm(pos: Vector3 = Vector3(-25.0, 0.0, 5.0), ro
 
 	var ceramic := StandardMaterial3D.new()
 	ceramic.albedo_texture = load("res://assets/ships/vinculados/vinculados_mecha_armor.png")
-	ceramic.albedo_color = Color(1.04, 1.05, 1.08)
-	ceramic.metallic = 0.18
-	ceramic.roughness = 0.20
+	ceramic.albedo_color = Color(0.66, 0.70, 0.78)
+	ceramic.uv1_triplanar = true
+	ceramic.uv1_scale = Vector3(0.20, 0.20, 0.20)
+	ceramic.metallic = 0.14
+	ceramic.roughness = 0.44
 	ceramic.clearcoat_enabled = true
-	ceramic.clearcoat = 0.45
+	ceramic.clearcoat = 0.10
 	ceramic.rim_enabled = true
-	ceramic.rim = 0.6
+	ceramic.rim = 0.10
 
 	var crystal_mat := StandardMaterial3D.new()
 	crystal_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -1396,27 +1400,27 @@ func _build_vinculados_crystal_chasm(pos: Vector3 = Vector3(-25.0, 0.0, 5.0), ro
 	crystal_mat.albedo_color = Color(0.85, 0.35, 1.0, 0.75)
 	crystal_mat.emission_enabled = true
 	crystal_mat.emission = Color(0.80, 0.30, 0.95)
-	crystal_mat.emission_energy_multiplier = 2.0
+	crystal_mat.emission_energy_multiplier = 1.15
 
 	var cyan_mat := StandardMaterial3D.new()
 	cyan_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	cyan_mat.albedo_color = Color(0.30, 0.90, 1.0)
 	cyan_mat.emission_enabled = true
 	cyan_mat.emission = Color(0.25, 0.85, 1.0)
-	cyan_mat.emission_energy_multiplier = 2.2
+	cyan_mat.emission_energy_multiplier = 1.20
 
 	var chasm_light := OmniLight3D.new()
 	chasm_light.position = Vector3(0.0, 2.0, 0.0)
 	chasm_light.light_color = Color(0.85, 0.45, 1.0)
-	chasm_light.light_energy = 2.4
-	chasm_light.omni_range = 42.0
+	chasm_light.light_energy = 0.60
+	chasm_light.omni_range = 30.0
 	_stage_landmark_root.add_child(chasm_light)
 
 	var cyan_light := OmniLight3D.new()
 	cyan_light.position = Vector3(0.0, -12.0, 0.0)
 	cyan_light.light_color = Color(0.35, 0.88, 1.0)
-	cyan_light.light_energy = 2.0
-	cyan_light.omni_range = 38.0
+	cyan_light.light_energy = 0.50
+	cyan_light.omni_range = 28.0
 	_stage_landmark_root.add_child(cyan_light)
 
 	for offset_x in [-8.0, 8.0]:
@@ -1481,13 +1485,15 @@ func _build_vinculados_genesis_ring(pos: Vector3 = Vector3(-28.0, 4.0, 5.0), rot
 
 	var ceramic := StandardMaterial3D.new()
 	ceramic.albedo_texture = load("res://assets/ships/vinculados/vinculados_mecha_armor.png")
-	ceramic.albedo_color = Color(1.04, 1.05, 1.08)
-	ceramic.metallic = 0.18
-	ceramic.roughness = 0.20
+	ceramic.albedo_color = Color(0.66, 0.70, 0.78)
+	ceramic.uv1_triplanar = true
+	ceramic.uv1_scale = Vector3(0.20, 0.20, 0.20)
+	ceramic.metallic = 0.14
+	ceramic.roughness = 0.44
 	ceramic.clearcoat_enabled = true
-	ceramic.clearcoat = 0.45
+	ceramic.clearcoat = 0.10
 	ceramic.rim_enabled = true
-	ceramic.rim = 0.7
+	ceramic.rim = 0.10
 
 	var soul_mat := ProceduralMeshPrimitives._get_soul_core_material()
 
@@ -1496,13 +1502,13 @@ func _build_vinculados_genesis_ring(pos: Vector3 = Vector3(-28.0, 4.0, 5.0), rot
 	cyan_mat.albedo_color = Color(0.35, 0.92, 1.0)
 	cyan_mat.emission_enabled = true
 	cyan_mat.emission = Color(0.30, 0.90, 1.0)
-	cyan_mat.emission_energy_multiplier = 2.5
+	cyan_mat.emission_energy_multiplier = 1.25
 
 	var genesis_light := OmniLight3D.new()
 	genesis_light.position = Vector3.ZERO
 	genesis_light.light_color = Color(0.65, 0.45, 1.0)
-	genesis_light.light_energy = 2.8
-	genesis_light.omni_range = 50.0
+	genesis_light.light_energy = 0.65
+	genesis_light.omni_range = 34.0
 	_stage_landmark_root.add_child(genesis_light)
 
 	var outer_root := Node3D.new()
@@ -1586,8 +1592,8 @@ func _build_marea_foundry_complex(pos: Vector3 = Vector3(-26.0, 2.0, 6.0), rot: 
 	var forge_light := OmniLight3D.new()
 	forge_light.position = Vector3(0.0, 5.0, 0.0)
 	forge_light.light_color = Color(1.0, 0.52, 0.15)
-	forge_light.light_energy = 2.5
-	forge_light.omni_range = 40.0
+	forge_light.light_energy = 0.90
+	forge_light.omni_range = 32.0
 	_stage_landmark_root.add_child(forge_light)
 
 	var cauldron := MeshInstance3D.new()
@@ -1669,8 +1675,8 @@ func _build_marea_wind_maelstrom(pos: Vector3 = Vector3(-28.0, 0.0, 4.0), rot: V
 	var storm_light := OmniLight3D.new()
 	storm_light.position = Vector3(0.0, 6.0, 0.0)
 	storm_light.light_color = Color(0.35, 0.90, 1.0)
-	storm_light.light_energy = 3.0
-	storm_light.omni_range = 48.0
+	storm_light.light_energy = 1.00
+	storm_light.omni_range = 36.0
 	_stage_landmark_root.add_child(storm_light)
 
 	var mast := MeshInstance3D.new()
