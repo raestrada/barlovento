@@ -62,42 +62,41 @@ var _arcs_btn: Button
 var _auto_btn: Button
 var _turbo_btn: Button
 
-# Faction-Tailored 5-Slot Ability Decks
+# Faction-Tailored 5-Slot Per-Ship Ability Decks (with explicit AP cost, 1-Round duration & effect tags)
 var _faction_ability_defs: Dictionary = {
     "acero": [
-        {"id": "prow_angle", "label": "Prow Angle [1]", "cost": 1, "desc": "Angle heavy bow armor (+40% frontal kinetic absorption)"},
-        {"id": "flak_screen", "label": "Flak Screen [2]", "cost": 1, "desc": "Point-defense flak (-25% enemy incoming hit chance)"},
-        {"id": "broadside", "label": "Broadside [3]", "cost": 2, "desc": "Lock port/stbd batteries (+25% kinetic damage)"},
-        {"id": "furnace_burn", "label": "Furnace Burn [4]", "cost": 2, "desc": "Emergency furnace thrust (+4.5 m/s surge)"},
-        {"id": "shield_pulse", "label": "🛡 Bulkheads [5]", "cost": 2, "desc": "Reinforce armored bulkheads (+40 Shield/Armor)"}
+        {"id": "prow_angle", "slot": 1, "label": "[1] Prow Angle · 1AP", "sub": "1RND · +45% Bow Arm", "cost": 1, "desc": "Angle heavy bow armor toward target (+45% frontal absorption for 1 full round). Click again to refund."},
+        {"id": "flak_screen", "slot": 2, "label": "[2] Flak Screen · 1AP", "sub": "1RND · -25% Enemy Hit", "cost": 1, "desc": "Point-defense flak curtain (-25% enemy incoming hit chance for 1 full round). Click again to refund."},
+        {"id": "broadside", "slot": 3, "label": "[3] Broadside · 2AP", "sub": "1RND · +45%DMG +30%Hit", "cost": 2, "desc": "Lock port/starboard heavy batteries (+45% salvo damage & +30% hit for 1 full round). Combo with [1] or [4]!"},
+        {"id": "furnace_burn", "slot": 4, "label": "[4] Furnace · 1AP", "sub": "1RND · +4.5m/s Surge", "cost": 1, "desc": "Emergency furnace thrust (+4.5 m/s speed surge for 1 round). Combo with [3] for Overdrive Salvo!"},
+        {"id": "shield_pulse", "slot": 5, "label": "[5] Bulkheads · 2AP", "sub": "INST · +40SHLD +20HP", "cost": 2, "desc": "Reinforce armored bulkheads (+40 Shield & +20 Hull immediately; refundable before [SPACE])."}
     ],
     "vinculados": [
-        {"id": "snap_pivot", "label": "Snap-Pivot [1]", "cost": 1, "desc": "Instant vernier torso pivot toward target without altering drift"},
-        {"id": "soul_lock", "label": "Soul Lock [2]", "cost": 1, "desc": "Neural harmonic lock (+20% accuracy & range)"},
-        {"id": "beam_lance", "label": "Beam Lance [3]", "cost": 2, "desc": "Resonance lance (+30% damage, pierces 50% armor)"},
-        {"id": "phase_dodge", "label": "Phase Dodge [4]", "cost": 2, "desc": "High-G vector dodge (+35% evasion perpendicular)"},
-        {"id": "shield_pulse", "label": "🛡 Barrier [5]", "cost": 2, "desc": "Harmonic energy barrier overcharge (+40 Shield HP)"}
+        {"id": "snap_pivot", "slot": 1, "label": "[1] Snap-Pivot · 1AP", "sub": "1RND · Lock Target Arc", "cost": 1, "desc": "Instant vernier torso pivot toward target without altering drift. Combo with [3] for Newtype Blitz!"},
+        {"id": "soul_lock", "slot": 2, "label": "[2] Soul Lock · 1AP", "sub": "1RND · +30%Hit +25%Crit", "cost": 1, "desc": "Neural harmonic lock (+30% accuracy & +25% crit chance for all weapons this round)."},
+        {"id": "beam_lance", "slot": 3, "label": "[3] Beam Lance · 2AP", "sub": "1RND · +40%DMG -65%Arm", "cost": 2, "desc": "Resonance particle lance (+40% damage, pierces 65% target armor for 1 full round)."},
+        {"id": "phase_dodge", "slot": 4, "label": "[4] Phase Dodge · 1AP", "sub": "1RND · +35% Evasion", "cost": 1, "desc": "High-G vector dodge (+35% evasion against all incoming fire for 1 full round)."},
+        {"id": "shield_pulse", "slot": 5, "label": "[5] I-Field · 2AP", "sub": "INST · +40SHLD +20HP", "cost": 2, "desc": "Harmonic I-Field barrier overcharge (+40 Shield & +20 Hull immediately; refundable before [SPACE])."}
     ],
     "marea_libre": [
-        {"id": "trim_sails", "label": "Trim Sails [1]", "cost": 1, "desc": "Catch the Éther wind (+3.5 m/s speed along wind gradient)"},
-        {"id": "oar_sweep", "label": "Oar Sweep [2]", "cost": 1, "desc": "Flank oars sweep (sharp 45° hull pivot for broadside)"},
-        {"id": "chain_shot", "label": "Chain-Shot [3]", "cost": 2, "desc": "Plasma chain-shot (+25% damage, cuts target speed)"},
-        {"id": "harpoon", "label": "Harpoon [4]", "cost": 2, "desc": "Boarding grapple (tethers enemy into point-blank range)"},
-        {"id": "shield_pulse", "label": "🛡 Plating [5]", "cost": 2, "desc": "Timber & brass emergency repair (+40 Shield/Hull)"}
+        {"id": "trim_sails", "slot": 1, "label": "[1] Trim Sails · 1AP", "sub": "1RND · +3.5m/s Wind", "cost": 1, "desc": "Catch the Éther wind (+3.5 m/s speed along wind gradient). Combo with [3] for Boarding Surge!"},
+        {"id": "oar_sweep", "slot": 2, "label": "[2] Oar Sweep · 1AP", "sub": "1RND · 45° Broadside", "cost": 1, "desc": "Flank oars sweep (sharp 45° hull pivot for broadside alignment). Combo with [3] or [4]!"},
+        {"id": "chain_shot", "slot": 3, "label": "[3] Chain-Shot · 2AP", "sub": "1RND · +35%DMG & Slow", "cost": 2, "desc": "Plasma chain-shot (+35% damage & cuts target speed by 45% for 1 full round)."},
+        {"id": "harpoon", "slot": 4, "label": "[4] Harpoon · 1AP", "sub": "1RND · +30%Hit & Pull", "cost": 1, "desc": "Boarding grapple (+30% accuracy & intercept vector lock on target for 1 full round)."},
+        {"id": "shield_pulse", "slot": 5, "label": "[5] Plating · 2AP", "sub": "INST · +40SHLD +20HP", "cost": 2, "desc": "Timber & brass emergency repair (+40 Shield & +20 Hull immediately; refundable before [SPACE])."}
     ]
 }
 
 var _current_deck: Array = []
-var _ability_states: Dictionary = {}
-var _current_ap: int = 7
-var _base_round_ap: int = 7
+var _strategic_bonus_ap: int = 0
 
 func set_strategic_bonus_ap(extra_ap: int) -> void:
-    _base_round_ap = 7 + extra_ap * 2
-    _current_ap = _base_round_ap
-    if _ap_bar != null:
-        _ap_bar.current_ap = _current_ap
-        _ap_bar.queue_redraw()
+    _strategic_bonus_ap = maxi(extra_ap, 0)
+    for p in player_ships:
+        if p != null and is_instance_valid(p):
+            p.max_action_points = 6
+            p.action_points = clampi(4 + _strategic_bonus_ap, 0, p.max_action_points)
+    refresh()
 
 func _get_portrait(ship_id: String) -> Texture2D:
     var path := LoreDB.get_portrait_for_ship(ship_id)
@@ -141,19 +140,20 @@ func _unhandled_input(event: InputEvent) -> void:
 func _build_ui() -> void:
     # 1. BOTTOM-LEFT: YOUR SQUADRON (ALLIED ACES)
     var left_vbox := VBoxContainer.new()
-    left_vbox.add_theme_constant_override("separation", 4)
+    left_vbox.add_theme_constant_override("separation", 3)
     left_vbox.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-    left_vbox.position = Vector2(14, -202)
+    left_vbox.position = Vector2(10, -186)
+    left_vbox.custom_minimum_size = Vector2(214, 0)
     add_child(left_vbox)
 
     var ally_header := Label.new()
     ally_header.text = "★ YOUR SQUADRON // ALLIED ACES"
-    ally_header.add_theme_font_size_override("font_size", 10)
+    ally_header.add_theme_font_size_override("font_size", 9)
     ally_header.add_theme_color_override("font_color", HudWidgets.COL_GREEN)
     left_vbox.add_child(ally_header)
 
     var ally_tabs_scroll := ScrollContainer.new()
-    ally_tabs_scroll.custom_minimum_size = Vector2(0, 26)
+    ally_tabs_scroll.custom_minimum_size = Vector2(214, 24)
     ally_tabs_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
     ally_tabs_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
     left_vbox.add_child(ally_tabs_scroll)
@@ -163,7 +163,7 @@ func _build_ui() -> void:
     ally_tabs_scroll.add_child(_unit_tabs_hbox)
 
     var left_row := HBoxContainer.new()
-    left_row.add_theme_constant_override("separation", 6)
+    left_row.add_theme_constant_override("separation", 4)
     left_vbox.add_child(left_row)
 
     var ally_card := PanelContainer.new()
@@ -172,32 +172,32 @@ func _build_ui() -> void:
     ally_style.border_color = HudWidgets.COL_GREEN
     ally_style.set_border_width_all(1)
     ally_style.set_corner_radius_all(5)
-    ally_style.set_content_margin_all(6)
+    ally_style.set_content_margin_all(5)
     ally_card.add_theme_stylebox_override("panel", ally_style)
     left_row.add_child(ally_card)
 
     var ally_card_vbox := VBoxContainer.new()
-    ally_card_vbox.add_theme_constant_override("separation", 3)
+    ally_card_vbox.add_theme_constant_override("separation", 2)
     ally_card.add_child(ally_card_vbox)
 
     _ally_portrait_rect = TextureRect.new()
-    _ally_portrait_rect.custom_minimum_size = Vector2(76, 76)
+    _ally_portrait_rect.custom_minimum_size = Vector2(58, 58)
     _ally_portrait_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     _ally_portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
     ally_card_vbox.add_child(_ally_portrait_rect)
 
     _ally_pilot_label = Label.new()
-    _ally_pilot_label.add_theme_font_size_override("font_size", 10)
+    _ally_pilot_label.add_theme_font_size_override("font_size", 9)
     _ally_pilot_label.add_theme_color_override("font_color", Color(0.95, 0.98, 1.0))
     ally_card_vbox.add_child(_ally_pilot_label)
 
     _ally_ship_label = Label.new()
-    _ally_ship_label.add_theme_font_size_override("font_size", 9)
+    _ally_ship_label.add_theme_font_size_override("font_size", 8)
     _ally_ship_label.add_theme_color_override("font_color", HudWidgets.COL_CYAN_BRIGHT)
     ally_card_vbox.add_child(_ally_ship_label)
 
     _ally_hp_label = Label.new()
-    _ally_hp_label.add_theme_font_size_override("font_size", 9)
+    _ally_hp_label.add_theme_font_size_override("font_size", 8)
     _ally_hp_label.add_theme_color_override("font_color", HudWidgets.COL_GREEN)
     ally_card_vbox.add_child(_ally_hp_label)
 
@@ -206,51 +206,62 @@ func _build_ui() -> void:
 
     # 2. BOTTOM-CENTER: Action Points & Ability Pill Dock
     var center_wrapper := VBoxContainer.new()
-    center_wrapper.add_theme_constant_override("separation", 5)
-    center_wrapper.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-    center_wrapper.position = Vector2(-365, -156)
-    center_wrapper.custom_minimum_size = Vector2(730, 146)
+    center_wrapper.add_theme_constant_override("separation", 3)
     add_child(center_wrapper)
+    center_wrapper.anchor_left = 0.5
+    center_wrapper.anchor_right = 0.5
+    center_wrapper.anchor_top = 1.0
+    center_wrapper.anchor_bottom = 1.0
+    center_wrapper.offset_left = -388
+    center_wrapper.offset_right = 388
+    center_wrapper.offset_top = -146
+    center_wrapper.offset_bottom = -6
 
     # Micro Helm & Target Telemetry Bar
     var helm_row := HBoxContainer.new()
-    helm_row.add_theme_constant_override("separation", 4)
+    helm_row.add_theme_constant_override("separation", 3)
     helm_row.alignment = BoxContainer.ALIGNMENT_CENTER
     center_wrapper.add_child(helm_row)
 
-    helm_row.add_child(_make_helm_btn("◀ PORT [A]", func() -> void: yaw_left.emit()))
-    helm_row.add_child(_make_helm_btn("STBD [D] ▶", func() -> void: yaw_right.emit()))
-    helm_row.add_child(_make_helm_btn("▲ CLIMB [Q]", func() -> void: pitch_up.emit()))
-    helm_row.add_child(_make_helm_btn("▼ DIVE [E]", func() -> void: pitch_down.emit()))
-    helm_row.add_child(_make_helm_btn("-SPD [S]", func() -> void: speed_down.emit()))
-    helm_row.add_child(_make_helm_btn("+SPD [W]", func() -> void: speed_up.emit()))
-    helm_row.add_child(_make_helm_btn("TARGET [C]", func() -> void: cycle_target_pressed.emit()))
-    _auto_btn = _make_helm_btn("🤖 AUTO [U]: OFF", func() -> void: toggle_auto_pilot_pressed.emit())
-    _auto_btn.custom_minimum_size = Vector2(98, 22)
+    helm_row.add_child(_make_helm_btn("◀PORT[A]", func() -> void: yaw_left.emit()))
+    helm_row.add_child(_make_helm_btn("STBD[D]▶", func() -> void: yaw_right.emit()))
+    helm_row.add_child(_make_helm_btn("▲CLIMB[Q]", func() -> void: pitch_up.emit()))
+    helm_row.add_child(_make_helm_btn("▼DIVE[E]", func() -> void: pitch_down.emit()))
+    helm_row.add_child(_make_helm_btn("-SPD[S]", func() -> void: speed_down.emit()))
+    helm_row.add_child(_make_helm_btn("+SPD[W]", func() -> void: speed_up.emit()))
+    helm_row.add_child(_make_helm_btn("TGT[C]", func() -> void: cycle_target_pressed.emit()))
+    _auto_btn = _make_helm_btn("🤖AUTO[U]:OFF", func() -> void: toggle_auto_pilot_pressed.emit())
+    _auto_btn.custom_minimum_size = Vector2(76, 20)
     helm_row.add_child(_auto_btn)
-    _arcs_btn = _make_helm_btn("🎯 ARCS [Y]: OFF", func() -> void: toggle_weapon_arcs())
+    _arcs_btn = _make_helm_btn("🎯ARCS[Y]", func() -> void: toggle_weapon_arcs())
     helm_row.add_child(_arcs_btn)
-    _turbo_btn = _make_helm_btn("⚡ TURBO [TAB]: OFF", func() -> void: _toggle_turbo())
+    _turbo_btn = _make_helm_btn("⚡TURBO[TAB]", func() -> void: _toggle_turbo())
     helm_row.add_child(_turbo_btn)
-    helm_row.add_child(_make_helm_btn("🗺 CHART", func() -> void: exit_pressed.emit()))
+    helm_row.add_child(_make_helm_btn("🗺CHART", func() -> void: exit_pressed.emit()))
 
     # Target Solution & Telemetry Line
     var status_row := HBoxContainer.new()
-    status_row.add_theme_constant_override("separation", 14)
+    status_row.add_theme_constant_override("separation", 8)
     status_row.alignment = BoxContainer.ALIGNMENT_CENTER
     center_wrapper.add_child(status_row)
 
     _telemetry_label = Label.new()
-    _telemetry_label.add_theme_font_size_override("font_size", 11)
+    _telemetry_label.custom_minimum_size = Vector2(210, 15)
+    _telemetry_label.clip_text = true
+    _telemetry_label.add_theme_font_size_override("font_size", 10)
     _telemetry_label.add_theme_color_override("font_color", HudWidgets.COL_CYAN_BRIGHT)
     status_row.add_child(_telemetry_label)
 
     _target_status_label = Label.new()
-    _target_status_label.add_theme_font_size_override("font_size", 11)
+    _target_status_label.custom_minimum_size = Vector2(360, 15)
+    _target_status_label.clip_text = true
+    _target_status_label.add_theme_font_size_override("font_size", 10)
     status_row.add_child(_target_status_label)
 
     _calm_status_label = Label.new()
-    _calm_status_label.add_theme_font_size_override("font_size", 11)
+    _calm_status_label.custom_minimum_size = Vector2(120, 15)
+    _calm_status_label.clip_text = true
+    _calm_status_label.add_theme_font_size_override("font_size", 10)
     _calm_status_label.add_theme_color_override("font_color", Color(0.85, 0.40, 0.95))
     status_row.add_child(_calm_status_label)
 
@@ -278,7 +289,7 @@ func _build_ui() -> void:
 
     # Row 2 inside Dock: 5 Ability Buttons + Reset Pill + Resolve Turn Pill
     var pills_row := HBoxContainer.new()
-    pills_row.add_theme_constant_override("separation", 6)
+    pills_row.add_theme_constant_override("separation", 4)
     pills_row.alignment = BoxContainer.ALIGNMENT_CENTER
     dock_vbox.add_child(pills_row)
 
@@ -293,32 +304,34 @@ func _build_ui() -> void:
     _btn_reset_ap = _make_pill_btn("↺ RESET [Z]", false, func() -> void:
         reset_all_ap()
     )
+    _btn_reset_ap.custom_minimum_size = Vector2(72, 36)
     _btn_reset_ap.add_theme_color_override("font_color", Color(1.0, 0.78, 0.28))
     pills_row.add_child(_btn_reset_ap)
 
-    _btn_resolve = _make_pill_btn("▶ RESOLVE [SPACE]", true, func() -> void:
+    _btn_resolve = _make_pill_btn("▶ RESOLVE [SPC]", true, func() -> void:
         _on_resolve_pressed()
     )
+    _btn_resolve.custom_minimum_size = Vector2(98, 36)
     _btn_resolve.add_theme_color_override("font_color", HudWidgets.COL_GREEN)
     pills_row.add_child(_btn_resolve)
 
     # 3. BOTTOM-RIGHT: HOSTILE FLEET (ENEMY COMMANDERS)
     var right_vbox := VBoxContainer.new()
-    right_vbox.add_theme_constant_override("separation", 4)
+    right_vbox.add_theme_constant_override("separation", 3)
     right_vbox.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-    right_vbox.position = Vector2(-282, -202)
-    right_vbox.custom_minimum_size = Vector2(268, 0)
+    right_vbox.position = Vector2(-218, -186)
+    right_vbox.custom_minimum_size = Vector2(208, 0)
     add_child(right_vbox)
 
     var enemy_header := Label.new()
     enemy_header.text = "⚔ HOSTILE FLEET // ENEMY ACES"
     enemy_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-    enemy_header.add_theme_font_size_override("font_size", 10)
+    enemy_header.add_theme_font_size_override("font_size", 9)
     enemy_header.add_theme_color_override("font_color", Color(1.0, 0.45, 0.32))
     right_vbox.add_child(enemy_header)
 
     var enemy_tabs_scroll := ScrollContainer.new()
-    enemy_tabs_scroll.custom_minimum_size = Vector2(0, 26)
+    enemy_tabs_scroll.custom_minimum_size = Vector2(208, 24)
     enemy_tabs_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
     enemy_tabs_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
     right_vbox.add_child(enemy_tabs_scroll)
@@ -334,16 +347,16 @@ func _build_ui() -> void:
     enemy_style.border_color = Color(1.0, 0.40, 0.25, 0.85)
     enemy_style.set_border_width_all(1)
     enemy_style.set_corner_radius_all(5)
-    enemy_style.set_content_margin_all(8)
+    enemy_style.set_content_margin_all(6)
     enemy_card.add_theme_stylebox_override("panel", enemy_style)
     right_vbox.add_child(enemy_card)
 
     var enemy_card_hbox := HBoxContainer.new()
-    enemy_card_hbox.add_theme_constant_override("separation", 10)
+    enemy_card_hbox.add_theme_constant_override("separation", 8)
     enemy_card.add_child(enemy_card_hbox)
 
     _enemy_portrait_rect = TextureRect.new()
-    _enemy_portrait_rect.custom_minimum_size = Vector2(78, 78)
+    _enemy_portrait_rect.custom_minimum_size = Vector2(58, 58)
     _enemy_portrait_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     _enemy_portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
     enemy_card_hbox.add_child(_enemy_portrait_rect)
@@ -379,37 +392,33 @@ func _update_ability_deck_for_ship() -> void:
     if ship != null and is_instance_valid(ship):
         fac = ship.faction
     _current_deck = _faction_ability_defs.get(fac, _faction_ability_defs["acero"])
-    for ab in _current_deck:
-        var aid: String = ab["id"]
-        if not _ability_states.has(aid):
-            _ability_states[aid] = false
     _update_pill_buttons()
 
 func toggle_ability_by_slot(slot_idx: int) -> void:
+    if ship == null or not is_instance_valid(ship) or ship.is_destroyed():
+        return
     if slot_idx < 0 or slot_idx >= _current_deck.size():
         return
     var ab: Dictionary = _current_deck[slot_idx]
     var aid: String = ab["id"]
-    var cost: int = ab["cost"]
-    var is_on: bool = _ability_states.get(aid, false)
+    var slot_num: int = int(ab.get("slot", slot_idx + 1))
+    var cost: int = int(ab["cost"])
+    var is_on: bool = ship.is_ability_active(aid)
     if is_on:
-        _ability_states[aid] = false
-        _current_ap = mini(_current_ap + cost, _base_round_ap)
-        if _ap_bar != null:
-            _ap_bar.current_ap = _current_ap
-            _ap_bar.queue_redraw()
+        ship.set_ability_active(aid, false)
+        ship.set_ability_active(slot_num, false)
+        if not (DevManager.god_mode or DevManager.infinite_ap):
+            ship.action_points = clampi(ship.action_points + cost, 0, ship.max_action_points)
         ability_toggled.emit(aid, false)
         AudioManager.play_sfx("ui_click", -10.0)
     else:
-        if not (DevManager.god_mode or DevManager.infinite_ap) and _current_ap < cost:
+        if not (DevManager.god_mode or DevManager.infinite_ap) and ship.action_points < cost:
             AudioManager.play_sfx("error", -6.0)
             return
-        _ability_states[aid] = true
+        ship.set_ability_active(aid, true)
+        ship.set_ability_active(slot_num, true)
         if not (DevManager.god_mode or DevManager.infinite_ap):
-            _current_ap -= cost
-        if _ap_bar != null:
-            _ap_bar.current_ap = _current_ap
-            _ap_bar.queue_redraw()
+            ship.action_points = maxi(ship.action_points - cost, 0)
         ability_toggled.emit(aid, true)
         AudioManager.play_sfx("ui_click", -6.0)
     _update_pill_buttons()
@@ -422,29 +431,26 @@ func toggle_ability(ab_id: String) -> void:
             return
 
 func reset_all_ap() -> void:
+    if ship == null or not is_instance_valid(ship):
+        return
     for ab in _current_deck:
         var aid: String = ab["id"]
-        if _ability_states.get(aid, false):
-            _ability_states[aid] = false
+        var slot_num: int = int(ab.get("slot", 1))
+        if ship.is_ability_active(aid):
+            var cost: int = int(ab["cost"])
+            ship.set_ability_active(aid, false)
+            ship.set_ability_active(slot_num, false)
+            if not (DevManager.god_mode or DevManager.infinite_ap):
+                ship.action_points = clampi(ship.action_points + cost, 0, ship.max_action_points)
             ability_toggled.emit(aid, false)
-    _current_ap = _base_round_ap
-    if _ap_bar != null:
-        _ap_bar.current_ap = _current_ap
-        _ap_bar.queue_redraw()
     reset_ap_pressed.emit()
     _update_pill_buttons()
     AudioManager.play_sfx("ui_click", -8.0)
     refresh()
 
 func _on_resolve_pressed() -> void:
-    for ab in _current_deck:
-        var aid: String = ab["id"]
-        _ability_states[aid] = false
-    _current_ap = _base_round_ap
-    if _ap_bar != null:
-        _ap_bar.current_ap = _current_ap
-        _ap_bar.queue_redraw()
-    _update_pill_buttons()
+    # Keep per-ship active abilities active throughout the 2.2s round resolution!
+    # They will be cleared and AP regenerated when ace_resolve_finished fires.
     execute_round_pressed.emit()
 
 func _toggle_turbo() -> void:
@@ -462,9 +468,11 @@ func _update_pill_buttons() -> void:
         if i < _current_deck.size():
             var ab: Dictionary = _current_deck[i]
             var aid: String = ab["id"]
-            var active: bool = _ability_states.get(aid, false)
-            btn.text = ("✔ " + ab["label"]) if active else ab["label"]
-            btn.tooltip_text = ab["desc"]
+            var active: bool = ship.is_ability_active(aid) if (ship != null and is_instance_valid(ship)) else false
+            var line1: String = ("✔ " + String(ab["label"])) if active else String(ab["label"])
+            var line2: String = String(ab.get("sub", ""))
+            btn.text = "%s\n%s" % [line1, line2] if line2 != "" else line1
+            btn.tooltip_text = String(ab["desc"])
             _set_pill_style(btn, active)
             btn.visible = true
         else:
@@ -474,18 +482,26 @@ func _set_pill_style(btn: Button, active: bool) -> void:
     if btn == null:
         return
     var st := StyleBoxFlat.new()
-    st.bg_color = Color(0.08, 0.32, 0.44, 0.95) if active else Color(0.03, 0.10, 0.17, 0.88)
-    st.border_color = HudWidgets.COL_CYAN_BRIGHT if active else Color(0.22, 0.68, 0.88, 0.65)
+    st.bg_color = Color(0.08, 0.34, 0.46, 0.96) if active else Color(0.03, 0.10, 0.17, 0.88)
+    st.border_color = Color(1.0, 0.88, 0.32) if active else Color(0.22, 0.68, 0.88, 0.65)
     st.set_border_width_all(2 if active else 1)
     st.set_corner_radius_all(6)
-    st.set_content_margin_all(6)
+    st.set_content_margin_all(5)
     btn.add_theme_stylebox_override("normal", st)
     var st_hov := st.duplicate()
     st_hov.bg_color = Color(0.12, 0.42, 0.58, 0.98) if active else Color(0.08, 0.22, 0.34, 0.95)
-    st_hov.border_color = HudWidgets.COL_CYAN_BRIGHT
+    st_hov.border_color = Color(1.0, 0.92, 0.45) if active else HudWidgets.COL_CYAN_BRIGHT
     st_hov.set_border_width_all(2)
     btn.add_theme_stylebox_override("hover", st_hov)
-    btn.add_theme_color_override("font_color", Color(0.40, 1.0, 0.85) if active else Color(0.85, 0.92, 1.0))
+    btn.add_theme_color_override("font_color", Color(1.0, 0.95, 0.45) if active else Color(0.88, 0.94, 1.0))
+
+func _format_ship_tab_text(idx: int, a: Ship, is_sel: bool) -> String:
+    var short_pilot := a.pilot_name if a.pilot_name != "" else a.ship_name
+    var auto_tag := " [IA]" if a.is_auto_pilot else ""
+    var tags := a.get_active_ability_tags()
+    var tag_suffix := (" " + "".join(tags)) if not tags.is_empty() else ""
+    var prefix := "★" if is_sel else "▶"
+    return "%s %d: %s [%dAP]%s%s" % [prefix, idx + 1, short_pilot, a.action_points, auto_tag, tag_suffix]
 
 func set_fleet(allies: Array[Ship], selected: Ship, enemies: Array[Ship] = [], locked_enemy: Ship = null) -> void:
     player_ships = allies
@@ -502,10 +518,8 @@ func set_fleet(allies: Array[Ship], selected: Ship, enemies: Array[Ship] = [], l
         for i in range(allies.size()):
             var a := allies[i]
             var b := Button.new()
-            var short_pilot := a.pilot_name if a.pilot_name != "" else a.ship_name
-            var auto_tag := " [IA]" if a.is_auto_pilot else ""
-            b.text = "★ %d: %s%s" % [i + 1, short_pilot, auto_tag]
-            b.custom_minimum_size = Vector2(86, 22)
+            b.text = _format_ship_tab_text(i, a, a == selected)
+            b.custom_minimum_size = Vector2(104, 24)
             b.add_theme_font_size_override("font_size", 9)
             b.focus_mode = Control.FOCUS_NONE
             if a.is_destroyed():
@@ -559,6 +573,8 @@ func refresh() -> void:
     if _armor_widget != null:
         _armor_widget.ship = ship
 
+    _update_pill_buttons()
+
     if _auto_btn != null:
         var is_auto := ship.is_auto_pilot
         _auto_btn.text = "🤖 AUTO [U]: ON" if is_auto else "🤖 AUTO [U]: OFF"
@@ -571,9 +587,7 @@ func refresh() -> void:
             var tb := tabs[i] as Button
             var a := player_ships[i]
             if tb != null and a != null and is_instance_valid(a):
-                var short_pilot := a.pilot_name if a.pilot_name != "" else a.ship_name
-                var auto_tag := " [IA]" if a.is_auto_pilot else ""
-                tb.text = "★ %d: %s%s" % [i + 1, short_pilot, auto_tag]
+                tb.text = _format_ship_tab_text(i, a, a == ship)
                 if a.is_destroyed():
                     tb.disabled = true
                     tb.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 0.5))
@@ -587,7 +601,7 @@ func refresh() -> void:
     if _ally_pilot_label != null:
         _ally_pilot_label.text = ship.pilot_name if ship.pilot_name != "" else "ALLIED ACE"
     if _ally_ship_label != null:
-        _ally_ship_label.text = ship.ship_name
+        _ally_ship_label.text = "%s [%d/%d AP]" % [ship.ship_name, ship.action_points, ship.max_action_points]
     if _ally_hp_label != null:
         _ally_hp_label.text = "HULL %d%% | SHLD %d%%" % [ship.hull_pct(), ship.shield_pct()]
 
@@ -603,11 +617,26 @@ func refresh() -> void:
                 _enemy_hp_label.text = "[ VESSEL DESTROYED ]"
             else:
                 var quad := Combat.get_hit_quadrant(ship, target)
-                _enemy_hp_label.text = "HULL %d%% | SHLD %d%%
-EXPOSED: %s ARMOR" % [target.hull_pct(), target.shield_pct(), quad]
+                _enemy_hp_label.text = "HULL %d%% | SHLD %d%%\nEXPOSED: %s ARMOR" % [target.hull_pct(), target.shield_pct(), quad]
 
     if _ap_bar != null:
-        _ap_bar.current_ap = _current_ap
+        _ap_bar.current_ap = ship.action_points
+        _ap_bar.max_ap = ship.max_action_points
+        var short_s := ship.ship_name.to_upper()
+        if short_s.length() > 11:
+            short_s = short_s.substr(0, 11)
+        _ap_bar.ship_label = "%s AP (%d/%d)" % [short_s, ship.action_points, ship.max_action_points]
+        var regen_amt := ship.base_ap_regen + _strategic_bonus_ap
+        _ap_bar.regen_text = "🔄 +%d AP/RND (MAX %d)" % [regen_amt, ship.max_action_points]
+        var syn := ship.get_active_synergy()
+        if bool(syn.get("active", false)):
+            _ap_bar.synergy_text = "★ COMBO: %s" % String(syn.get("name", ""))
+        else:
+            var tags := ship.get_active_ability_tags()
+            if not tags.is_empty():
+                _ap_bar.synergy_text = "⏱ ACTIVE (1 RND): " + " ".join(tags)
+            else:
+                _ap_bar.synergy_text = "⏱ DURATION: 1 RND | Z=REFUND"
         _ap_bar.salvo_text = "%d/7" % TurnManager.ace_round
         _ap_bar.drift_text = "/ %.0f" % ship.speed()
 
@@ -618,7 +647,7 @@ EXPOSED: %s ARMOR" % [target.hull_pct(), target.shield_pct(), quad]
             ship.pilot_name.to_upper(), ship.ship_name.to_upper(), ship.speed(), yaw_deg, pitch_deg
         ]
 
-    # Pre-Fire Predictive Firing Solution Badge
+    # Pre-Fire Predictive Firing Solution Badge with Live Ability & Synergy Delta
     if _target_status_label != null:
         if target == null or not is_instance_valid(target) or target.is_destroyed():
             _target_status_label.text = "⌖ NO TARGET [R-CLICK HOSTILE OR PRESS C]"
@@ -627,29 +656,37 @@ EXPOSED: %s ARMOR" % [target.hull_pct(), target.shield_pct(), quad]
             var sol := Combat.predict_fire_solution(ship, target)
             var dist := ship.state.position.distance_to(target.state.position)
             var barlo_tag := " 🌬[BARLOVENTO]" if sol.get("weather_gauge", false) else ""
+            var syn_name := String(sol.get("synergy_name", ""))
+            var syn_tag := (" ★[%s]" % syn_name) if syn_name != "" else ""
             if sol.can_fire:
-                var crit_tag := " 💥[STERN RAKE 1.4x]" if sol.critical else ""
-                _target_status_label.text = "🎯 VS %s [%.0fm] // HIT: %d%%%s | EXPOSED: %s%s | EST. DMG: ~%.0f" % [
-                    target.pilot_name.to_upper(), dist, roundi(sol.hit_chance * 100.0), barlo_tag, sol.quadrant, crit_tag, sol.projected_damage
+                var crit_tag := " 💥[STERN 1.4x]" if sol.critical else ""
+                var base_d := float(sol.get("base_damage", sol.projected_damage))
+                var proj_d := float(sol.projected_damage)
+                var dmg_txt := "~%.0f" % proj_d
+                if proj_d > base_d + 0.5:
+                    dmg_txt = "%.0f→%.0f (+ABILITY)" % [base_d, proj_d]
+                _target_status_label.text = "🎯 VS %s [%.0fm] // HIT: %d%%%s | %s%s | DMG: %s%s" % [
+                    target.pilot_name.to_upper(), dist, roundi(sol.hit_chance * 100.0), barlo_tag, sol.quadrant, crit_tag, dmg_txt, syn_tag
                 ]
-                _target_status_label.add_theme_color_override("font_color", HudWidgets.COL_GREEN)
+                _target_status_label.add_theme_color_override("font_color", Color(1.0, 0.90, 0.35) if syn_name != "" else HudWidgets.COL_GREEN)
             else:
-                _target_status_label.text = "▲ VS %s [%.0fm] // %s%s" % [target.pilot_name.to_upper(), dist, sol.status_text, barlo_tag]
+                _target_status_label.text = "▲ VS %s [%.0fm] // %s%s%s" % [target.pilot_name.to_upper(), dist, sol.status_text, barlo_tag, syn_tag]
                 _target_status_label.add_theme_color_override("font_color", HudWidgets.COL_AMBER if sol.in_range else HudWidgets.COL_RED)
 
 func _make_pill_btn(txt: String, glowing: bool, cb: Callable) -> Button:
     var b := Button.new()
     b.text = txt
-    b.custom_minimum_size = Vector2(116, 36)
-    b.add_theme_font_size_override("font_size", 10)
+    b.custom_minimum_size = Vector2(96, 36)
+    b.clip_text = true
+    b.add_theme_font_size_override("font_size", 8)
     b.focus_mode = Control.FOCUS_NONE
 
     var st_norm := StyleBoxFlat.new()
     st_norm.bg_color = Color(0.06, 0.24, 0.34, 0.92) if glowing else Color(0.03, 0.10, 0.17, 0.88)
     st_norm.border_color = HudWidgets.COL_CYAN_BRIGHT if glowing else Color(0.22, 0.68, 0.88, 0.65)
     st_norm.set_border_width_all(2 if glowing else 1)
-    st_norm.set_corner_radius_all(6)
-    st_norm.set_content_margin_all(6)
+    st_norm.set_corner_radius_all(5)
+    st_norm.set_content_margin_all(4)
     b.add_theme_stylebox_override("normal", st_norm)
 
     var st_hov := st_norm.duplicate()
@@ -664,8 +701,8 @@ func _make_pill_btn(txt: String, glowing: bool, cb: Callable) -> Button:
 func _make_helm_btn(txt: String, cb: Callable) -> Button:
     var b := Button.new()
     b.text = txt
-    b.custom_minimum_size = Vector2(72, 22)
-    b.add_theme_font_size_override("font_size", 10)
+    b.custom_minimum_size = Vector2(58, 20)
+    b.add_theme_font_size_override("font_size", 9)
     b.focus_mode = Control.FOCUS_NONE
     b.pressed.connect(cb)
     return b

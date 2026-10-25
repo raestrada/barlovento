@@ -262,12 +262,11 @@ func _ready() -> void:
 			_add_combat_log("Tactical link established. Outer Veil // Sector Psalm-4.", Color(0.4, 0.9, 1.0))
 			_add_combat_log("Tip: Hold [SHIFT + Left-Click/Drag] on the 3D plane to aim vector & speed.", Color(1.0, 0.85, 0.3))
 
-	# Auto-save initial tactical state at start of stage
+	# Frame-0 Fleet & Quadrant Synchronization: ensure all 3D ships and camera are framed immediately!
+	_open_admiral_chart(true)
 	_save_battle_state(true)
 	if _story_overlay != null:
 		_story_overlay.show_intro(LoreDB.current_stage_id)
-	else:
-		_open_admiral_chart()
 
 func _physics_process(delta: float) -> void:
 	if not TurnManager.is_resolving():
@@ -503,9 +502,27 @@ func _plan_god_mode_admiral() -> void:
 func _execute_ace_round() -> void:
 	_plan_friendly_ai_orders()
 	_plan_ai_tactical_orders()
+	_update_crossfire_bonuses()
 	AudioManager.play_sfx("ui_click", -10.0)
 	_add_combat_log(">>> EXECUTING TACTICAL ROUND %d (ALL UNITS ENGAGING) <<<" % TurnManager.ace_round, Color(0.35, 1.0, 0.75))
 	TurnManager.start_ace_resolve()
+
+func _update_crossfire_bonuses() -> void:
+	var target_counts: Dictionary = {}
+	for ally in _player_ships:
+		if ally == null or ally.is_destroyed():
+			continue
+		var tgt := ally.target_ship if ally.target_ship != null else _ace_target
+		if tgt != null and not tgt.is_destroyed():
+			target_counts[tgt] = int(target_counts.get(tgt, 0)) + 1
+	for ally in _player_ships:
+		if ally == null or ally.is_destroyed():
+			continue
+		var tgt := ally.target_ship if ally.target_ship != null else _ace_target
+		if tgt != null and int(target_counts.get(tgt, 0)) >= 2:
+			ally.set_meta("crossfire_bonus", 0.15)
+		else:
+			ally.remove_meta("crossfire_bonus")
 
 func _plan_friendly_ai_orders() -> void:
 	for ally in _player_ships:
@@ -517,14 +534,8 @@ func _plan_friendly_ai_orders() -> void:
 func _clear_round_combat_metas(ship: Ship) -> void:
 	if ship == null:
 		return
-	ship.remove_meta("prow_angle_active")
-	ship.remove_meta("flak_screen_active")
-	ship.remove_meta("precision_boost")
-	ship.remove_meta("resonance_pierce")
-	ship.remove_meta("evasive_boost")
-	ship.remove_meta("chain_shot_active")
-	ship.remove_meta("harpoon_active")
-	ship.remove_meta("broadside_active")
+	ship.clear_round_abilities()
+	ship.remove_meta("crossfire_bonus")
 
 func _plan_friendly_ship_ai(ship: Ship) -> void:
 	if ship == null or ship.is_destroyed():
@@ -706,10 +717,15 @@ func _on_ace_fire_moment() -> void:
 	_check_stage_objectives()
 
 func _on_ace_resolve_finished() -> void:
+	var bonus_ap: int = int(_strategic_bonuses.get("bonus_ap", 0))
 	for p in _player_ships:
+		if p == null or p.is_destroyed():
+			continue
 		_clear_round_combat_metas(p)
+		p.regenerate_round_ap(bonus_ap)
 	_refresh_fleet_panel()
-	_add_combat_log("Tactical round %d resolved. Re-assessing tactical vectors." % (TurnManager.ace_round - 1), Color(0.35, 0.95, 1.0))
+	var regen_per_ship := 3 + bonus_ap
+	_add_combat_log("🔄 Round %d complete. Squadron regenerated +%d AP/ship (Bank cap: 6 AP)." % [TurnManager.ace_round - 1, regen_per_ship], Color(0.35, 0.95, 1.0))
 	_advance_calm_wavefront()
 	_apply_calm_hazards()
 	_check_stage_objectives()
@@ -902,6 +918,21 @@ func _intercept_target() -> void:
 			_selected_ship.ship_name, _ace_target.ship_name, _selected_ship.order.target_speed
 		], Color(1.0, 0.85, 0.35))
 
+func _save_ship_order_snapshot(s: Ship, key: String) -> void:
+	s.saved_order_before_mobility[key] = {
+		"yaw": s.order.yaw,
+		"pitch": s.order.pitch,
+		"target_speed": s.order.target_speed
+	}
+
+func _restore_ship_order_snapshot(s: Ship, key: String) -> void:
+	if s.saved_order_before_mobility.has(key):
+		var snap: Dictionary = s.saved_order_before_mobility[key]
+		s.order.yaw = float(snap.get("yaw", s.order.yaw))
+		s.order.pitch = float(snap.get("pitch", s.order.pitch))
+		s.order.target_speed = float(snap.get("target_speed", s.order.target_speed))
+		s.saved_order_before_mobility.erase(key)
+
 func _on_ace_ability_toggled(ability_name: String, is_active: bool) -> void:
 	if _selected_ship == null or _selected_ship.is_destroyed():
 		return
@@ -909,116 +940,132 @@ func _on_ace_ability_toggled(ability_name: String, is_active: bool) -> void:
 		# Acero Abilities
 		"prow_angle":
 			if is_active:
+				_save_ship_order_snapshot(_selected_ship, "prow_angle")
 				_selected_ship.set_meta("prow_angle_active", true)
 				if _ace_target != null:
 					_set_order_heading(_selected_ship, (_ace_target.global_position - _selected_ship.global_position).normalized())
 				AudioManager.play_sfx("ui_hover", -6.0)
-				_add_combat_log("🛡 %s: Prow Armor Angled toward target! (+40%% Bow Absorption)" % _selected_ship.ship_name, Color(1.0, 0.85, 0.35))
+				_add_combat_log("🛡 %s [1 AP · 1 RND]: Prow Armor Angled toward target! (+45%% Bow Absorption)" % _selected_ship.ship_name, Color(1.0, 0.85, 0.35))
 			else:
 				_selected_ship.remove_meta("prow_angle_active")
-				_add_combat_log("↩ %s: Prow Angle disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_restore_ship_order_snapshot(_selected_ship, "prow_angle")
+				_add_combat_log("↩ %s: Prow Angle refunded (+1 AP)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 
 		"flak_screen":
 			if is_active:
 				_selected_ship.set_meta("flak_screen_active", true)
 				AudioManager.play_sfx("laser_heavy", -10.0)
-				_add_combat_log("💥 %s: Point-Defense Flak Screen active! (-25%% Incoming Enemy Hit Chance)" % _selected_ship.ship_name, Color(1.0, 0.70, 0.30))
+				_add_combat_log("💨 %s [1 AP · 1 RND]: Point-Defense Flak Screen active! (-25%% Incoming Enemy Hit)" % _selected_ship.ship_name, Color(1.0, 0.70, 0.30))
 			else:
 				_selected_ship.remove_meta("flak_screen_active")
-				_add_combat_log("↩ %s: Flak Screen disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_add_combat_log("↩ %s: Flak Screen refunded (+1 AP)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 
 		"furnace_burn":
 			if is_active:
+				_save_ship_order_snapshot(_selected_ship, "furnace_burn")
 				_selected_ship.order.target_speed = clampf(_selected_ship.order.target_speed + 4.5, 0.0, _selected_ship.state.max_speed)
 				AudioManager.play_sfx("engine", -6.0)
-				_add_combat_log("🔥 %s: Emergency Furnace Burn! (+4.5 m/s surge)" % _selected_ship.ship_name, Color(1.0, 0.55, 0.20))
+				_add_combat_log("🔥 %s [1 AP · 1 RND]: Emergency Furnace Burn! (+4.5 m/s surge)" % _selected_ship.ship_name, Color(1.0, 0.55, 0.20))
 			else:
-				_selected_ship.order.target_speed = clampf(_selected_ship.order.target_speed - 4.5, 0.0, _selected_ship.state.max_speed)
-				_add_combat_log("↩ %s: Furnace Burn disarmed (-4.5 m/s)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_restore_ship_order_snapshot(_selected_ship, "furnace_burn")
+				_add_combat_log("↩ %s: Furnace Burn refunded (+1 AP)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 
 		# Vinculados Abilities
 		"snap_pivot":
 			if is_active:
+				_save_ship_order_snapshot(_selected_ship, "snap_pivot")
 				if _ace_target != null:
 					_set_order_heading(_selected_ship, (_ace_target.global_position - _selected_ship.global_position).normalized())
 				AudioManager.play_sfx("engine", -8.0)
-				_add_combat_log("⚡ %s: Vernier Snap-Pivot executed! Torso locked on target." % _selected_ship.ship_name, Color(0.35, 0.95, 1.0))
+				_add_combat_log("⚡ %s [1 AP · 1 RND]: Vernier Snap-Pivot executed! Torso locked on target." % _selected_ship.ship_name, Color(0.35, 0.95, 1.0))
 			else:
-				_add_combat_log("↩ %s: Snap-Pivot disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_restore_ship_order_snapshot(_selected_ship, "snap_pivot")
+				_add_combat_log("↩ %s: Snap-Pivot refunded (+1 AP)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 
 		"soul_lock":
 			if is_active:
 				_selected_ship.set_meta("precision_boost", true)
 				AudioManager.play_sfx("ui_hover", -6.0)
-				_add_combat_log("✨ %s: Neural Soul Lock established! (+25%% Hit Accuracy)" % _selected_ship.ship_name, Color(0.85, 0.45, 1.0))
+				_add_combat_log("🎯 %s [1 AP · 1 RND]: Neural Soul Lock established! (+30%% Hit & +25%% Crit)" % _selected_ship.ship_name, Color(0.85, 0.45, 1.0))
 			else:
 				_selected_ship.remove_meta("precision_boost")
-				_add_combat_log("↩ %s: Soul Lock disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_add_combat_log("↩ %s: Soul Lock refunded (+1 AP)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 
 		"beam_lance":
 			if is_active:
 				_selected_ship.set_meta("resonance_pierce", true)
+				_selected_ship.set_meta("special_salvo", "beam_lance")
 				AudioManager.play_sfx("laser_pulse", -6.0)
-				_add_combat_log("⚔ %s: Resonance Beam Lance charged! (Pierces 50%% Target Armor & +30%% DMG)" % _selected_ship.ship_name, Color(0.35, 0.95, 1.0))
+				_add_combat_log("⚔ %s [2 AP · 1 RND]: Resonance Beam Lance charged! (+40%% DMG & Pierces 65%% Armor)" % _selected_ship.ship_name, Color(0.35, 0.95, 1.0))
 			else:
 				_selected_ship.remove_meta("resonance_pierce")
-				_add_combat_log("↩ %s: Beam Lance disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_selected_ship.set_meta("special_salvo", "")
+				_add_combat_log("↩ %s: Beam Lance refunded (+2 AP)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 
 		"phase_dodge":
 			if is_active:
 				_selected_ship.stance = Ship.Stance.EVASIVE
 				_selected_ship.set_meta("evasive_boost", true)
 				AudioManager.play_sfx("engine", -8.0)
-				_add_combat_log("💨 %s: High-G Phase Dodge armed! (+35%% Evasion)" % _selected_ship.ship_name, Color(0.40, 0.95, 1.0))
+				_add_combat_log("💨 %s [1 AP · 1 RND]: High-G Phase Dodge armed! (+35%% Evasion)" % _selected_ship.ship_name, Color(0.40, 0.95, 1.0))
 			else:
-				_selected_ship.stance = Ship.Stance.NEUTRAL
+				_selected_ship.stance = Ship.Stance.FIRE
 				_selected_ship.remove_meta("evasive_boost")
-				_add_combat_log("↩ %s: Phase Dodge disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_add_combat_log("↩ %s: Phase Dodge refunded (+1 AP)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 			_refresh_fleet_panel()
 
 		# Marea Libre Abilities
 		"trim_sails":
 			if is_active:
+				_save_ship_order_snapshot(_selected_ship, "trim_sails")
 				if _selected_ship.ether != null:
 					var cur := _selected_ship.ether.current_at(_selected_ship.global_position)
 					if cur.length_squared() > 0.01:
 						_set_order_heading(_selected_ship, cur.normalized())
 				_selected_ship.order.target_speed = clampf(_selected_ship.order.target_speed + 3.5, 0.0, _selected_ship.state.max_speed)
 				AudioManager.play_sfx("ui_hover", -6.0)
-				_add_combat_log("💨 %s: Quantum Sails Trimmed! (+3.5 m/s free speed along wind gradient)" % _selected_ship.ship_name, Color(0.35, 1.0, 0.85))
+				_add_combat_log("🌬 %s [1 AP · 1 RND]: Quantum Sails Trimmed! (+3.5 m/s wind speed)" % _selected_ship.ship_name, Color(0.35, 1.0, 0.85))
 			else:
-				_selected_ship.order.target_speed = clampf(_selected_ship.order.target_speed - 3.5, 0.0, _selected_ship.state.max_speed)
-				_add_combat_log("↩ %s: Sails re-centered" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_restore_ship_order_snapshot(_selected_ship, "trim_sails")
+				_add_combat_log("↩ %s: Trim Sails refunded (+1 AP)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 
 		"oar_sweep":
 			if is_active:
+				_save_ship_order_snapshot(_selected_ship, "oar_sweep")
 				var flat_fwd := Vector3(_selected_ship.state.forward.x, 0.0, _selected_ship.state.forward.z).normalized()
 				var swept := flat_fwd.rotated(Vector3.UP, deg_to_rad(45.0))
 				_set_order_heading(_selected_ship, swept)
 				AudioManager.play_sfx("engine", -8.0)
-				_add_combat_log("⚓ %s: Éther Oar Sweep! (Sharp 45° hull pivot for broadside alignment)" % _selected_ship.ship_name, Color(0.95, 0.85, 0.35))
+				_add_combat_log("🌊 %s [1 AP · 1 RND]: Éther Oar Sweep! (Sharp 45° broadside pivot)" % _selected_ship.ship_name, Color(0.95, 0.85, 0.35))
 			else:
-				_add_combat_log("↩ %s: Oar Sweep finished" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_restore_ship_order_snapshot(_selected_ship, "oar_sweep")
+				_add_combat_log("↩ %s: Oar Sweep refunded (+1 AP)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 
 		"chain_shot":
 			if is_active:
 				_selected_ship.set_meta("chain_shot_active", true)
+				_selected_ship.set_meta("special_salvo", "chain_shot")
 				AudioManager.play_sfx("laser_cannon", -6.0)
-				_add_combat_log("⛓ %s: Plasma Chain-Shot loaded! (Disrupts target propulsion on hit)" % _selected_ship.ship_name, Color(0.95, 0.75, 0.30))
+				_add_combat_log("⛓ %s [2 AP · 1 RND]: Plasma Chain-Shot loaded! (+35%% DMG & Cripples Target Speed)" % _selected_ship.ship_name, Color(0.95, 0.75, 0.30))
 			else:
 				_selected_ship.remove_meta("chain_shot_active")
-				_add_combat_log("↩ %s: Chain-Shot disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_selected_ship.set_meta("special_salvo", "")
+				_add_combat_log("↩ %s: Chain-Shot refunded (+2 AP)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 
 		"harpoon":
 			if is_active:
+				_save_ship_order_snapshot(_selected_ship, "harpoon")
 				_selected_ship.set_meta("harpoon_active", true)
+				_selected_ship.set_meta("precision_boost", true)
 				if _ace_target != null:
 					_intercept_target()
 				AudioManager.play_sfx("ui_hover", -6.0)
-				_add_combat_log("🪝 %s: Boarding Harpoon armed! (Tethers to locked target)" % _selected_ship.ship_name, Color(0.95, 0.65, 0.25))
+				_add_combat_log("⚓ %s [1 AP · 1 RND]: Boarding Harpoon armed! (+30%% Hit & Intercept Lock)" % _selected_ship.ship_name, Color(0.95, 0.65, 0.25))
 			else:
 				_selected_ship.remove_meta("harpoon_active")
-				_add_combat_log("↩ %s: Harpoon disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_selected_ship.remove_meta("precision_boost")
+				_restore_ship_order_snapshot(_selected_ship, "harpoon")
+				_add_combat_log("↩ %s: Harpoon refunded (+1 AP)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 
 		# Common Shared Abilities
 		"broadside":
@@ -1026,28 +1073,48 @@ func _on_ace_ability_toggled(ability_name: String, is_active: bool) -> void:
 				_selected_ship.stance = Ship.Stance.FIRE
 				_selected_ship.set_meta("precision_boost", true)
 				_selected_ship.set_meta("broadside_active", true)
+				_selected_ship.set_meta("special_salvo", "broadside")
 				AudioManager.play_sfx("ui_hover", -6.0)
-				_add_combat_log("🎯 %s: Heavy Broadside Battery armed (+25%% Kinetic DMG, FIRE Stance)" % _selected_ship.ship_name, Color(0.35, 1.0, 0.85))
+				_add_combat_log("💥 %s [2 AP · 1 RND]: Heavy Broadside Battery armed (+45%% DMG & +30%% Hit)" % _selected_ship.ship_name, Color(0.35, 1.0, 0.85))
 			else:
-				_selected_ship.stance = Ship.Stance.NEUTRAL
+				_selected_ship.stance = Ship.Stance.FIRE
 				_selected_ship.remove_meta("precision_boost")
 				_selected_ship.remove_meta("broadside_active")
-				_add_combat_log("↩ %s: Broadside disarmed (NEUTRAL Stance)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_selected_ship.set_meta("special_salvo", "")
+				_add_combat_log("↩ %s: Broadside refunded (+2 AP)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 			_refresh_fleet_panel()
 
 		"shield_pulse":
 			if is_active:
+				var old_shld := _selected_ship.shield_hp
+				var old_hp := _selected_ship.hp
 				_selected_ship.shield_hp = minf(_selected_ship.shield_hp + 40.0, _selected_ship.max_shield_hp)
 				_selected_ship.hp = minf(_selected_ship.hp + 20.0, _selected_ship.max_hp)
+				_selected_ship.saved_repair_delta["shield_pulse"] = {
+					"shld": _selected_ship.shield_hp - old_shld,
+					"hp": _selected_ship.hp - old_hp
+				}
 				_selected_ship.refresh_after_load()
 				AudioManager.play_sfx("shield", -8.0)
-				_add_combat_log("🛡 %s: Deflector barriers & bulkheads reinforced (+40 SHLD / +20 HULL)" % _selected_ship.ship_name, Color(0.3, 1.0, 0.6))
+				_add_combat_log("🔧 %s [2 AP · INSTANT]: Deflector barriers & hull reinforced (+40 SHLD / +20 HULL)" % _selected_ship.ship_name, Color(0.3, 1.0, 0.6))
 			else:
-				_selected_ship.shield_hp = maxf(_selected_ship.shield_hp - 40.0, 0.0)
-				_selected_ship.hp = maxf(_selected_ship.hp - 20.0, 1.0)
+				var rep: Dictionary = _selected_ship.saved_repair_delta.get("shield_pulse", {"shld": 0.0, "hp": 0.0})
+				_selected_ship.shield_hp = maxf(_selected_ship.shield_hp - float(rep.get("shld", 0.0)), 0.0)
+				_selected_ship.hp = maxf(_selected_ship.hp - float(rep.get("hp", 0.0)), 1.0)
+				_selected_ship.saved_repair_delta.erase("shield_pulse")
 				_selected_ship.refresh_after_load()
-				_add_combat_log("↩ %s: Barrier reinforcement disarmed" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
+				_add_combat_log("↩ %s: Barrier reinforcement refunded (+2 AP)" % _selected_ship.ship_name, Color(0.75, 0.85, 0.95))
 			_refresh_fleet_panel()
+
+	if is_active:
+		var syn := _selected_ship.get_active_synergy()
+		if bool(syn.get("active", false)):
+			var s_name := String(syn.get("name", ""))
+			var s_desc := String(syn.get("desc", ""))
+			_spawn_combat_text(_selected_ship.global_position, "★ %s!" % s_name, Color(1.0, 0.90, 0.30))
+			_add_combat_log("★ COMBO SYNERGY [%s]: %s — %s!" % [_selected_ship.ship_name, s_name, s_desc], Color(1.0, 0.90, 0.32))
+	_selected_ship.update_indicators()
+	_refresh_fleet_panel()
 
 func _on_ace_ability_used(ability_name: String) -> void:
 	if _selected_ship == null or _selected_ship.is_destroyed():
@@ -1886,11 +1953,15 @@ func _on_phase_changed(_phase: int) -> void:
 		_ace_top_banner.round_number = TurnManager.ace_round
 		_ace_top_banner.queue_redraw()
 
+	var chart_open := (_admiral_chart != null and _admiral_chart.visible and not in_ace)
+
 	if _weather_panel != null:
-		_weather_panel.visible = not in_ace
+		_weather_panel.visible = not in_ace and not chart_open
 
 	if _order_panel != null:
-		_order_panel.visible = not in_ace and not resolving
+		_order_panel.visible = not in_ace and not resolving and not chart_open
+	if _callout_overlay != null:
+		_callout_overlay.visible = not chart_open
 	if _ace_panel != null:
 		_ace_panel.visible = in_ace and not resolving
 	if _resolve_panel != null:
@@ -2137,9 +2208,9 @@ func _add_action(action: String, keys: Array) -> void:
 		event.physical_keycode = key
 		InputMap.action_add_event(action, event)
 
-func _open_admiral_chart() -> void:
+func _open_admiral_chart(immediate_camera: bool = false) -> void:
 	if _camera_rig != null:
-		_camera_rig.set_admiral_zenith_view()
+		_camera_rig.set_admiral_zenith_view(immediate_camera)
 
 	if _admiral_chart == null:
 		_admiral_layer = CanvasLayer.new()
@@ -2165,26 +2236,33 @@ func _open_admiral_chart() -> void:
 		)
 		_admiral_layer.add_child(_admiral_chart)
 
+	_admiral_chart.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_admiral_chart.modulate.a = 1.0
 	_admiral_chart.sync_from_3d_ships(_player_ships, _enemy_ships, _ether)
 	_admiral_chart.visible = true
-	AudioManager.play_sfx("ui_hover", -8.0)
+	if _order_panel != null:
+		_order_panel.visible = false
+	if _weather_panel != null:
+		_weather_panel.visible = false
+	if _callout_overlay != null:
+		_callout_overlay.visible = false
+	_refresh_fleet_panel()
+	if not immediate_camera:
+		AudioManager.play_sfx("ui_hover", -8.0)
 
 func _on_chart_turn_executed(summary_log: String, contact_reached: bool, p_spawns: Array = [], e_spawns: Array = []) -> void:
 	_add_combat_log(summary_log, Color(0.35, 0.95, 1.0))
 	if contact_reached:
 		_add_combat_log(">>> FLEET CONTACT! ENGAGING 3D ACE TACTICAL COMBAT <<<", Color(1.0, 0.82, 0.35))
 
-	# Animate real 3D ships simultaneously gliding to their new quadrant positions!
 	for i in range(mini(_player_ships.size(), p_spawns.size())):
 		var s := _player_ships[i]
 		if s != null and not s.is_destroyed():
 			var p_info: Dictionary = p_spawns[i]
-			var target_pos: Vector3 = p_info.get("pos", s.state.position)
-			var target_fwd: Vector3 = p_info.get("fwd", s.state.forward)
-			var tw := create_tween().set_parallel(true)
-			tw.tween_property(s, "position", target_pos, 0.85).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-			tw.tween_property(s.state, "position", target_pos, 0.85)
+			var target_pos: Vector3 = p_info.get("position", p_info.get("pos", s.state.position))
+			var target_fwd: Vector3 = p_info.get("forward", p_info.get("fwd", s.state.forward))
+			s.state.position = target_pos
+			s.global_position = target_pos
 			s.state.forward = target_fwd
 			s.order.yaw = Vector3.FORWARD.signed_angle_to(target_fwd, Vector3.UP)
 			s.refresh_after_load()
@@ -2193,33 +2271,43 @@ func _on_chart_turn_executed(summary_log: String, contact_reached: bool, p_spawn
 		var e := _enemy_ships[i]
 		if e != null and not e.is_destroyed():
 			var e_info: Dictionary = e_spawns[i]
-			var target_pos: Vector3 = e_info.get("pos", e.state.position)
-			var target_fwd: Vector3 = e_info.get("fwd", e.state.forward)
-			var tw := create_tween().set_parallel(true)
-			tw.tween_property(e, "position", target_pos, 0.85).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-			tw.tween_property(e.state, "position", target_pos, 0.85)
+			var target_pos: Vector3 = e_info.get("position", e_info.get("pos", e.state.position))
+			var target_fwd: Vector3 = e_info.get("forward", e_info.get("fwd", e.state.forward))
+			e.state.position = target_pos
+			e.global_position = target_pos
 			e.state.forward = target_fwd
 			e.order.yaw = Vector3.FORWARD.signed_angle_to(target_fwd, Vector3.UP)
 			e.refresh_after_load()
+
+	_refresh_fleet_panel()
 
 func _on_chart_engage_3d(bonuses: Dictionary) -> void:
 	_strategic_bonuses = bonuses
 	if _admiral_chart != null:
 		_admiral_chart.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if _callout_overlay != null:
+		_callout_overlay.visible = true
 
-	# 1. Apply 3D Spawns & Vectors computed from strategic chart
 	var p_spawns: Array = bonuses.get("player_spawns", [])
+	var overwatch_divs: Array = bonuses.get("overwatch_divisions", [false, false, false])
 	for i in range(mini(_player_ships.size(), p_spawns.size())):
 		var s := _player_ships[i]
 		if s.is_destroyed():
 			continue
 		var info: Dictionary = p_spawns[i]
-		s.state.position = info.get("pos", s.state.position)
-		s.position = s.state.position
-		s.state.forward = info.get("fwd", s.state.forward)
+		s.state.position = info.get("position", info.get("pos", s.state.position))
+		s.global_position = s.state.position
+		s.state.forward = info.get("forward", info.get("fwd", s.state.forward))
 		s.order.yaw = Vector3.FORWARD.signed_angle_to(s.state.forward, Vector3.UP)
 		var spd_mult: float = bonuses.get("speed_mult", 1.0)
-		s.order.target_speed = minf(s.state.max_speed * 0.70 * spd_mult, s.state.max_speed)
+		var div_idx: int = i % 3
+		var is_ow: bool = bool(overwatch_divs[div_idx]) if div_idx < overwatch_divs.size() else false
+		s.overwatch_anchored = is_ow
+		if is_ow:
+			s.shield_hp = minf(s.shield_hp + 20.0, s.max_shield_hp)
+			s.order.target_speed = minf(s.state.max_speed * 0.45 * spd_mult, s.state.max_speed)
+		else:
+			s.order.target_speed = minf(s.state.max_speed * 0.70 * spd_mult, s.state.max_speed)
 		s.initial_velocity = s.state.forward * s.order.target_speed
 		s.state.velocity = s.initial_velocity
 		s.refresh_after_load()
@@ -2230,55 +2318,60 @@ func _on_chart_engage_3d(bonuses: Dictionary) -> void:
 		if e.is_destroyed():
 			continue
 		var info: Dictionary = e_spawns[i]
-		e.state.position = info.get("pos", e.state.position)
-		e.position = e.state.position
-		e.state.forward = info.get("fwd", e.state.forward)
+		e.state.position = info.get("position", info.get("pos", e.state.position))
+		e.global_position = e.state.position
+		e.state.forward = info.get("forward", info.get("fwd", e.state.forward))
 		e.order.yaw = Vector3.FORWARD.signed_angle_to(e.state.forward, Vector3.UP)
 		e.initial_velocity = e.state.forward * 4.0
 		e.state.velocity = e.initial_velocity
 		e.refresh_after_load()
 
-	# 2. Smooth cinematic camera swoop into 3D follow perspective!
 	if _camera_rig != null and _selected_ship != null:
 		_camera_rig.set_ace_combat_view(_selected_ship.state.position, _selected_ship.order.yaw)
 
-	# 3. Apply Doctrine Buffs to Ships
 	var has_barlovento: bool = bonuses.get("has_barlovento", false)
 	var is_crossing_t: bool = bonuses.get("is_crossing_t", false)
 	var is_flanking: bool = bonuses.get("is_flanking", false)
 	var armor_mult: float = bonuses.get("armor_mult", 1.0)
 	var turn_mult: float = bonuses.get("turn_mult", 1.0)
+	var crit_bonus: float = float(bonuses.get("crit_bonus", 0.0))
 
 	for s in _player_ships:
 		s.set_meta("admiral_barlovento", has_barlovento)
 		s.set_meta("admiral_barlovento_rounds", 3 if has_barlovento else 0)
 		s.set_meta("formation_armor_mult", armor_mult)
+		s.set_meta("admiral_crit_bonus", crit_bonus)
 		if bonuses.get("formation", 0) == AdmiralChart.Formation.FLANKING_PINCER:
 			s.set_meta("formation_flank_mult", 1.35)
 		s.state.turn_power *= turn_mult
 
-	# 4. Apply Ace Panel Bonus AP
-	var bonus_ap: int = bonuses.get("bonus_ap", 0)
+	var bonus_ap: int = int(bonuses.get("bonus_ap", 0))
+	var opening_flank_ap: int = 1 if (is_flanking or is_crossing_t) else 0
 	if _ace_panel != null:
 		_ace_panel.set_strategic_bonus_ap(bonus_ap)
+	if opening_flank_ap > 0:
+		for s in _player_ships:
+			if s != null and not s.is_destroyed():
+				s.action_points = clampi(s.action_points + opening_flank_ap, 0, s.max_action_points)
 
-	# 5. Announce Strategic Results in Combat Log
 	if has_barlovento:
-		_add_combat_log("🌬 [BARLOVENTO SECURED] Fleet claims the weather gauge! (+1 AP, +15% Hit, +15% Damage for 3 rounds)", Color(0.35, 1.0, 0.72))
+		_add_combat_log("🌬 [BARLOVENTO SECURED] Fleet claims the weather gauge! (+1 AP/Round, +15% Hit, +15% Damage for 3 rounds)", Color(0.35, 1.0, 0.72))
 	elif bonuses.get("enemy_barlovento", false):
 		_add_combat_log("🌬 [BARLOVENTO ENEMY] Hostile fleet holds the upwind current! (+15% Enemy Hit & Damage)", Color(1.0, 0.45, 0.35))
 	else:
 		_add_combat_log("🌬 [BARLOVENTO CONTESTED] Neutral Éther alignment across both battle groups.", Color(0.75, 0.85, 0.95))
 
 	if is_crossing_t:
-		_add_combat_log("🎯 [CROSSING THE 'T'] Enemy fleet flanked! Hostiles deployed with vulnerable port/starboard exposed!", Color(0.40, 0.96, 1.0))
+		_add_combat_log("🎯 [CROSSING THE 'T'] Enemy fleet flanked! (+1 Opening AP & +30% Broadside DMG!)", Color(0.40, 0.96, 1.0))
 	elif is_flanking:
-		_add_combat_log("🎯 [PINCER AMBUSH] Flanking envelopment achieved! Allied wing deployed with stern firing angles!", Color(0.40, 0.96, 1.0))
+		_add_combat_log("🎯 [PINCER AMBUSH] Flanking envelopment achieved! (+1 Opening AP & +35% Crit Chance!)", Color(0.40, 0.96, 1.0))
 
+	if int(bonuses.get("overwatch_count", 0)) > 0:
+		_add_combat_log("⚓ [OVERWATCH ANCHOR] %d division(s) braced in position (+15%% Opening Accuracy & +20 Shield)!" % int(bonuses.get("overwatch_count", 0)), Color(0.45, 0.98, 0.85))
 	if bonuses.get("sluice_held", false):
 		_add_combat_log("⚙ [SLUICE STATION HELD] Continuous power flow shields allied squadron (+20 SHLD regen)!", Color(1.0, 0.82, 0.35))
 	if bonuses.get("conduit_held", false):
-		_add_combat_log("⚡ [CONDUIT RELAYS CAPTURED] Strategic grid online! (+1 AP & +15% Speed to all units)", Color(0.35, 1.0, 0.85))
+		_add_combat_log("⚡ [CONDUIT RELAYS CAPTURED] Strategic grid online! (+1 AP/Round & +15% Speed to all units)", Color(0.35, 1.0, 0.85))
 	if bonuses.get("reef_held", false):
 		_add_combat_log("🪨 [BASALT REEF AMBUSH] Flank squadron undetected in asteroid cover! (+25% Crit Damage on opening salvo)", Color(0.95, 0.75, 0.35))
 

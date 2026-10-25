@@ -200,19 +200,22 @@ class ShipCalloutOverlay extends Control:
             elif is_tgt:
                 accent_col = Color(1.0, 0.35, 0.22, 1.0)
 
-            # Minimalist callout for unselected ships to avoid saturating 3D Ace view
+            # Minimalist callout for unselected ships — now includes Per-Ship AP & Queued Ability Chips!
             if not is_sel and not is_tgt:
-                var mini_w := 64.0
-                var mini_h := 16.0
+                var ab_tags: Array[String] = []
+                if is_ally:
+                    ab_tags = ship.get_active_ability_tags()
+                var has_tags := not ab_tags.is_empty()
+                var mini_w := 108.0 if is_ally else 72.0
+                var mini_h := 28.0 if (is_ally and has_tags) else 18.0
                 var mx := clampf(screen_pos.x - mini_w * 0.5, 8.0, vp_size.x - mini_w - 8.0)
                 var my := clampf(screen_pos.y - mini_h - 4.0, 48.0, vp_size.y - 120.0)
                 var mini_rect := Rect2(mx, my, mini_w, mini_h)
                 _badge_rects[ship] = mini_rect
 
-                draw_rect(mini_rect, Color(0.015, 0.04, 0.08, 0.60), true)
-                draw_rect(mini_rect, Color(accent_col.r, accent_col.g, accent_col.b, 0.35), false, 1.0)
+                draw_rect(mini_rect, Color(0.015, 0.04, 0.08, 0.76), true)
+                draw_rect(mini_rect, Color(accent_col.r, accent_col.g, accent_col.b, 0.45), false, 1.0)
 
-                # Tiny HP bar
                 var hp_rat := clampf(ship.hp / maxf(ship.max_hp, 1.0), 0.0, 1.0)
                 var b_col := COL_GREEN if hp_rat > 0.5 else (COL_AMBER if hp_rat > 0.25 else COL_RED)
                 draw_rect(Rect2(mx + 2, my + mini_h - 3, (mini_w - 4) * hp_rat, 2), b_col, true)
@@ -220,26 +223,34 @@ class ShipCalloutOverlay extends Control:
                 var s_short := ship.ship_name
                 if s_short.length() > 9:
                     s_short = s_short.substr(0, 9)
-                draw_string(font, Vector2(mx + 4, my + 10), s_short, HORIZONTAL_ALIGNMENT_CENTER, int(mini_w - 8), 8, Color(accent_col.r, accent_col.g, accent_col.b, 0.85))
+                if is_ally:
+                    var hdr_txt := "%s [%d AP]" % [s_short, ship.action_points]
+                    draw_string(font, Vector2(mx + 4, my + 11), hdr_txt, HORIZONTAL_ALIGNMENT_CENTER, int(mini_w - 8), 8, Color(0.75, 0.96, 1.0, 0.92))
+                    if has_tags:
+                        var chip_str := " ".join(ab_tags)
+                        draw_string(font, Vector2(mx + 4, my + 22), chip_str, HORIZONTAL_ALIGNMENT_CENTER, int(mini_w - 8), 8, Color(1.0, 0.88, 0.35, 0.98))
+                else:
+                    draw_string(font, Vector2(mx + 4, my + 11), s_short, HORIZONTAL_ALIGNMENT_CENTER, int(mini_w - 8), 8, Color(accent_col.r, accent_col.g, accent_col.b, 0.85))
                 continue
 
-            var badge_w := 196.0
-            var badge_h := 38.0
+            var ab_tags_sel: Array[String] = []
+            if is_ally:
+                ab_tags_sel = ship.get_active_ability_tags()
+            var badge_w := 224.0
+            var badge_h := 48.0 if not ab_tags_sel.is_empty() else 38.0
             var bx := clampf(screen_pos.x - badge_w * 0.42, 12.0, vp_size.x - badge_w - 12.0)
             var by := clampf(screen_pos.y - badge_h - 8.0, 52.0, vp_size.y - 180.0)
 
             var full_rect := Rect2(bx - 18.0, by, badge_w + 18.0, badge_h)
             _badge_rects[ship] = full_rect
 
-            var hex_center := Vector2(bx, by + badge_h * 0.5)
+            var hex_center := Vector2(bx, by + 19.0)
 
-            # Main dark rectangular callout plate (to the right of the hexagon)
             var plate_rect := Rect2(bx + 10.0, by, badge_w - 10.0, badge_h)
             var bg_col := Color(0.02, 0.06, 0.11, 0.86) if not is_sel else Color(0.04, 0.13, 0.22, 0.92)
             draw_rect(plate_rect, bg_col, true)
             draw_rect(plate_rect, Color(accent_col.r, accent_col.g, accent_col.b, 0.65 if (is_sel or is_tgt) else 0.32), false, 1.5 if (is_sel or is_tgt) else 1.0)
 
-            # Hexagon Icon on Left (exact admiral-phase.png silhouette)
             var hex_r := 19.0
             var hex_pts := PackedVector2Array()
             for i in range(6):
@@ -250,17 +261,16 @@ class ShipCalloutOverlay extends Control:
             hex_outline.append(hex_pts[0])
             draw_polyline(hex_outline, accent_col, 1.8 if (is_sel or is_tgt) else 1.3)
 
-            # Ship class mini-icon inside Hexagon
             _draw_ship_class_icon(hex_center, ship.ship_id, accent_col)
 
-            # Top text: UNIT_CODE (e.g. ACER_ANS_01 / VINC_ACE_01) + Short Name
             var title_str := "%s // %s" % [ship.unit_code, ship.ship_name.to_upper()]
-            if title_str.length() > 23:
-                title_str = title_str.substr(0, 23)
+            if title_str.length() > 21:
+                title_str = title_str.substr(0, 21)
+            if is_ally:
+                title_str += " [%d/%d AP]" % [ship.action_points, ship.max_action_points]
             var title_col := Color(1.0, 0.95, 0.55) if is_sel else COL_TEXT_MAIN
-            draw_string(font, Vector2(bx + 24.0, by + 14.0), title_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, title_col)
+            draw_string(font, Vector2(bx + 24.0, by + 14.0), title_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, title_col)
 
-            # Crisp Horizontal Health Bar right under the name (admiral-phase.png signature green bar)
             var bar_x := bx + 24.0
             var bar_y := by + 18.0
             var bar_w := badge_w - 32.0
@@ -270,7 +280,6 @@ class ShipCalloutOverlay extends Control:
             var bar_col := COL_GREEN if hp_ratio > 0.5 else (COL_AMBER if hp_ratio > 0.25 else COL_RED)
             draw_rect(Rect2(bar_x, bar_y, bar_w * hp_ratio, bar_h), bar_col, true)
 
-            # Bottom telemetry row: SHLD 100% | HULL 100% | MOVING
             var state_word := "MOVING"
             if is_tgt:
                 state_word = "LOCKED"
@@ -279,12 +288,16 @@ class ShipCalloutOverlay extends Control:
             elif ship.speed() < 0.4 and ship.order.target_speed < 0.4:
                 state_word = "HOLDING"
 
-            var sub_y := by + 33.0
+            var sub_y := by + 32.0
             var shld_str := "SHLD %d%%" % ship.shield_pct()
             var hull_str := "HULL %d%%" % ship.hull_pct()
             draw_string(font, Vector2(bar_x, sub_y), shld_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, COL_GREEN)
             draw_string(font, Vector2(bar_x + 52.0, sub_y), "| " + hull_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, bar_col)
             draw_string(font, Vector2(bar_x + 110.0, sub_y), "| " + state_word, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, COL_TEXT_MUTED)
+
+            if not ab_tags_sel.is_empty():
+                var active_line := "ACTIVE (1 RND): " + "  ".join(ab_tags_sel)
+                draw_string(font, Vector2(bar_x, by + 44.0), active_line, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color(1.0, 0.88, 0.32, 1.0))
 
     func _draw_ship_class_icon(c: Vector2, ship_id: String, col: Color) -> void:
         if ship_id.begins_with("vinculados"):
@@ -365,7 +378,7 @@ class DirectionalArmorWidget extends Control:
     var ship: Ship = null
 
     func _init() -> void:
-        custom_minimum_size = Vector2(260, 152)
+        custom_minimum_size = Vector2(114, 114)
         mouse_filter = Control.MOUSE_FILTER_IGNORE
 
     func _draw() -> void:
@@ -373,11 +386,10 @@ class DirectionalArmorWidget extends Control:
         var w := size.x
         var h := size.y
 
-        # Outer dark glass box with thin cyan border (matches "Free Tide" box in ace-phase.png)
-        draw_rect(Rect2(0, 0, w, h), Color(0.02, 0.06, 0.11, 0.84), true)
+        draw_rect(Rect2(0, 0, w, h), Color(0.02, 0.06, 0.11, 0.88), true)
         draw_rect(Rect2(0, 0, w, h), Color(0.22, 0.72, 0.92, 0.48), false, 1.2)
 
-        var faction_title := "Free Tide"
+        var faction_title := "ARMOR"
         var unit_sub := ""
         var bow_pct := 100.0
         var stern_pct := 70.0
@@ -385,56 +397,41 @@ class DirectionalArmorWidget extends Control:
         var stbd_pct := 88.0
 
         if ship != null and is_instance_valid(ship):
-            match ship.faction:
-                "marea_libre":
-                    faction_title = "Free Tide"
-                "vinculados":
-                    faction_title = "The Vinculados"
-                "acero":
-                    faction_title = "Armada of Acero"
-                _:
-                    faction_title = ship.faction.capitalize()
             unit_sub = ship.ship_name
             bow_pct = ship.armor_bow
             stern_pct = ship.armor_stern
             port_pct = ship.armor_port
             stbd_pct = ship.armor_stbd
 
-        # Header Title + Subtle horizontal rule
-        draw_string(font, Vector2(12, 22), faction_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, COL_TEXT_MAIN)
-        draw_string(font, Vector2(w - 120, 21), unit_sub, HORIZONTAL_ALIGNMENT_RIGHT, 108, 11, COL_CYAN_BRIGHT)
-        draw_line(Vector2(10, 30), Vector2(w - 10, 30), Color(0.25, 0.65, 0.85, 0.35), 1.0)
+        draw_string(font, Vector2(6, 15), faction_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, COL_TEXT_MAIN)
+        draw_string(font, Vector2(w - 64, 15), unit_sub, HORIZONTAL_ALIGNMENT_RIGHT, 58, 8, COL_CYAN_BRIGHT)
+        draw_line(Vector2(5, 20), Vector2(w - 5, 20), Color(0.25, 0.65, 0.85, 0.35), 1.0)
 
-        # Center of the 4-way curved armor diagram
         var cx := w * 0.5
-        var cy := 90.0
+        var cy := 68.0
 
-        # Central ship hull top-down silhouette (horizontal orientation matching ace-phase.png: BOW left, PORT right, STERN top, STARBOARD bottom)
         var hull_pts := PackedVector2Array([
-            Vector2(cx - 26, cy),
-            Vector2(cx - 12, cy - 8),
-            Vector2(cx + 20, cy - 7),
-            Vector2(cx + 26, cy),
-            Vector2(cx + 20, cy + 7),
-            Vector2(cx - 12, cy + 8)
+            Vector2(cx - 14, cy),
+            Vector2(cx - 6, cy - 5),
+            Vector2(cx + 11, cy - 4),
+            Vector2(cx + 14, cy),
+            Vector2(cx + 11, cy + 4),
+            Vector2(cx - 6, cy + 5)
         ])
         draw_colored_polygon(hull_pts, Color(0.12, 0.28, 0.38, 0.65))
         hull_pts.append(hull_pts[0])
         draw_polyline(hull_pts, Color(0.35, 0.78, 0.95, 0.75), 1.2)
 
-        # Draw 3 concentric curved arc layers on BOW (Left: PI - 0.55 .. PI + 0.55) and PORT (Right: -0.55 .. +0.55)
-        _draw_sector_layers(Vector2(cx, cy), PI, 0.52, bow_pct, 3, 34.0, 8.0)
-        _draw_sector_layers(Vector2(cx, cy), 0.0, 0.52, port_pct, 3, 34.0, 8.0)
+        _draw_sector_layers(Vector2(cx, cy), PI, 0.48, bow_pct, 3, 17.0, 5.0)
+        _draw_sector_layers(Vector2(cx, cy), 0.0, 0.48, port_pct, 3, 17.0, 5.0)
 
-        # Draw 2 concentric curved arc layers on STERN (Top: -PI/2) and STARBOARD (Bottom: PI/2)
-        _draw_sector_layers(Vector2(cx, cy), -PI * 0.5, 0.48, stern_pct, 2, 18.0, 7.0)
-        _draw_sector_layers(Vector2(cx, cy), PI * 0.5, 0.48, stbd_pct, 2, 18.0, 7.0)
+        _draw_sector_layers(Vector2(cx, cy), -PI * 0.5, 0.44, stern_pct, 2, 11.0, 4.5)
+        _draw_sector_layers(Vector2(cx, cy), PI * 0.5, 0.44, stbd_pct, 2, 11.0, 4.5)
 
-        # Quadrant Labels (exact positions from ace-phase.png)
-        draw_string(font, Vector2(cx - 20, 46), "STERN", HORIZONTAL_ALIGNMENT_CENTER, 40, 9, COL_TEXT_MAIN)
-        draw_string(font, Vector2(cx - 30, h - 8), "STARBOARD", HORIZONTAL_ALIGNMENT_CENTER, 60, 9, COL_TEXT_MAIN)
-        draw_string(font, Vector2(12, cy + 4), "BOW", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, COL_TEXT_MAIN)
-        draw_string(font, Vector2(w - 38, cy + 4), "PORT", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, COL_TEXT_MAIN)
+        draw_string(font, Vector2(cx - 20, 32), "STERN", HORIZONTAL_ALIGNMENT_CENTER, 40, 8, COL_TEXT_MAIN)
+        draw_string(font, Vector2(cx - 28, h - 5), "STBD", HORIZONTAL_ALIGNMENT_CENTER, 56, 8, COL_TEXT_MAIN)
+        draw_string(font, Vector2(4, cy + 3), "BOW", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, COL_TEXT_MAIN)
+        draw_string(font, Vector2(w - 26, cy + 3), "PORT", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, COL_TEXT_MAIN)
 
     func _draw_sector_layers(center: Vector2, mid_angle: float, half_span: float, pct: float, layers: int, start_r: float, step_r: float) -> void:
         for layer in range(layers):
@@ -469,25 +466,28 @@ class DirectionalArmorWidget extends Control:
 
 
 # ==============================================================================
-# 5. 12-PIP GLOWING ACTION POINT BAR (from ace-phase.png bottom-center)
+# 5. PER-SHIP GLOWING ACTION POINT BAR & RENEWAL TELEMETRY
 # ==============================================================================
 class ActionPointBar extends Control:
-    var current_ap: int = 7
-    var max_ap: int = 12
+    var current_ap: int = 4
+    var max_ap: int = 6
+    var ship_label: String = "SHIP AP (4/6)"
+    var regen_text: String = "🔄 +3 AP/ROUND"
+    var synergy_text: String = "⏱ ABILITIES LAST 1 ROUND"
     var salvo_text: String = "1/7"
     var drift_text: String = "/ 0"
 
     func _init() -> void:
-        custom_minimum_size = Vector2(540, 28)
+        custom_minimum_size = Vector2(640, 26)
         mouse_filter = Control.MOUSE_FILTER_IGNORE
 
     func _draw() -> void:
         var font := ThemeDB.fallback_font
-        draw_string(font, Vector2(4, 19), "ACTION POINTS", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, COL_TEXT_MAIN)
+        draw_string(font, Vector2(2, 18), ship_label, HORIZONTAL_ALIGNMENT_LEFT, 144, 10, COL_CYAN_BRIGHT)
 
-        var start_x := 112.0
-        var pip_w := 18.0
-        var pip_h := 16.0
+        var start_x := 150.0
+        var pip_w := 20.0
+        var pip_h := 14.0
         var gap := 4.0
         var py := 6.0
 
@@ -495,18 +495,19 @@ class ActionPointBar extends Control:
             var px := start_x + float(i) * (pip_w + gap)
             var rect := Rect2(px, py, pip_w, pip_h)
             if i < current_ap:
-                # Outer cyan glow
-                draw_rect(Rect2(px - 1.5, py - 1.5, pip_w + 3, pip_h + 3), Color(0.22, 0.85, 1.0, 0.35), true)
+                draw_rect(Rect2(px - 1.5, py - 1.5, pip_w + 3, pip_h + 3), Color(0.22, 0.85, 1.0, 0.38), true)
                 draw_rect(rect, COL_CYAN, true)
-                draw_rect(Rect2(px + 2, py + 2, pip_w - 4, pip_h * 0.4), COL_CYAN_BRIGHT, true)
-                draw_rect(rect, Color(0.75, 0.98, 1.0, 0.95), false, 1.2)
+                draw_rect(Rect2(px + 2, py + 2, pip_w - 4, pip_h * 0.42), COL_CYAN_BRIGHT, true)
+                draw_rect(rect, Color(0.80, 0.98, 1.0, 0.98), false, 1.3)
             else:
-                draw_rect(rect, Color(0.03, 0.08, 0.14, 0.75), true)
-                draw_rect(rect, Color(0.22, 0.55, 0.72, 0.45), false, 1.0)
+                draw_rect(rect, Color(0.03, 0.08, 0.14, 0.78), true)
+                draw_rect(rect, Color(0.22, 0.55, 0.72, 0.48), false, 1.0)
 
-        var right_x := start_x + float(max_ap) * (pip_w + gap) + 14.0
-        draw_string(font, Vector2(right_x, 19), "✸ " + salvo_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, COL_TEXT_MAIN)
-        draw_string(font, Vector2(right_x + 56.0, 19), "◆ " + drift_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, COL_CYAN_BRIGHT)
+        var right_x := start_x + float(max_ap) * (pip_w + gap) + 8.0
+        draw_string(font, Vector2(right_x, 18), regen_text, HORIZONTAL_ALIGNMENT_LEFT, 138, 9, Color(0.45, 0.98, 0.78))
+
+        var syn_col := Color(1.0, 0.88, 0.32) if synergy_text.begins_with("★") else COL_TEXT_MUTED
+        draw_string(font, Vector2(right_x + 140.0, 18), synergy_text, HORIZONTAL_ALIGNMENT_LEFT, 200, 9, syn_col)
 
 
 # ==============================================================================

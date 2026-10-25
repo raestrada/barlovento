@@ -121,24 +121,52 @@ static func configure_stage_grid(stage_id: String) -> Vector2i:
 			rows = 8
 	return Vector2i(cols, rows)
 
+const WORLD_HALF_X: float = 65.0
+const WORLD_HALF_Z: float = 75.0
+
 static func world_to_cell(pos: Vector3, _is_player: bool, _idx: int, grid_cols: int, grid_rows: int) -> Vector2i:
-	var nx := clampf((pos.x + 65.0) / 130.0, 0.0, 0.999)
-	var ny := clampf((pos.z + 75.0) / 150.0, 0.0, 0.999)
+	var nx := clampf((pos.x + WORLD_HALF_X) / (WORLD_HALF_X * 2.0), 0.0, 0.999)
+	var ny := clampf((pos.z + WORLD_HALF_Z) / (WORLD_HALF_Z * 2.0), 0.0, 0.999)
 	return Vector2i(int(nx * float(grid_cols)), int(ny * float(grid_rows)))
 
-static func cell_to_world(cell: Vector2i, facing: Vector2, is_player: bool, idx: int, grid_cols: int, grid_rows: int) -> Dictionary:
-	var cx := (float(cell.x) + 0.5) / float(grid_cols) * 130.0 - 65.0
-	var cz := (float(cell.y) + 0.5) / float(grid_rows) * 150.0 - 75.0
-	var slot_offsets := [
-		Vector3(0.0, 4.0, 0.0),
-		Vector3(12.0, 2.0, 6.0),
-		Vector3(-12.0, 6.0, 6.0)
+static func cell_center_world(cell: Vector2i, grid_cols: int, grid_rows: int) -> Vector3:
+	var cx := (float(cell.x) + 0.5) / float(grid_cols) * (WORLD_HALF_X * 2.0) - WORLD_HALF_X
+	var cz := (float(cell.y) + 0.5) / float(grid_rows) * (WORLD_HALF_Z * 2.0) - WORLD_HALF_Z
+	return Vector3(cx, 0.0, cz)
+
+static func cell_corners_world(cell: Vector2i, grid_cols: int, grid_rows: int, y_plane: float = 0.0) -> Array[Vector3]:
+	var x0 := float(cell.x) / float(grid_cols) * (WORLD_HALF_X * 2.0) - WORLD_HALF_X
+	var x1 := float(cell.x + 1) / float(grid_cols) * (WORLD_HALF_X * 2.0) - WORLD_HALF_X
+	var z0 := float(cell.y) / float(grid_rows) * (WORLD_HALF_Z * 2.0) - WORLD_HALF_Z
+	var z1 := float(cell.y + 1) / float(grid_rows) * (WORLD_HALF_Z * 2.0) - WORLD_HALF_Z
+	return [
+		Vector3(x0, y_plane, z0),
+		Vector3(x1, y_plane, z0),
+		Vector3(x1, y_plane, z1),
+		Vector3(x0, y_plane, z1)
 	]
-	var off: Vector3 = slot_offsets[clampi(idx, 0, 2)]
+
+static func get_wingman_offset(ship_idx: int, is_player: bool) -> Vector3:
+	@warning_ignore("integer_division")
+	var wing_rank: int = ship_idx / 3
+	if wing_rank <= 0:
+		var div_elev := [1.5, 0.5, 2.5]
+		return Vector3(0.0, float(div_elev[ship_idx % 3]), 0.0)
+	var wing_offsets := [
+		Vector3.ZERO,
+		Vector3(-8.5, 2.2, 5.5),
+		Vector3(8.5, -1.2, 5.5),
+		Vector3(0.0, 3.4, 9.5)
+	]
+	var off: Vector3 = wing_offsets[clampi(wing_rank, 0, wing_offsets.size() - 1)]
 	if not is_player:
 		off = Vector3(-off.x, off.y, -off.z)
+	return off
 
-	var base_pos := Vector3(cx, 0.0, cz) + off
+static func cell_to_world(cell: Vector2i, facing: Vector2, is_player: bool, idx: int, grid_cols: int, grid_rows: int) -> Dictionary:
+	var center := cell_center_world(cell, grid_cols, grid_rows)
+	var off := get_wingman_offset(idx, is_player)
+	var base_pos := center + off
 	var target_fwd := Vector3(facing.x, 0.0, facing.y).normalized()
 	if target_fwd.length_squared() < 0.01:
 		target_fwd = Vector3.FORWARD if is_player else Vector3.BACK
@@ -155,8 +183,11 @@ static func cell_to_world(cell: Vector2i, facing: Vector2, is_player: bool, idx:
 	var out_vel := target_fwd * base_speed
 	return {
 		"position": base_pos,
+		"pos": base_pos,
+		"center": center,
 		"velocity": out_vel,
 		"forward": target_fwd,
+		"fwd": target_fwd,
 		"speed": base_speed
 	}
 

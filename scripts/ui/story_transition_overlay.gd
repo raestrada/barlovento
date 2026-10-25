@@ -49,18 +49,18 @@ func _ready() -> void:
 	visible = false
 
 func _build_ui() -> void:
-	# 1. Dark Atmospheric Background
+	# 1. Translucent Tactical Glass Backdrop (keeps 3D ships & Star Sea clearly visible from Frame 0!)
 	var dim_rect := ColorRect.new()
 	dim_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim_rect.color = Color(0.01, 0.02, 0.04, 0.94)
+	dim_rect.color = Color(0.01, 0.02, 0.04, 0.28)
 	add_child(dim_rect)
 
-	# 2. Key Art Backdrop
+	# 2. Subtle Key Art Watermark Backdrop
 	_backdrop_rect = TextureRect.new()
 	_backdrop_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_backdrop_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_backdrop_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	_backdrop_rect.modulate = Color(1.0, 1.0, 1.0, 0.40)
+	_backdrop_rect.modulate = Color(1.0, 1.0, 1.0, 0.12)
 	add_child(_backdrop_rect)
 
 	# 3. Top & Bottom Cinematic Letterbox Bars

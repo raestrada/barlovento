@@ -35,6 +35,17 @@ func _ready() -> void:
     _target_distance = distance
     _target_yaw = _yaw
     _target_pitch = _pitch
+    _update_camera_transform()
+
+func get_camera() -> Camera3D:
+    return _camera
+
+func snap_immediate() -> void:
+    target = _target_position
+    distance = _target_distance
+    _yaw = _target_yaw
+    _pitch = _target_pitch
+    _update_camera_transform()
 
 func focus_on(pos: Vector3) -> void:
     _target_position = pos
@@ -53,17 +64,19 @@ func zoom_to_unit(pos: Vector3, is_mecha: bool = false) -> void:
     _target_position = pos
     _target_distance = 7.5 if is_mecha else 14.0
 
-func set_view_target(pos: Vector3, dist: float, pitch_val: float, yaw_val: float) -> void:
+func set_view_target(pos: Vector3, dist: float, pitch_val: float, yaw_val: float, immediate: bool = false) -> void:
     _target_position = pos
     _target_distance = dist
     _target_pitch = pitch_val
     _target_yaw = yaw_val
+    if immediate:
+        snap_immediate()
 
-func set_admiral_zenith_view() -> void:
-    set_view_target(Vector3(0.0, 0.0, 0.0), 125.0, 1.25, 0.0)
+func set_admiral_zenith_view(immediate: bool = false) -> void:
+    set_view_target(Vector3(0.0, 0.0, 6.0), 172.0, 1.02, 0.0, immediate)
 
-func set_ace_combat_view(focus_pos: Vector3, focus_yaw: float) -> void:
-    set_view_target(focus_pos, 42.0, 0.35, focus_yaw)
+func set_ace_combat_view(focus_pos: Vector3, focus_yaw: float, immediate: bool = false) -> void:
+    set_view_target(focus_pos, 46.0, 0.38, focus_yaw, immediate)
 
 func shake(intensity: float = 0.9, duration: float = 0.22) -> void:
     _shake_intensity = intensity
@@ -96,6 +109,14 @@ func _process(delta: float) -> void:
     _yaw = lerpf(_yaw, _target_yaw, smooth)
     _pitch = lerpf(_pitch, _target_pitch, smooth)
 
+    if _shake_time > 0.0:
+        _shake_time -= delta
+
+    _update_camera_transform()
+
+func _update_camera_transform() -> void:
+    if _camera == null:
+        return
     var offset := Vector3(
         distance * cos(_pitch) * sin(_yaw),
         distance * sin(_pitch),
@@ -104,7 +125,6 @@ func _process(delta: float) -> void:
     var cam_pos := target + offset
 
     if _shake_time > 0.0:
-        _shake_time -= delta
         var rnd := Vector3(
             randf_range(-1.0, 1.0),
             randf_range(-1.0, 1.0),

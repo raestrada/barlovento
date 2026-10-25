@@ -31,8 +31,14 @@ var ship_name: String = "Ship"
 var pilot_name: String = ""
 var ship_id: String = ""
 var faction: String = "acero"
-var action_points: int = 7
-var max_action_points: int = 7
+var action_points: int = 4
+var max_action_points: int = 6
+var base_ap_regen: int = 3
+var active_abilities: Dictionary = {1: false, 2: false, 3: false, 4: false}
+var saved_order_before_mobility: Dictionary = {}
+var saved_repair_delta: Dictionary = {}
+var overwatch_anchored: bool = false
+var division_index: int = 0
 var max_hp: float = 100.0
 var shield_hp: float = 100.0
 var max_shield_hp: float = 100.0
@@ -204,6 +210,143 @@ func refresh_after_load() -> void:
     _sync_transform()
     visible = not is_destroyed()
     update_indicators()
+
+func sync_transform_now() -> void:
+    _sync_transform()
+    update_indicators()
+
+func is_ability_active(key: Variant) -> bool:
+    if active_abilities.get(key, false) == true:
+        return true
+    if key is int:
+        match int(key):
+            1:
+                return active_abilities.get("prow_angle", false) or active_abilities.get("snap_pivot", false) or active_abilities.get("trim_sails", false) or active_abilities.get("furnace_burn", false)
+            2:
+                return active_abilities.get("flak_screen", false) or active_abilities.get("oar_sweep", false) or active_abilities.get("shield_pulse", false)
+            3:
+                return active_abilities.get("broadside", false) or active_abilities.get("beam_lance", false) or active_abilities.get("chain_shot", false)
+            4:
+                return active_abilities.get("soul_lock", false) or active_abilities.get("harpoon", false) or active_abilities.get("phase_dodge", false)
+    return false
+
+func set_ability_active(key: Variant, active: bool) -> void:
+    active_abilities[key] = active
+
+func get_active_ability_tags() -> Array[String]:
+    var tags: Array[String] = []
+    var tag_map := {
+        "prow_angle": "🛡PROW",
+        "flak_screen": "💨FLAK",
+        "broadside": "💥SALVO",
+        "furnace_burn": "🔥BURN",
+        "shield_pulse": "🔧REPAIR",
+        "snap_pivot": "⚡PIVOT",
+        "soul_lock": "🎯LOCK",
+        "beam_lance": "⚔LANCE",
+        "phase_dodge": "💨DODGE",
+        "trim_sails": "🌬SAILS",
+        "oar_sweep": "🌊OARS",
+        "chain_shot": "⛓CHAIN",
+        "harpoon": "⚓HARPOON"
+    }
+    for k in tag_map.keys():
+        if active_abilities.get(k, false) == true:
+            tags.append(tag_map[k])
+    if overwatch_anchored:
+        tags.append("⚓OVERWATCH")
+    return tags
+
+func get_active_synergy() -> Dictionary:
+    match faction:
+        "vinculados":
+            if (is_ability_active("snap_pivot") or is_ability_active("soul_lock")) and is_ability_active("beam_lance"):
+                return {
+                    "active": true,
+                    "name": "NEWTYPE BLITZ",
+                    "desc": "Pivot/Lock + Beam Lance: Ignores 100% Facing Armor & +15% Hit",
+                    "acc_bonus": 0.15,
+                    "dmg_mult": 1.15,
+                    "armor_pierce": 1.0,
+                    "armor_shred": 0.0
+                }
+            elif is_ability_active("phase_dodge") and is_ability_active("shield_pulse"):
+                return {
+                    "active": true,
+                    "name": "PSYCHO-RESONANCE AEGIS",
+                    "desc": "Phase Dodge + Barrier: +15% Hit & -40% Incoming Damage",
+                    "acc_bonus": 0.15,
+                    "dmg_mult": 1.10,
+                    "armor_pierce": 0.0,
+                    "armor_shred": 0.0
+                }
+        "marea_libre":
+            if (is_ability_active("oar_sweep") or is_ability_active("trim_sails")) and (is_ability_active("chain_shot") or is_ability_active("harpoon")):
+                return {
+                    "active": true,
+                    "name": "CORSAIR BOARDING SURGE",
+                    "desc": "Sail/Oar Maneuver + Chain/Harpoon: Shatters -25 Target Armor & +15% Hit",
+                    "acc_bonus": 0.15,
+                    "dmg_mult": 1.15,
+                    "armor_pierce": 0.0,
+                    "armor_shred": 25.0
+                }
+            elif is_ability_active("chain_shot") and is_ability_active("harpoon"):
+                return {
+                    "active": true,
+                    "name": "IRONCLAD GRAPPLE",
+                    "desc": "Chain-Shot + Harpoon: +20% Damage & Target Immobilized",
+                    "acc_bonus": 0.15,
+                    "dmg_mult": 1.20,
+                    "armor_pierce": 0.0,
+                    "armor_shred": 15.0
+                }
+        _:
+            if is_ability_active("prow_angle") and is_ability_active("broadside"):
+                return {
+                    "active": true,
+                    "name": "DREADNOUGHT WALL",
+                    "desc": "Prow Angle + Heavy Broadside: +20% Salvo Accuracy & Braced Recoil",
+                    "acc_bonus": 0.20,
+                    "dmg_mult": 1.15,
+                    "armor_pierce": 0.0,
+                    "armor_shred": 0.0
+                }
+            elif is_ability_active("furnace_burn") and is_ability_active("broadside"):
+                return {
+                    "active": true,
+                    "name": "FURNACE OVERDRIVE SALVO",
+                    "desc": "Furnace Burn + Heavy Broadside: +20% Salvo Damage & +10% Hit",
+                    "acc_bonus": 0.10,
+                    "dmg_mult": 1.20,
+                    "armor_pierce": 0.0,
+                    "armor_shred": 0.0
+                }
+    return {"active": false, "name": "", "desc": "", "acc_bonus": 0.0, "dmg_mult": 1.0, "armor_pierce": 0.0, "armor_shred": 0.0}
+
+func clear_round_abilities() -> void:
+    active_abilities.clear()
+    saved_order_before_mobility.clear()
+    saved_repair_delta.clear()
+    overwatch_anchored = false
+    set_meta("precision_boost", false)
+    set_meta("special_salvo", "")
+    set_meta("evasion_boost", 0.0)
+    set_meta("armor_stance", 1.0)
+    set_meta("i_field_active", false)
+    remove_meta("prow_angle_active")
+    remove_meta("flak_screen_active")
+    remove_meta("resonance_pierce")
+    remove_meta("evasive_boost")
+    remove_meta("chain_shot_active")
+    remove_meta("harpoon_active")
+    remove_meta("broadside_active")
+
+func regenerate_round_ap(bonus_ap: int = 0) -> int:
+    var before := action_points
+    var gain := base_ap_regen + maxi(bonus_ap, 0)
+    action_points = clampi(action_points + gain, 0, max_action_points)
+    return action_points - before
 
 func speed() -> float:
     return state.speed()

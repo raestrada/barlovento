@@ -77,13 +77,23 @@ static func hit_chance(shooter: Ship, target: Ship) -> float:
         chance -= (ratio - 0.72) * 0.45
     if has_weather_gauge(shooter, target):
         chance += 0.12
-    if shooter.has_meta("precision_boost") and bool(shooter.get_meta("precision_boost")):
-        chance += 0.25
+    if shooter.is_ability_active(4) or (shooter.has_meta("precision_boost") and bool(shooter.get_meta("precision_boost"))):
+        chance += 0.30
+    if shooter.overwatch_anchored:
+        chance += 0.15
+    if shooter.has_meta("crossfire_bonus"):
+        chance += float(shooter.get_meta("crossfire_bonus"))
+    if target.has_meta("evasion_boost"):
+        chance -= float(target.get_meta("evasion_boost"))
+    var syn := shooter.get_active_synergy()
+    if bool(syn.get("active", false)):
+        chance += float(syn.get("acc_bonus", 0.0))
     return clampf(chance, 0.15, 0.99)
 
 static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
     var quadrant := get_hit_quadrant(shooter, target)
     var barlovento := has_weather_gauge(shooter, target)
+    var syn := shooter.get_active_synergy() if shooter != null else {"active": false}
     var result := {
         "hit": false,
         "damage": 0.0,
@@ -93,15 +103,14 @@ static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
         "critical": false,
         "evaded": false,
         "quadrant": quadrant,
-        "weather_gauge": barlovento
+        "weather_gauge": barlovento,
+        "synergy_name": String(syn.get("name", ""))
     }
 
     if not can_hit(shooter, target):
         return result
 
     var chance := hit_chance(shooter, target)
-    if shooter.has_meta("precision_boost"):
-        shooter.set_meta("precision_boost", false)
 
     var roll := randf()
     if roll <= chance:
@@ -118,19 +127,21 @@ static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
         # Directional Armor Quadrant Modifiers (from docs/DESIGN.md)
         match quadrant:
             "BOW":
-                # Sloped prow armor absorbs frontal kinetic impact
                 var bow_mult := 0.65 if target.faction == "acero" else 0.78
                 dmg *= bow_mult
             "STERN":
-                # Stern Rake into exposed engine wake deals critical damage!
                 dmg *= 1.40
                 result["critical"] = true
             "PORT", "STARBOARD":
-                # Broadside exchange
                 if shooter.faction == "marea_libre":
                     dmg *= 1.18
 
-        if not result["critical"] and randf() < 0.15:
+        var crit_chance := 0.15
+        if shooter.is_ability_active(4) or (shooter.has_meta("precision_boost") and bool(shooter.get_meta("precision_boost"))):
+            crit_chance += 0.25
+        if shooter.has_meta("admiral_crit_bonus"):
+            crit_chance += float(shooter.get_meta("admiral_crit_bonus"))
+        if not result["critical"] and randf() < crit_chance:
             dmg *= 1.35
             result["critical"] = true
 
@@ -139,23 +150,47 @@ static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
         if target.has_meta("formation_armor_mult"):
             dmg /= maxf(float(target.get_meta("formation_armor_mult")), 0.1)
 
-        # Tactical ability damage modifiers
-        if shooter.has_meta("broadside_active") and bool(shooter.get_meta("broadside_active")):
-            dmg *= 1.25
-        if shooter.has_meta("resonance_pierce") and bool(shooter.get_meta("resonance_pierce")):
-            dmg *= 1.30
-        if target.has_meta("prow_angle_active") and bool(target.get_meta("prow_angle_active")) and quadrant == "BOW":
-            dmg *= 0.60
+        # Tactical ability damage modifiers (Per-Ship Slot 3 Signature Strike & Slot 2 Defense)
+        var salvo_type: String = String(shooter.get_meta("special_salvo", ""))
+        var slot3_on := shooter.is_ability_active(3) or salvo_type != ""
+        if slot3_on:
+            match shooter.faction:
+                "vinculados":
+                    dmg *= 1.40
+                "marea_libre":
+                    dmg *= 1.35
+                _:
+                    dmg *= 1.45
 
-        # Directional Armor mitigation: intact heavy plate absorbs kinetic & thermal impact
+        if bool(syn.get("active", false)):
+            dmg *= float(syn.get("dmg_mult", 1.0))
+            var shred := float(syn.get("armor_shred", 0.0))
+            if shred > 0.0:
+                target.armor_port = maxf(target.armor_port - shred, 5.0)
+                target.armor_stbd = maxf(target.armor_stbd - shred, 5.0)
+
+        if (target.is_ability_active(2) and target.faction == "acero") or (target.has_meta("prow_angle_active") and bool(target.get_meta("prow_angle_active"))):
+            if quadrant == "BOW":
+                dmg *= 0.55
+            else:
+                dmg *= 0.72
+        if target.has_meta("armor_stance"):
+            dmg *= clampf(float(target.get_meta("armor_stance")), 0.45, 1.0)
+        if (target.is_ability_active(2) and target.faction == "vinculados") or (target.has_meta("i_field_active") and bool(target.get_meta("i_field_active"))):
+            dmg *= 0.62
+
+        # Directional Armor mitigation
         var armor_val := target.get_quadrant_armor(quadrant)
-        if shooter.has_meta("resonance_pierce") and bool(shooter.get_meta("resonance_pierce")):
-            armor_val *= 0.5
+        if (slot3_on and shooter.faction == "vinculados") or (shooter.has_meta("resonance_pierce") and bool(shooter.get_meta("resonance_pierce"))):
+            armor_val *= 0.35
+        if bool(syn.get("active", false)) and float(syn.get("armor_pierce", 0.0)) > 0.0:
+            armor_val *= (1.0 - clampf(float(syn.get("armor_pierce", 0.0)), 0.0, 1.0))
         var armor_factor := clampf(1.0 - (armor_val / 280.0), 0.58, 1.0)
         dmg *= armor_factor
 
-        if shooter.has_meta("chain_shot_active") and bool(shooter.get_meta("chain_shot_active")):
-            target.order.target_speed = maxf(target.order.target_speed - 3.5, 0.0)
+        if (slot3_on and shooter.faction == "marea_libre") or (shooter.has_meta("chain_shot_active") and bool(shooter.get_meta("chain_shot_active"))):
+            target.order.target_speed = maxf(target.order.target_speed - 4.0, 0.0)
+            target.state.velocity *= 0.55
 
         result["damage"] = maxf(roundf(dmg), 4.0)
         target.take_directional_damage(result["damage"], quadrant)
@@ -233,16 +268,36 @@ static func predict_fire_solution(shooter: Ship, target: Ship) -> Dictionary:
             if shooter.faction == "marea_libre":
                 dmg *= 1.18
 
-    if shooter.has_meta("resonance_pierce") and bool(shooter.get_meta("resonance_pierce")):
-        var armor_val := target.get_quadrant_armor(result["quadrant"]) * 0.5
-        var armor_factor := clampf(1.0 - (armor_val / 280.0), 0.75, 1.0)
-        dmg *= armor_factor * 1.30
-    else:
-        var armor_val := target.get_quadrant_armor(result["quadrant"])
-        var armor_factor := clampf(1.0 - (armor_val / 280.0), 0.58, 1.0)
-        dmg *= armor_factor
+    var base_dmg := dmg
+    var salvo_type: String = String(shooter.get_meta("special_salvo", ""))
+    var slot3_on := shooter.is_ability_active(3) or salvo_type != ""
+    if slot3_on:
+        match shooter.faction:
+            "vinculados":
+                dmg *= 1.40
+            "marea_libre":
+                dmg *= 1.35
+            _:
+                dmg *= 1.45
 
+    var syn := shooter.get_active_synergy()
+    if bool(syn.get("active", false)):
+        dmg *= float(syn.get("dmg_mult", 1.0))
+
+    var armor_val := target.get_quadrant_armor(result["quadrant"])
+    var base_armor_factor := clampf(1.0 - (armor_val / 280.0), 0.58, 1.0)
+    base_dmg *= base_armor_factor
+
+    if (slot3_on and shooter.faction == "vinculados") or (shooter.has_meta("resonance_pierce") and bool(shooter.get_meta("resonance_pierce"))):
+        armor_val *= 0.35
+    if bool(syn.get("active", false)) and float(syn.get("armor_pierce", 0.0)) > 0.0:
+        armor_val *= (1.0 - clampf(float(syn.get("armor_pierce", 0.0)), 0.0, 1.0))
+    var armor_factor := clampf(1.0 - (armor_val / 280.0), 0.58, 1.0)
+    dmg *= armor_factor
+
+    result["base_damage"] = maxf(roundf(base_dmg), 4.0)
     result["projected_damage"] = maxf(roundf(dmg), 4.0)
+    result["synergy_name"] = String(syn.get("name", ""))
     result["status_text"] = "FIRING SOLUTION LOCKED"
     return result
 
