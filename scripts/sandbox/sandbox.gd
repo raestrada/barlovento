@@ -1812,9 +1812,10 @@ func _return_to_stage_briefing() -> void:
 	if next_id != "":
 		LoreDB.return_to_briefing_stage_id = next_id
 		LoreDB.current_stage_id = next_id
+		get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
 	else:
-		LoreDB.return_to_briefing_stage_id = LoreDB.current_stage_id
-	get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
+		LoreDB.return_to_briefing_stage_id = ""
+		get_tree().change_scene_to_file("res://scenes/credits/credits.tscn")
 
 func _refresh_fleet_panel() -> void:
 	if _order_panel != null:

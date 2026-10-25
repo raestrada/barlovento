@@ -13,12 +13,12 @@ class VictoryDialog:
 
 	func update_next_stage(next_id: String) -> void:
 		if next_btn != null:
-			next_btn.visible = (next_id != "")
+			next_btn.visible = true
 			if next_id != "":
 				var num_str := next_id.get_slice("_", 2)
 				next_btn.text = "▶ PROCEED TO STAGE %s BRIEFING" % num_str.to_upper()
 			else:
-				next_btn.text = "▶ PROCEED TO BRIEFING"
+				next_btn.text = "★ VIEW CAMPAIGN CREDITS ▶"
 
 	func show() -> void:
 		if root != null:
@@ -138,16 +138,16 @@ static func build_victory_overlay(layer: CanvasLayer, hud_theme: Theme, stage_id
 	vbox.add_child(btn_row)
 
 	var victory_next_btn := Button.new()
-	victory_next_btn.text = "▶ PROCEED TO NEXT BRIEFING"
+	victory_next_btn.text = "▶ PROCEED TO NEXT BRIEFING" if has_next_stage else "★ VIEW CAMPAIGN CREDITS ▶"
 	victory_next_btn.custom_minimum_size = Vector2(240, 38)
-	victory_next_btn.visible = has_next_stage
+	victory_next_btn.visible = true
 	if on_return.is_valid():
 		victory_next_btn.pressed.connect(on_return)
 	btn_row.add_child(victory_next_btn)
 	dialog.next_btn = victory_next_btn
 
 	var menu_btn := Button.new()
-	menu_btn.text = "◀ CAMPAIGN BRIEFING"
+	menu_btn.text = "◀ CAMPAIGN BRIEFING" if has_next_stage else "◀ MAIN MENU"
 	menu_btn.custom_minimum_size = Vector2(180, 38)
 	if on_return.is_valid():
 		menu_btn.pressed.connect(on_return)
