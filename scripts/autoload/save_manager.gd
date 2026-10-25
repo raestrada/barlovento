@@ -1,5 +1,8 @@
 extends Node
 
+const RpgDefs = preload("res://scripts/data/rpg_defs.gd")
+const LoreDBScript = preload("res://scripts/autoload/lore_db.gd")
+
 const CAMPAIGN_SAVE_PATH := "user://barlovento_campaign.json"
 const TACTICAL_SAVE_PATH := "user://barlovento_tactical_save.json"
 const SETTINGS_PATH := "user://barlovento_settings.json"
@@ -19,6 +22,12 @@ var last_stage_id: String = "acero_stage_1"
 var total_victories: int = 0
 var total_kills: int = 0
 
+# --- RPG PROGRESSION & ECONOMY ---
+var eteron_credits: int = 1200
+var pilot_skills: Dictionary = {} # pilot_name -> Array[String] (unlocked skill IDs)
+var pilot_xp: Dictionary = {} # pilot_name -> Dictionary {level: int, xp: int, sp_available: int}
+var fleet_upgrades: Dictionary = {} # ship_id -> Dictionary {armor_lvl: int, weapon_lvl: int, engine_lvl: int, subsystem: String}
+
 var pending_load_battle: bool = false
 
 func _ready() -> void:
@@ -34,6 +43,10 @@ func save_campaign() -> void:
         "last_stage_id": last_stage_id,
         "total_victories": total_victories,
         "total_kills": total_kills,
+        "eteron_credits": eteron_credits,
+        "pilot_skills": pilot_skills,
+        "pilot_xp": pilot_xp,
+        "fleet_upgrades": fleet_upgrades,
         "timestamp": Time.get_datetime_string_from_system()
     }
     var file := FileAccess.open(CAMPAIGN_SAVE_PATH, FileAccess.WRITE)
@@ -68,6 +81,14 @@ func load_campaign() -> void:
             total_victories = int(d["total_victories"])
         if d.has("total_kills"):
             total_kills = int(d["total_kills"])
+        if d.has("eteron_credits"):
+            eteron_credits = int(d["eteron_credits"])
+        if d.has("pilot_skills") and d["pilot_skills"] is Dictionary:
+            pilot_skills = d["pilot_skills"]
+        if d.has("pilot_xp") and d["pilot_xp"] is Dictionary:
+            pilot_xp = d["pilot_xp"]
+        if d.has("fleet_upgrades") and d["fleet_upgrades"] is Dictionary:
+            fleet_upgrades = d["fleet_upgrades"]
 
 func get_veteran_rank(ship_id: String) -> int:
     return int(veteran_ranks.get(ship_id, 0))
@@ -105,6 +126,210 @@ func record_stage_victory(stage_id: String, surviving_ships: Array, enemies_dest
         last_stage_id = next_stage
     save_campaign()
     return next_stage
+
+# =============================================================================
+# RPG ECONOMY & PROGRESSION METHODS
+# =============================================================================
+
+func award_battle_spoils(stage_id: String, surviving_ships: Array, enemies_destroyed: int = 3) -> Dictionary:
+    var stage_num := 1
+    var num_slice := stage_id.get_slice("_", 2)
+    if num_slice.is_valid_int():
+        stage_num = num_slice.to_int()
+
+    var base_eteron := 450 + stage_num * 60
+    var kill_bonus := enemies_destroyed * 80
+    var survivor_bonus := surviving_ships.size() * 50
+    var earned_eteron := base_eteron + kill_bonus + survivor_bonus
+    eteron_credits += earned_eteron
+
+    var earned_xp := 220 + stage_num * 40
+    var promotions: Array[Dictionary] = []
+
+    for s in surviving_ships:
+        var p_name := ""
+        if s is Ship and is_instance_valid(s):
+            p_name = s.pilot_name
+        elif s is String:
+            var lore_node = get_node_or_null("/root/LoreDB")
+            if lore_node != null and lore_node.has_method("get_ship"):
+                var def = lore_node.get_ship(s)
+                if def != null:
+                    p_name = def.pilot_name
+            else:
+                var temp_lore = LoreDBScript.new()
+                temp_lore._ready()
+                var def = temp_lore.get_ship(s)
+                if def != null:
+                    p_name = def.pilot_name
+        if p_name.is_empty():
+            continue
+
+        var p_data := get_pilot_data(p_name)
+        var old_lvl: int = p_data["level"]
+        var cur_xp: int = p_data["xp"] + earned_xp
+        var new_lvl := _calculate_pilot_level(cur_xp)
+        var gained_levels := new_lvl - old_lvl
+
+        p_data["xp"] = cur_xp
+        p_data["level"] = new_lvl
+        p_data["sp_available"] = int(p_data["sp_available"]) + gained_levels
+        pilot_xp[p_name] = {
+            "level": new_lvl,
+            "xp": cur_xp,
+            "sp_available": p_data["sp_available"]
+        }
+
+        if gained_levels > 0:
+            promotions.append({
+                "pilot_name": p_name,
+                "old_level": old_lvl,
+                "new_level": new_lvl,
+                "sp_gained": gained_levels
+            })
+
+    save_campaign()
+    return {
+        "eteron_earned": earned_eteron,
+        "xp_earned": earned_xp,
+        "total_credits": eteron_credits,
+        "promotions": promotions
+    }
+
+func _calculate_pilot_level(xp: int) -> int:
+    if xp >= 2000: return 5
+    if xp >= 1200: return 4
+    if xp >= 650:  return 3
+    if xp >= 250:  return 2
+    return 1
+
+func get_pilot_data(pilot_name: String) -> Dictionary:
+    if not pilot_xp.has(pilot_name):
+        pilot_xp[pilot_name] = {
+            "level": 1,
+            "xp": 0,
+            "sp_available": 0
+        }
+    var d: Dictionary = pilot_xp[pilot_name]
+    var skills: Array = pilot_skills.get(pilot_name, [])
+    return {
+        "level": int(d.get("level", 1)),
+        "xp": int(d.get("xp", 0)),
+        "sp_available": int(d.get("sp_available", 0)),
+        "skills": skills
+    }
+
+func unlock_pilot_skill(pilot_name: String, skill_id: String) -> bool:
+    var skill := RpgDefs.get_skill(skill_id)
+    if skill == null:
+        return false
+    var p_data := get_pilot_data(pilot_name)
+    var cur_skills: Array = p_data["skills"]
+    if cur_skills.has(skill_id):
+        return false
+    if p_data["sp_available"] < skill.cost_sp:
+        return false
+    if skill.requires_id != "" and not cur_skills.has(skill.requires_id):
+        return false
+
+    p_data["sp_available"] -= skill.cost_sp
+    pilot_xp[pilot_name] = {
+        "level": p_data["level"],
+        "xp": p_data["xp"],
+        "sp_available": p_data["sp_available"]
+    }
+    if not pilot_skills.has(pilot_name):
+        pilot_skills[pilot_name] = []
+    pilot_skills[pilot_name].append(skill_id)
+    save_campaign()
+    return true
+
+func respec_pilot_skills(pilot_name: String) -> void:
+    var p_data := get_pilot_data(pilot_name)
+    var refunded_sp: int = maxi(0, p_data["level"] - 1)
+    pilot_skills[pilot_name] = []
+    pilot_xp[pilot_name] = {
+        "level": p_data["level"],
+        "xp": p_data["xp"],
+        "sp_available": refunded_sp
+    }
+    save_campaign()
+
+func get_pilot_perks(pilot_name: String) -> Array:
+    return pilot_skills.get(pilot_name, [])
+
+func get_ship_upgrade_data(ship_id: String) -> Dictionary:
+    if not fleet_upgrades.has(ship_id):
+        fleet_upgrades[ship_id] = {
+            "armor_lvl": 0,
+            "weapon_lvl": 0,
+            "engine_lvl": 0,
+            "subsystem": ""
+        }
+    return fleet_upgrades[ship_id]
+
+func purchase_fleet_upgrade(ship_id: String, category: String) -> bool:
+    var u_data := get_ship_upgrade_data(ship_id)
+    var cat_clean := category
+    if cat_clean == "weapons":
+        cat_clean = "weapon"
+    elif cat_clean == "engines":
+        cat_clean = "engine"
+    var key := cat_clean + "_lvl"
+    var cur_lvl: int = int(u_data.get(key, 0))
+    var next_lvl := cur_lvl + 1
+    var tiers := RpgDefs.get_shipyard_tiers(category)
+    if next_lvl >= tiers.size():
+        return false
+    var target_tier: RpgDefs.UpgradeTier = tiers[next_lvl]
+    if eteron_credits < target_tier.cost_eteron:
+        return false
+    eteron_credits -= target_tier.cost_eteron
+    u_data[key] = next_lvl
+    fleet_upgrades[ship_id] = u_data
+    save_campaign()
+    return true
+
+func purchase_subsystem(ship_id: String, subsystem_id: String) -> bool:
+    var u_data := get_ship_upgrade_data(ship_id)
+    if u_data.get("subsystem", "") == subsystem_id:
+        return true # Already installed
+    var cost := 600
+    for faction_key in ["acero", "vinculados", "marea_libre"]:
+        for sub in RpgDefs.get_subsystems_for_faction(faction_key):
+            if sub.id == subsystem_id:
+                cost = sub.cost_eteron
+                break
+    if eteron_credits < cost:
+        return false
+    eteron_credits -= cost
+    u_data["subsystem"] = subsystem_id
+    fleet_upgrades[ship_id] = u_data
+    save_campaign()
+    return true
+
+func get_ship_effective_multipliers(ship_id: String) -> Dictionary:
+    var u_data := get_ship_upgrade_data(ship_id)
+    var armor_tiers := RpgDefs.get_shipyard_tiers("armor")
+    var weapon_tiers := RpgDefs.get_shipyard_tiers("weapons")
+    var engine_tiers := RpgDefs.get_shipyard_tiers("engines")
+
+    var a_lvl: int = clampi(int(u_data.get("armor_lvl", 0)), 0, armor_tiers.size() - 1)
+    var w_lvl: int = clampi(int(u_data.get("weapon_lvl", u_data.get("weapons_lvl", 0))), 0, weapon_tiers.size() - 1)
+    var e_lvl: int = clampi(int(u_data.get("engine_lvl", u_data.get("engines_lvl", 0))), 0, engine_tiers.size() - 1)
+
+    var a_tier: RpgDefs.UpgradeTier = armor_tiers[a_lvl] if not armor_tiers.is_empty() else null
+    var w_tier: RpgDefs.UpgradeTier = weapon_tiers[w_lvl] if not weapon_tiers.is_empty() else null
+    var e_tier: RpgDefs.UpgradeTier = engine_tiers[e_lvl] if not engine_tiers.is_empty() else null
+
+    return {
+        "hp_mult": a_tier.hp_mult if a_tier else 1.0,
+        "armor_mult": a_tier.armor_mult if a_tier else 1.0,
+        "dmg_mult": w_tier.dmg_mult if w_tier else 1.0,
+        "thrust_mult": e_tier.thrust_mult if e_tier else 1.0,
+        "speed_mult": e_tier.speed_mult if e_tier else 1.0,
+        "subsystem": str(u_data.get("subsystem", ""))
+    }
 
 func get_next_stage_id(stage_id: String) -> String:
     match stage_id:
@@ -191,7 +416,7 @@ func save_tactical_state(
     target_idx: int = 0
 ) -> bool:
     if faction == "":
-        faction = LoreDB.selected_faction
+        faction = last_selected_faction
     var allies_data: Array = []
     for s in player_ships:
         if s != null and is_instance_valid(s):
@@ -369,11 +594,12 @@ func save_settings(settings: Dictionary) -> void:
     apply_settings(settings)
 
 func apply_settings(settings: Dictionary) -> void:
-    if AudioManager != null:
-        AudioManager.set_master_volume(float(settings.get("master_volume", 1.0)))
-        AudioManager.set_music_volume(float(settings.get("music_volume", 0.85)))
-        AudioManager.set_sfx_volume(float(settings.get("sfx_volume", 1.0)))
-        AudioManager.set_ambient_volume(float(settings.get("ambient_volume", 0.80)))
+    var audio = get_node_or_null("/root/AudioManager")
+    if audio != null:
+        audio.set_master_volume(float(settings.get("master_volume", 1.0)))
+        audio.set_music_volume(float(settings.get("music_volume", 0.85)))
+        audio.set_sfx_volume(float(settings.get("sfx_volume", 1.0)))
+        audio.set_ambient_volume(float(settings.get("ambient_volume", 0.80)))
 
     var is_full: bool = bool(settings.get("fullscreen", false))
     if DisplayServer.has_feature(DisplayServer.FEATURE_SUBWINDOWS):

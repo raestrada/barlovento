@@ -183,10 +183,15 @@ static func resolve_shot(shooter: Ship, target: Ship) -> Dictionary:
         var armor_val := target.get_quadrant_armor(quadrant)
         if (slot3_on and shooter.faction == "vinculados") or (shooter.has_meta("resonance_pierce") and bool(shooter.get_meta("resonance_pierce"))):
             armor_val *= 0.35
+        if shooter.pilot_perks.has("cbt_armor_piercing"):
+            armor_val *= 0.85
         if bool(syn.get("active", false)) and float(syn.get("armor_pierce", 0.0)) > 0.0:
             armor_val *= (1.0 - clampf(float(syn.get("armor_pierce", 0.0)), 0.0, 1.0))
         var armor_factor := clampf(1.0 - (armor_val / 280.0), 0.58, 1.0)
         dmg *= armor_factor
+        if shooter.pilot_perks.has("cbt_alpha_strike") and TurnManager.ace_round <= 1:
+            dmg *= 1.25
+            result["critical"] = true
 
         if (slot3_on and shooter.faction == "marea_libre") or (shooter.has_meta("chain_shot_active") and bool(shooter.get_meta("chain_shot_active"))):
             target.order.target_speed = maxf(target.order.target_speed - 4.0, 0.0)
@@ -290,10 +295,14 @@ static func predict_fire_solution(shooter: Ship, target: Ship) -> Dictionary:
 
     if (slot3_on and shooter.faction == "vinculados") or (shooter.has_meta("resonance_pierce") and bool(shooter.get_meta("resonance_pierce"))):
         armor_val *= 0.35
+    if shooter.pilot_perks.has("cbt_armor_piercing"):
+        armor_val *= 0.85
     if bool(syn.get("active", false)) and float(syn.get("armor_pierce", 0.0)) > 0.0:
         armor_val *= (1.0 - clampf(float(syn.get("armor_pierce", 0.0)), 0.0, 1.0))
     var armor_factor := clampf(1.0 - (armor_val / 280.0), 0.58, 1.0)
     dmg *= armor_factor
+    if shooter.pilot_perks.has("cbt_alpha_strike") and TurnManager.ace_round <= 1:
+        dmg *= 1.25
 
     result["base_damage"] = maxf(roundf(base_dmg), 4.0)
     result["projected_damage"] = maxf(roundf(dmg), 4.0)

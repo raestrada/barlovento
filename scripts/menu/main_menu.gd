@@ -1,5 +1,7 @@
 extends Control
 
+const RpgHangarModal = preload("res://scripts/ui/rpg/rpg_hangar_modal.gd")
+
 enum MenuView { TITLE, FACTION_SELECT, BRIEFING }
 
 var _current_view: MenuView = MenuView.TITLE
@@ -19,6 +21,7 @@ var _load_modal: Control
 var _settings_modal: Control
 var _codex_modal: Control
 var _roster_modal: HudWidgets.HeroRosterModal
+var _hangar_modal: RpgHangarModal
 var _fade_rect: ColorRect
 var _theme: Theme
 var _anim_time: float = 0.0
@@ -52,6 +55,11 @@ func _ready() -> void:
 	_roster_modal.theme = _theme
 	add_child(_roster_modal)
 
+	_hangar_modal = RpgHangarModal.new()
+	_hangar_modal.theme = _theme
+	_hangar_modal.proceed_to_briefing_requested.connect(_on_hangar_proceed)
+	add_child(_hangar_modal)
+
 	_fade_rect = ColorRect.new()
 	_fade_rect.color = Color(0.01, 0.02, 0.04, 1.0)
 	_fade_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -68,7 +76,24 @@ func _ready() -> void:
 	AudioManager.crossfade_to(menu_track, -11.0, 1.2)
 	AudioManager.start_ambient(-24.0)
 
-	if LoreDB.return_to_briefing_stage_id != "":
+	if LoreDB.open_hangar_on_load:
+		LoreDB.open_hangar_on_load = false
+		var spoils := LoreDB.last_battle_spoils
+		var target_stage := LoreDB.return_to_briefing_stage_id
+		var fac := _selected_faction
+		if target_stage.begins_with("vinculados"):
+			fac = "vinculados"
+		elif target_stage.begins_with("marea"):
+			fac = "marea_libre"
+		elif target_stage.begins_with("acero"):
+			fac = "acero"
+		_selected_faction = fac
+		_focused_faction = fac
+		LoreDB.selected_faction = fac
+		_switch_view(MenuView.TITLE)
+		_hangar_modal.setup_hangar(fac, spoils, target_stage)
+		_hangar_modal.visible = true
+	elif LoreDB.return_to_briefing_stage_id != "":
 		var target_stage := LoreDB.return_to_briefing_stage_id
 		LoreDB.return_to_briefing_stage_id = ""
 		var fac := "acero"
@@ -120,6 +145,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if _roster_modal != null and _roster_modal.visible:
 			_roster_modal.visible = false
+			AudioManager.play_sfx("ui_click", -8.0)
+			get_viewport().set_input_as_handled()
+			return
+		if _hangar_modal != null and _hangar_modal.visible:
+			_hangar_modal.visible = false
 			AudioManager.play_sfx("ui_click", -8.0)
 			get_viewport().set_input_as_handled()
 			return
@@ -297,6 +327,19 @@ func _build_title_view() -> void:
 		_open_settings_modal()
 	)
 	menu_vbox.add_child(btn_settings)
+
+	var btn_hangar := _make_menu_button(
+		"⚡  HANGAR DE FLOTA & ASES (RPG)",
+		"Mejora cascos, propulsores, armas y asigna SP a los pilotos héroes",
+		false
+	)
+	btn_hangar.pressed.connect(func() -> void:
+		AudioManager.play_sfx("ui_click", -8.0)
+		if _hangar_modal != null:
+			_hangar_modal.setup_hangar(_selected_faction, {}, "")
+			_hangar_modal.visible = true
+	)
+	menu_vbox.add_child(btn_hangar)
 
 	var btn_codex := _make_menu_button(
 		"📖  MANUAL TÁCTICO & AYUDA",
@@ -927,6 +970,27 @@ func _select_faction_and_open_briefing(fac_id: String) -> void:
 			_populate_marea_stage_briefing("marea_stage_1")
 
 	_switch_view(MenuView.BRIEFING)
+
+func _on_hangar_proceed(target_stage: String) -> void:
+	if target_stage != "":
+		LoreDB.return_to_briefing_stage_id = ""
+		var fac := "acero"
+		if target_stage.begins_with("vinculados"):
+			fac = "vinculados"
+		elif target_stage.begins_with("marea"):
+			fac = "marea_libre"
+		_selected_faction = fac
+		_focused_faction = fac
+		LoreDB.selected_faction = fac
+		if fac == "acero":
+			_populate_acero_stage_briefing(target_stage)
+		elif fac == "vinculados":
+			_populate_vinculados_stage_briefing(target_stage)
+		elif fac == "marea_libre":
+			_populate_marea_stage_briefing(target_stage)
+		_switch_view(MenuView.BRIEFING)
+	else:
+		_switch_view(MenuView.TITLE)
 
 func _populate_acero_stage_briefing(stage_id: String) -> void:
 	CampaignBriefingBuilder.populate_acero(self, stage_id)

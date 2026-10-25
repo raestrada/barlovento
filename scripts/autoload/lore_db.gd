@@ -10,6 +10,8 @@ var player_faction: String:
         selected_faction = value
 var current_stage_id: String = "acero_stage_1"
 var return_to_briefing_stage_id: String = ""
+var open_hangar_on_load: bool = false
+var last_battle_spoils: Dictionary = {}
 
 var _ships: Dictionary = {}
 

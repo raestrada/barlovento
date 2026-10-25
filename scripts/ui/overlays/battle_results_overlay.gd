@@ -16,7 +16,7 @@ class VictoryDialog:
 			next_btn.visible = true
 			if next_id != "":
 				var num_str := next_id.get_slice("_", 2)
-				next_btn.text = "▶ PROCEED TO STAGE %s BRIEFING" % num_str.to_upper()
+				next_btn.text = "⚡ ENTER FLEET HANGAR & ACES (STAGE %s) ▶" % num_str.to_upper()
 			else:
 				next_btn.text = "★ VIEW CAMPAIGN CREDITS ▶"
 

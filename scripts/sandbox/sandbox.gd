@@ -1887,6 +1887,7 @@ func _return_to_stage_briefing() -> void:
 	if next_id != "":
 		LoreDB.return_to_briefing_stage_id = next_id
 		LoreDB.current_stage_id = next_id
+		LoreDB.open_hangar_on_load = true
 		get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
 	else:
 		LoreDB.return_to_briefing_stage_id = ""
@@ -2030,6 +2031,10 @@ func _show_mission_victory() -> void:
 			])
 
 	SaveManager.record_stage_victory(LoreDB.current_stage_id, surviving_ids)
+	var enemies_killed := _enemy_ships.size()
+	var spoils := SaveManager.award_battle_spoils(LoreDB.current_stage_id, _player_ships, enemies_killed)
+	LoreDB.last_battle_spoils = spoils
+	LoreDB.open_hangar_on_load = true
 
 	if LoreDB.current_stage_id == "acero_stage_1":
 		_add_combat_log("TUTORIAL COMPLETE: SLUICE STATION WELL-09 SECURED! STEEL ENDURES!", Color(0.3, 1.0, 0.6))

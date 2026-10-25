@@ -48,6 +48,8 @@ var armor_stbd: float = 88.0
 var armor_stern: float = 65.0
 var unit_code: String = "UNIT_01"
 var veteran_rank: int = 0
+var subsystem_id: String = ""
+var pilot_perks: Array = []
 var use_2d_callout: bool = true
 var is_auto_pilot: bool = false
 
@@ -112,7 +114,34 @@ func apply_def(def: ShipDef) -> void:
     var vet_hp_mult := 1.0 + float(veteran_rank) * 0.06
     var vet_dmg_mult := 1.0 + float(veteran_rank) * 0.05
 
-    hp = roundf(def.hp * vet_hp_mult)
+    var ship_mults: Dictionary = {}
+    if team == 0:
+        ship_mults = SaveManager.get_ship_effective_multipliers(ship_id)
+        pilot_perks = SaveManager.get_pilot_perks(pilot_name)
+        subsystem_id = str(ship_mults.get("subsystem", ""))
+
+        hp = roundf(def.hp * vet_hp_mult * float(ship_mults.get("hp_mult", 1.0)))
+        weapon_damage = roundf(def.weapon_damage * vet_dmg_mult * float(ship_mults.get("dmg_mult", 1.0)))
+        max_thrust = def.max_thrust * float(ship_mults.get("thrust_mult", 1.0))
+        brake_thrust = def.brake_thrust * float(ship_mults.get("thrust_mult", 1.0))
+        max_speed = def.max_speed * float(ship_mults.get("speed_mult", 1.0))
+
+        if pilot_perks.has("hlm_inertial_tuning"):
+            turn_power *= 1.15
+        if pilot_perks.has("hlm_retro_thrusters"):
+            brake_thrust *= 1.25
+        if pilot_perks.has("cbt_range_calibrator"):
+            weapon_range *= 1.12
+        if pilot_perks.has("doc_battle_rhythm"):
+            max_action_points += 1
+            action_points = max_action_points
+        if subsystem_id == "psycho_overclock":
+            max_action_points += 2
+            action_points = max_action_points
+    else:
+        hp = roundf(def.hp * vet_hp_mult)
+        weapon_damage = roundf(def.weapon_damage * vet_dmg_mult)
+
     max_hp = hp
     var shield_ratio := 0.50
     match faction:
@@ -126,8 +155,8 @@ func apply_def(def: ShipDef) -> void:
             shield_ratio = 0.55
     max_shield_hp = roundf(hp * shield_ratio)
     shield_hp = max_shield_hp
-    weapon_range = def.weapon_range
-    weapon_damage = roundf(def.weapon_damage * vet_dmg_mult)
+    if team != 0:
+        weapon_range = def.weapon_range
     weapon_arc_degrees = def.weapon_arc_degrees
     ship_color = def.color
     body_size = def.body_size
@@ -195,6 +224,13 @@ func apply_def(def: ShipDef) -> void:
             armor_stern = 55.0
         _:
             unit_code = ship_id.to_upper()
+
+    if team == 0 and not ship_mults.is_empty():
+        var arm_m := float(ship_mults.get("armor_mult", 1.0))
+        armor_bow = roundf(armor_bow * arm_m)
+        armor_port = roundf(armor_port * arm_m)
+        armor_stbd = roundf(armor_stbd * arm_m)
+        armor_stern = roundf(armor_stern * arm_m)
 
     if is_inside_tree():
         _build_detailed_ship_model()
