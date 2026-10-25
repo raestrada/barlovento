@@ -19,6 +19,35 @@ func spawn_laser_beam(from_pos: Vector3, to_pos: Vector3, color: Color, is_mega_
 			right * 0.75 + Vector3.UP * 0.35, -right * 0.75 - Vector3.UP * 0.35,
 			right * 0.40 - Vector3.UP * 0.40, -right * 0.40 + Vector3.UP * 0.40
 		]
+	# Transient dynamic muzzle + midpoint OmniLight3D so beams illuminate nearby ship armor
+	var muzzle_light := OmniLight3D.new()
+	muzzle_light.light_color = color.lerp(Color(1.0, 0.96, 0.90), 0.35)
+	muzzle_light.light_energy = 8.5 if is_mega_beam else 4.8
+	muzzle_light.omni_range = 32.0 if is_mega_beam else 18.0
+	muzzle_light.omni_attenuation = 1.35
+	muzzle_light.position = from_pos
+	add_child(muzzle_light)
+
+	var mid_light := OmniLight3D.new()
+	mid_light.light_color = color
+	mid_light.light_energy = 6.5 if is_mega_beam else 3.2
+	mid_light.omni_range = 36.0 if is_mega_beam else 22.0
+	mid_light.omni_attenuation = 1.4
+	mid_light.position = (from_pos + to_pos) * 0.5
+	add_child(mid_light)
+
+	var light_tween := create_tween()
+	var light_dur := 0.52 if is_mega_beam else 0.35
+	light_tween.set_parallel(true)
+	light_tween.tween_property(muzzle_light, "light_energy", 0.0, light_dur)
+	light_tween.tween_property(mid_light, "light_energy", 0.0, light_dur)
+	light_tween.chain().tween_callback(func() -> void:
+		if is_instance_valid(muzzle_light):
+			muzzle_light.queue_free()
+		if is_instance_valid(mid_light):
+			mid_light.queue_free()
+	)
+
 	for i in range(offsets.size()):
 		var off: Vector3 = offsets[i]
 		var start_p := from_pos + off
@@ -93,17 +122,40 @@ func spawn_impact_flash(pos: Vector3, color: Color) -> void:
 	ring.position = pos
 	add_child(ring)
 
+	# Secondary tilted plasma shockwave ring
+	var ring2 := MeshInstance3D.new()
+	ring2.mesh = torus
+	ring2.material_override = ring_mat
+	ring2.position = pos
+	ring2.rotation_degrees = Vector3(58.0, 24.0, 32.0)
+	add_child(ring2)
+
+	# Transient dynamic impact OmniLight3D to cast specular highlights on nearby hulls
+	var impact_light := OmniLight3D.new()
+	impact_light.light_color = color.lerp(Color(1.0, 0.92, 0.78), 0.30)
+	impact_light.light_energy = 7.2
+	impact_light.omni_range = 28.0
+	impact_light.omni_attenuation = 1.3
+	impact_light.position = pos
+	add_child(impact_light)
+
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(flash, "scale", Vector3(3.4, 3.4, 3.4), 0.25)
-	tween.tween_property(mat, "albedo_color:a", 0.0, 0.25)
-	tween.tween_property(ring, "scale", Vector3(4.8, 4.8, 4.8), 0.34)
-	tween.tween_property(ring_mat, "albedo_color:a", 0.0, 0.34)
+	tween.tween_property(flash, "scale", Vector3(3.6, 3.6, 3.6), 0.28)
+	tween.tween_property(mat, "albedo_color:a", 0.0, 0.28)
+	tween.tween_property(ring, "scale", Vector3(5.2, 5.2, 5.2), 0.36)
+	tween.tween_property(ring2, "scale", Vector3(4.2, 4.2, 4.2), 0.32)
+	tween.tween_property(ring_mat, "albedo_color:a", 0.0, 0.36)
+	tween.tween_property(impact_light, "light_energy", 0.0, 0.38)
 	tween.chain().tween_callback(func() -> void:
 		if is_instance_valid(flash):
 			flash.queue_free()
 		if is_instance_valid(ring):
 			ring.queue_free()
+		if is_instance_valid(ring2):
+			ring2.queue_free()
+		if is_instance_valid(impact_light):
+			impact_light.queue_free()
 	)
 
 func spawn_combat_text(pos: Vector3, text: String, color: Color) -> void:

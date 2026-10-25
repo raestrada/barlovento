@@ -13,6 +13,7 @@ static var _sky_shader: Shader = null
 static var _planet_shader: Shader = null
 static var _ring_shader: Shader = null
 static var _ribbon_shader: Shader = null
+static var _nebula_tex: Texture2D = null
 
 func setup_environment(include_diorama_fleets: bool = false) -> WorldEnvironment:
 	var stage := LoreDB.current_stage_id if not include_diorama_fleets else ""
@@ -30,80 +31,124 @@ func setup_environment(include_diorama_fleets: bool = false) -> WorldEnvironment
 	zenith_fill.rotation_degrees = Vector3(-72.0, 110.0, 0.0)
 
 	var env := Environment.new()
+	var sky_tint := Vector3(1.0, 1.0, 1.0)
 
 	match stage:
-		"vinculados_stage_1":
-			sun.light_energy = 1.55
-			sun.light_color = Color(0.92, 0.95, 1.05)
-			rim_light.light_energy = 1.15
-			rim_light.light_color = Color(0.68, 0.38, 0.98) # Violet/cyan neural resonance
-			zenith_fill.light_energy = 0.85
-			zenith_fill.light_color = Color(0.45, 0.75, 0.95)
-			env.ambient_light_color = Color(0.28, 0.32, 0.55)
-			env.ambient_light_energy = 1.45
-		"vinculados_stage_2":
-			sun.light_energy = 1.45
-			sun.light_color = Color(0.85, 0.92, 1.10)
-			rim_light.light_energy = 1.25
-			rim_light.light_color = Color(0.40, 0.88, 1.0) # High-altitude crystal beam rim
-			zenith_fill.light_energy = 0.90
-			zenith_fill.light_color = Color(0.62, 0.45, 0.95)
-			env.ambient_light_color = Color(0.22, 0.26, 0.58)
-			env.ambient_light_energy = 1.50
-		"vinculados_stage_3":
-			sun.light_energy = 1.85
-			sun.light_color = Color(1.0, 0.96, 1.05)
-			rim_light.light_energy = 1.35
-			rim_light.light_color = Color(0.88, 0.25, 0.95) # Cosmic rift neural purple
-			zenith_fill.light_energy = 0.75
-			zenith_fill.light_color = Color(0.35, 0.85, 1.0)
-			env.ambient_light_color = Color(0.18, 0.16, 0.36)
-			env.ambient_light_energy = 1.35
-		"marea_stage_1":
-			sun.light_energy = 1.95
-			sun.light_color = Color(1.08, 0.92, 0.72) # Radiant golden solar flare
-			rim_light.light_energy = 1.10
-			rim_light.light_color = Color(0.25, 0.90, 1.0) # Rushing turquoise Éther current
-			zenith_fill.light_energy = 0.80
-			zenith_fill.light_color = Color(0.95, 0.82, 0.65)
-			env.ambient_light_color = Color(0.36, 0.42, 0.46)
-			env.ambient_light_energy = 1.50
-		"marea_stage_2":
-			sun.light_energy = 1.80
-			sun.light_color = Color(1.10, 0.78, 0.42) # Industrial furnace ambient
-			rim_light.light_energy = 1.05
-			rim_light.light_color = Color(0.30, 0.85, 0.95)
-			zenith_fill.light_energy = 0.90
-			zenith_fill.light_color = Color(1.0, 0.65, 0.28)
-			env.ambient_light_color = Color(0.38, 0.35, 0.38)
-			env.ambient_light_energy = 1.48
-		"marea_stage_3":
-			sun.light_energy = 2.15
-			sun.light_color = Color(1.15, 0.96, 0.82) # Blazing open sea solar corona
-			rim_light.light_energy = 1.25
-			rim_light.light_color = Color(0.20, 0.94, 1.0) # Convergent Maelstrom current
-			zenith_fill.light_energy = 0.85
-			zenith_fill.light_color = Color(0.85, 0.90, 1.0)
-			env.ambient_light_color = Color(0.32, 0.46, 0.58)
-			env.ambient_light_energy = 1.55
-		"acero_stage_3":
-			sun.light_energy = 1.70
-			sun.light_color = Color(1.02, 0.92, 0.84)
-			rim_light.light_energy = 1.20
-			rim_light.light_color = Color(0.78, 0.20, 0.92) # Calm threshold corruption rim
-			zenith_fill.light_energy = 0.65
-			zenith_fill.light_color = Color(0.65, 0.75, 0.90)
-			env.ambient_light_color = Color(0.18, 0.22, 0.35)
-			env.ambient_light_energy = 1.30
-		_:
+		# VINCULADOS CAMPAIGN (Stages 1 - 12): Harmonic Sanctuary, Crystal Chasms, & Transcendence
+		"vinculados_stage_1", "vinculados_stage_4", "vinculados_stage_6":
 			sun.light_energy = 1.65
-			sun.light_color = Color(1.0, 0.96, 0.90)
-			rim_light.light_energy = 0.88
-			rim_light.light_color = Color(0.45, 0.78, 0.96)
-			zenith_fill.light_energy = 0.75
-			zenith_fill.light_color = Color(0.80, 0.86, 0.95)
-			env.ambient_light_color = Color(0.32, 0.42, 0.56)
-			env.ambient_light_energy = 1.40
+			sun.light_color = Color(0.94, 0.96, 1.06)
+			rim_light.light_energy = 1.30
+			rim_light.light_color = Color(0.76, 0.36, 1.0)
+			zenith_fill.light_energy = 0.92
+			zenith_fill.light_color = Color(0.38, 0.84, 1.0)
+			env.ambient_light_color = Color(0.26, 0.34, 0.62)
+			env.ambient_light_energy = 1.50
+			sky_tint = Vector3(1.05, 0.98, 1.24)
+		"vinculados_stage_2", "vinculados_stage_5", "vinculados_stage_7":
+			sun.light_energy = 1.60
+			sun.light_color = Color(0.88, 0.95, 1.12)
+			rim_light.light_energy = 1.38
+			rim_light.light_color = Color(0.28, 0.92, 1.0)
+			zenith_fill.light_energy = 0.95
+			zenith_fill.light_color = Color(0.68, 0.42, 1.0)
+			env.ambient_light_color = Color(0.22, 0.30, 0.64)
+			env.ambient_light_energy = 1.55
+			sky_tint = Vector3(0.92, 1.12, 1.28)
+		"vinculados_stage_3", "vinculados_stage_8", "vinculados_stage_9", "vinculados_stage_10":
+			sun.light_energy = 1.85
+			sun.light_color = Color(1.02, 0.95, 1.08)
+			rim_light.light_energy = 1.42
+			rim_light.light_color = Color(0.92, 0.24, 0.96)
+			zenith_fill.light_energy = 0.85
+			zenith_fill.light_color = Color(0.32, 0.88, 1.0)
+			env.ambient_light_color = Color(0.24, 0.20, 0.48)
+			env.ambient_light_energy = 1.42
+			sky_tint = Vector3(1.18, 0.92, 1.26)
+		"vinculados_stage_11", "vinculados_stage_12":
+			sun.light_energy = 2.05
+			sun.light_color = Color(1.06, 0.98, 1.10)
+			rim_light.light_energy = 1.55
+			rim_light.light_color = Color(0.98, 0.28, 0.92)
+			zenith_fill.light_energy = 0.95
+			zenith_fill.light_color = Color(0.25, 0.95, 1.0)
+			env.ambient_light_color = Color(0.28, 0.22, 0.56)
+			env.ambient_light_energy = 1.52
+			sky_tint = Vector3(1.25, 0.96, 1.32)
+
+		# MAREA LIBRE CAMPAIGN (Stages 1 - 12): Golden Solar Corona, Emerald Currents, & Maelstrom
+		"marea_stage_1", "marea_stage_4", "marea_stage_6":
+			sun.light_energy = 2.00
+			sun.light_color = Color(1.10, 0.92, 0.68)
+			rim_light.light_energy = 1.25
+			rim_light.light_color = Color(0.18, 0.94, 1.0)
+			zenith_fill.light_energy = 0.88
+			zenith_fill.light_color = Color(0.98, 0.84, 0.62)
+			env.ambient_light_color = Color(0.32, 0.46, 0.52)
+			env.ambient_light_energy = 1.52
+			sky_tint = Vector3(1.12, 1.14, 0.96)
+		"marea_stage_2", "marea_stage_5", "marea_stage_7", "marea_stage_10":
+			sun.light_energy = 1.88
+			sun.light_color = Color(1.12, 0.78, 0.40)
+			rim_light.light_energy = 1.18
+			rim_light.light_color = Color(0.24, 0.88, 0.98)
+			zenith_fill.light_energy = 0.92
+			zenith_fill.light_color = Color(1.0, 0.66, 0.28)
+			env.ambient_light_color = Color(0.38, 0.34, 0.40)
+			env.ambient_light_energy = 1.48
+			sky_tint = Vector3(1.22, 0.98, 0.88)
+		"marea_stage_3", "marea_stage_8", "marea_stage_9", "marea_stage_11", "marea_stage_12":
+			sun.light_energy = 2.18
+			sun.light_color = Color(1.16, 0.96, 0.78)
+			rim_light.light_energy = 1.40
+			rim_light.light_color = Color(0.14, 0.96, 1.0)
+			zenith_fill.light_energy = 0.92
+			zenith_fill.light_color = Color(0.82, 0.92, 1.0)
+			env.ambient_light_color = Color(0.30, 0.48, 0.62)
+			env.ambient_light_energy = 1.58
+			sky_tint = Vector3(1.08, 1.20, 1.16)
+
+		# ARMADA OF ACERO CAMPAIGN (Stages 1 - 12): Forge Crucibles, Sluice Gates, & Calm Threshold
+		"acero_stage_1", "acero_stage_4", "acero_stage_7":
+			sun.light_energy = 1.80
+			sun.light_color = Color(1.04, 0.94, 0.84)
+			rim_light.light_energy = 1.15
+			rim_light.light_color = Color(0.28, 0.86, 1.0)
+			zenith_fill.light_energy = 0.85
+			zenith_fill.light_color = Color(0.78, 0.86, 0.98)
+			env.ambient_light_color = Color(0.30, 0.40, 0.56)
+			env.ambient_light_energy = 1.46
+			sky_tint = Vector3(1.02, 1.06, 1.14)
+		"acero_stage_2", "acero_stage_5", "acero_stage_6", "acero_stage_8", "acero_stage_9":
+			sun.light_energy = 1.85
+			sun.light_color = Color(1.08, 0.86, 0.66)
+			rim_light.light_energy = 1.22
+			rim_light.light_color = Color(0.32, 0.88, 1.0)
+			zenith_fill.light_energy = 0.88
+			zenith_fill.light_color = Color(0.96, 0.74, 0.52)
+			env.ambient_light_color = Color(0.34, 0.38, 0.50)
+			env.ambient_light_energy = 1.48
+			sky_tint = Vector3(1.16, 1.02, 1.04)
+		"acero_stage_3", "acero_stage_10", "acero_stage_11", "acero_stage_12":
+			sun.light_energy = 1.78
+			sun.light_color = Color(1.04, 0.92, 0.84)
+			rim_light.light_energy = 1.35
+			rim_light.light_color = Color(0.84, 0.22, 0.96)
+			zenith_fill.light_energy = 0.78
+			zenith_fill.light_color = Color(0.58, 0.78, 0.96)
+			env.ambient_light_color = Color(0.22, 0.24, 0.42)
+			env.ambient_light_energy = 1.38
+			sky_tint = Vector3(1.14, 0.90, 1.22)
+		_:
+			sun.light_energy = 1.75
+			sun.light_color = Color(1.02, 0.96, 0.90)
+			rim_light.light_energy = 1.12
+			rim_light.light_color = Color(0.32, 0.86, 1.0)
+			zenith_fill.light_energy = 0.85
+			zenith_fill.light_color = Color(0.80, 0.88, 0.98)
+			env.ambient_light_color = Color(0.30, 0.42, 0.58)
+			env.ambient_light_energy = 1.46
+			sky_tint = Vector3(1.04, 1.08, 1.12)
 
 	add_child(sun)
 	add_child(rim_light)
@@ -112,21 +157,26 @@ func setup_environment(include_diorama_fleets: bool = false) -> WorldEnvironment
 	var world := WorldEnvironment.new()
 	env.background_mode = Environment.BG_SKY
 	var sky := Sky.new()
-	sky.sky_material = _create_star_sea_sky_material()
+	var sky_mat := _create_star_sea_sky_material()
+	sky_mat.set_shader_parameter("stage_tint", sky_tint)
+	sky.sky_material = sky_mat
 	sky.radiance_size = Sky.RADIANCE_SIZE_256
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_sky_contribution = 0.52
+	env.ambient_light_sky_contribution = 0.54
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.tonemap_exposure = 1.04
+	env.tonemap_exposure = 1.06
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 0.86
-	env.adjustment_contrast = 1.05
+	env.adjustment_saturation = 1.16
+	env.adjustment_contrast = 1.10
+	env.ssao_enabled = true
+	env.ssao_radius = 1.20
+	env.ssao_intensity = 1.75
 	env.glow_enabled = true
-	env.glow_intensity = 0.35
-	env.glow_bloom = 0.05
-	env.glow_hdr_threshold = 1.35
-	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
+	env.glow_intensity = 0.65
+	env.glow_bloom = 0.12
+	env.glow_hdr_threshold = 1.05
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SCREEN
 	world.environment = env
 	add_child(world)
 
@@ -195,7 +245,6 @@ func _build_celestial_planetoid() -> void:
 			_build_anvil_planetoid()
 
 func _build_anvil_planetoid() -> void:
-	# Distant Forge-World "Anvil" with molten tectonic forge-rings & cyan atmospheric rim
 	var planet_root := Node3D.new()
 	planet_root.name = "ForgeWorldAnvil"
 	planet_root.position = Vector3(-95.0, 34.0, -185.0)
@@ -211,7 +260,6 @@ func _build_anvil_planetoid() -> void:
 	(_planet_node as MeshInstance3D).material_override = _create_planet_material()
 	planet_root.add_child(_planet_node)
 
-	# Tilted Planetary Orbital Ring / Sluice Ring
 	_planet_ring = MeshInstance3D.new()
 	var torus := TorusMesh.new()
 	torus.inner_radius = 36.0
@@ -224,7 +272,6 @@ func _build_anvil_planetoid() -> void:
 	_planet_ring.material_override = _create_ring_material()
 	planet_root.add_child(_planet_ring)
 
-	# Orbiting shattered moon
 	_moon_pivot = Node3D.new()
 	_moon_pivot.rotation_degrees = Vector3(12.0, 0.0, -16.0)
 	planet_root.add_child(_moon_pivot)
@@ -247,7 +294,6 @@ func _build_anvil_planetoid() -> void:
 	_moon_pivot.add_child(moon)
 
 func _build_salmo_planetoid() -> void:
-	# Distant Sanctuary Moon "El Salmo" // Ethereal pearl-white world with harmonic resonance rings
 	var salmo_root := Node3D.new()
 	salmo_root.name = "SanctuaryMoonSalmo"
 	salmo_root.position = Vector3(-80.0, 38.0, -175.0)
@@ -273,7 +319,6 @@ func _build_salmo_planetoid() -> void:
 	(_planet_node as MeshInstance3D).material_override = s_mat
 	salmo_root.add_child(_planet_node)
 
-	# Primary Harmonic Aura Ring
 	_planet_ring = MeshInstance3D.new()
 	var torus := TorusMesh.new()
 	torus.inner_radius = 34.0
@@ -290,7 +335,6 @@ func _build_salmo_planetoid() -> void:
 	_planet_ring.material_override = r_mat
 	salmo_root.add_child(_planet_ring)
 
-	# Orbiting Resonance Satellite Shards
 	_moon_pivot = Node3D.new()
 	_moon_pivot.rotation_degrees = Vector3(-15.0, 0.0, 22.0)
 	salmo_root.add_child(_moon_pivot)
@@ -310,7 +354,6 @@ func _build_salmo_planetoid() -> void:
 		_moon_pivot.add_child(shard)
 
 func _build_sol_dorado() -> void:
-	# Distant Golden Stellar Corona "Sol Dorado" // Blazing star illuminating the Basalt Narrows
 	var sun_root := Node3D.new()
 	sun_root.name = "SolDorado"
 	sun_root.position = Vector3(88.0, 46.0, -170.0)
@@ -329,7 +372,6 @@ func _build_sol_dorado() -> void:
 	(_planet_node as MeshInstance3D).material_override = sun_mat
 	sun_root.add_child(_planet_node)
 
-	# Outer Golden Coronal Disc
 	_planet_ring = MeshInstance3D.new()
 	var torus := TorusMesh.new()
 	torus.inner_radius = 42.0
@@ -346,7 +388,6 @@ func _build_sol_dorado() -> void:
 	_planet_ring.material_override = ring_mat
 	sun_root.add_child(_planet_ring)
 
-	# Orbiting Basalt Asteroid Belt Ring around Sol Dorado
 	_moon_pivot = Node3D.new()
 	_moon_pivot.rotation_degrees = Vector3(35.0, 15.0, -20.0)
 	sun_root.add_child(_moon_pivot)
@@ -365,7 +406,6 @@ func _build_sol_dorado() -> void:
 		_moon_pivot.add_child(rock)
 
 func _build_crystal_moon_planetoid() -> void:
-	# Crystalline Moon of Psalm-7 with orbiting halo ring of levitating crystal prisms
 	var c_root := Node3D.new()
 	c_root.name = "CrystalMoonPsalm7"
 	c_root.position = Vector3(-75.0, 42.0, -170.0)
@@ -388,7 +428,6 @@ func _build_crystal_moon_planetoid() -> void:
 	(_planet_node as MeshInstance3D).material_override = c_mat
 	c_root.add_child(_planet_node)
 
-	# Planetary Crystal Belt
 	_planet_ring = MeshInstance3D.new()
 	var torus := TorusMesh.new()
 	torus.inner_radius = 32.0
@@ -421,7 +460,6 @@ func _build_crystal_moon_planetoid() -> void:
 		_moon_pivot.add_child(p_inst)
 
 func _build_calm_abyss_planetoid() -> void:
-	# The Calm Abyss & Ancient Genesis Ring Singularity Nexus
 	var abyss_root := Node3D.new()
 	abyss_root.name = "CalmAbyssNexus"
 	abyss_root.position = Vector3(0.0, 32.0, -185.0)
@@ -446,7 +484,6 @@ func _build_calm_abyss_planetoid() -> void:
 	(_planet_node as MeshInstance3D).material_override = abyss_mat
 	abyss_root.add_child(_planet_node)
 
-	# Surrounding Genesis Ring
 	_planet_ring = MeshInstance3D.new()
 	var torus := TorusMesh.new()
 	torus.inner_radius = 35.0
@@ -464,7 +501,6 @@ func _build_calm_abyss_planetoid() -> void:
 	abyss_root.add_child(_planet_ring)
 
 func _build_smelter_forge_planetoid() -> void:
-	# Distant Industrial Smelter Forge World with molten red fissures
 	var forge_root := Node3D.new()
 	forge_root.name = "SmelterWorld"
 	forge_root.position = Vector3(-85.0, 36.0, -180.0)
@@ -497,7 +533,6 @@ func _build_smelter_forge_planetoid() -> void:
 	forge_root.add_child(_planet_ring)
 
 func _build_grand_sol_corona() -> void:
-	# Colossal Radiant Golden Sol Corona // The Open Star Sea
 	var sol_root := Node3D.new()
 	sol_root.name = "GrandSolCorona"
 	sol_root.position = Vector3(82.0, 50.0, -165.0)
@@ -533,21 +568,17 @@ func _build_grand_sol_corona() -> void:
 	sol_root.add_child(_planet_ring)
 
 func _build_volumetric_ether_ribbons() -> void:
-	# Undulating 3D rivers of luminous cyan Éther flowing across the sector
 	var configs := [
 		{"pos": Vector3(0.0, -6.5, -10.0), "rot": Vector3(0.0, -22.0, 0.0), "w": 18.0, "len": 260.0},
 		{"pos": Vector3(-35.0, -11.0, -30.0), "rot": Vector3(4.0, -18.0, -6.0), "w": 12.0, "len": 240.0},
 		{"pos": Vector3(38.0, -4.0, -25.0), "rot": Vector3(-3.0, -26.0, 5.0), "w": 14.0, "len": 240.0},
 	]
 	if LoreDB.current_stage_id == "marea_stage_1":
-		# High-velocity "El Río del Viento" running straight through the Basalt Narrows canyon
 		configs.append({"pos": Vector3(0.0, -2.0, 0.0), "rot": Vector3(0.0, 0.0, 0.0), "w": 26.0, "len": 320.0})
 	elif LoreDB.current_stage_id == "marea_stage_3":
-		# Triple converging ribbons forming the Maelstrom vortex
 		configs.append({"pos": Vector3(-20.0, 0.0, 0.0), "rot": Vector3(0.0, 35.0, 0.0), "w": 24.0, "len": 340.0})
 		configs.append({"pos": Vector3(20.0, 0.0, 0.0), "rot": Vector3(0.0, -35.0, 0.0), "w": 24.0, "len": 340.0})
 	elif LoreDB.current_stage_id == "vinculados_stage_2":
-		# Vertical chasm ribbon running along the trench
 		configs.append({"pos": Vector3(0.0, 4.0, 0.0), "rot": Vector3(15.0, 0.0, 0.0), "w": 22.0, "len": 300.0})
 
 	var mat := _create_ribbon_material()
@@ -652,7 +683,7 @@ func _build_menu_diorama_fleets() -> void:
 	_spawn_diorama_hull("acero_battlecruiser", acero_group, Vector3(-6.5, -1.5, 5.5))
 	_spawn_diorama_hull("acero_corvette", acero_group, Vector3(6.0, 1.8, 4.0))
 
-	# 2. The Vinculados Choir Wing (Center-Forward)
+	# 2. The Vinculados Choir Wing (Center-Forward: Seraph-Prime Colossus + CNS Cradle + Anima)
 	var vinc_group := Node3D.new()
 	vinc_group.name = "DioramaVinculados"
 	vinc_group.position = Vector3(0.0, 3.0, -14.0)
@@ -660,9 +691,9 @@ func _build_menu_diorama_fleets() -> void:
 	add_child(vinc_group)
 	_diorama_ships["vinculados"] = vinc_group
 
-	_spawn_diorama_hull("vinculados_cradle", vinc_group, Vector3.ZERO)
-	_spawn_diorama_hull("vinculados_suit", vinc_group, Vector3(-5.8, 1.8, 2.5))
-	_spawn_diorama_hull("vinculados_anima", vinc_group, Vector3(5.8, -1.2, 2.8))
+	_spawn_diorama_hull("vinculados_colossus", vinc_group, Vector3(0.0, 0.4, 2.2))
+	_spawn_diorama_hull("vinculados_cradle", vinc_group, Vector3(-3.2, 2.4, -5.5))
+	_spawn_diorama_hull("vinculados_anima", vinc_group, Vector3(5.8, -0.8, 2.8))
 
 	# 3. The Free Tide Corsair Squadron (Right-Center)
 	var marea_group := Node3D.new()
@@ -701,6 +732,9 @@ static func _create_star_sea_sky_material() -> ShaderMaterial:
 		_sky_shader.code = """
 shader_type sky;
 
+uniform sampler2D nebula_pano : filter_linear, repeat_enable;
+uniform vec3 stage_tint = vec3(1.0, 1.0, 1.0);
+
 float hash(vec3 p) {
 	p = fract(p * vec3(443.897, 441.423, 437.195));
 	p += dot(p, p.yzx + 19.19);
@@ -735,29 +769,32 @@ void sky() {
 	vec3 dir = normalize(EYEDIR);
 	float t = TIME * 0.04;
 
-	// 1. Deep Star Sea Base Gradient (Abyssal Indigo to Deep Teal)
-	vec3 col = mix(vec3(0.008, 0.014, 0.032), vec3(0.018, 0.042, 0.085), clamp(1.0 - abs(dir.y), 0.0, 1.0));
+	// 1. Deep Star Sea Base Gradient + High-Resolution Bioluminescent Nebula Panorama
+	vec3 col = mix(vec3(0.008, 0.016, 0.038), vec3(0.022, 0.052, 0.105), clamp(1.0 - abs(dir.y), 0.0, 1.0));
+	vec2 eq_uv = vec2(atan(dir.z, dir.x) * 0.1591549 + 0.5 + t * 0.015, asin(clamp(dir.y, -1.0, 1.0)) * 0.3183099 + 0.5);
+	vec3 pano_col = texture(nebula_pano, eq_uv).rgb;
+	col = mix(col, pano_col * 0.42, 0.45);
 
 	// 2. Volumetric Multi-Octave Nebula Clouds
 	float n1 = fbm(dir * 3.2 + vec3(t * 0.4, -t * 0.2, t * 0.3));
 	float n2 = fbm(dir * 6.5 - vec3(t * 0.3, t * 0.5, -t * 0.2));
-	float neb_mask = smoothstep(0.44, 0.84, n1 * 0.65 + n2 * 0.35);
-	vec3 neb_cyan = vec3(0.07, 0.38, 0.58) * neb_mask * 0.38;
-	vec3 neb_ember = vec3(0.55, 0.24, 0.08) * smoothstep(0.58, 0.88, n2) * smoothstep(-0.2, 0.6, dir.x) * 0.28;
-	col += neb_cyan + neb_ember;
+	float neb_mask = smoothstep(0.42, 0.84, n1 * 0.65 + n2 * 0.35);
+	vec3 neb_cyan = vec3(0.08, 0.46, 0.72) * neb_mask * 0.44;
+	vec3 neb_ember = vec3(0.62, 0.28, 0.10) * smoothstep(0.56, 0.88, n2) * smoothstep(-0.2, 0.6, dir.x) * 0.32;
+	col += (neb_cyan + neb_ember) * stage_tint;
 
 	// 3. Dynamic Undulating Éther Aurora Currents across the ecliptic plane
 	float wave = sin(dir.x * 5.0 + dir.z * 3.0 + TIME * 0.25) * 0.14;
 	float band = exp(-pow((dir.y - wave) * 5.2, 2.0));
 	float aurora_noise = fbm(vec3(dir.xz * 8.0, TIME * 0.18));
-	vec3 ether_aurora = mix(vec3(0.08, 0.52, 0.72), vec3(0.32, 0.78, 0.88), aurora_noise) * band * smoothstep(0.38, 0.80, aurora_noise) * 0.42;
-	col += ether_aurora;
+	vec3 ether_aurora = mix(vec3(0.08, 0.58, 0.82), vec3(0.36, 0.88, 0.98), aurora_noise) * band * smoothstep(0.36, 0.80, aurora_noise) * 0.48;
+	col += ether_aurora * stage_tint;
 
 	// 4. The Calm (La Calma) — Encroaching dark decay front on the northern horizon (-Z)
 	float calm_front = smoothstep(-0.25, -0.85, dir.z) * exp(-abs(dir.y) * 2.2);
 	float calm_vein = smoothstep(0.68, 0.76, fbm(dir * 10.0 + vec3(0.0, 0.0, TIME * 0.35)));
-	col = mix(col, vec3(0.012, 0.004, 0.020), calm_front * 0.75);
-	col += vec3(0.48, 0.10, 0.38) * calm_front * calm_vein * (0.6 + 0.4 * sin(TIME * 2.5));
+	col = mix(col, vec3(0.012, 0.004, 0.022), calm_front * 0.72);
+	col += vec3(0.58, 0.12, 0.46) * calm_front * calm_vein * (0.6 + 0.4 * sin(TIME * 2.5));
 
 	// 5. Multi-Layered Twinkling Starfield
 	vec3 star_grid = floor(dir * 260.0);
@@ -767,21 +804,25 @@ void sky() {
 		float d = length(dir - star_pos) * 260.0;
 		float twinkle = 0.65 + 0.35 * sin(TIME * (3.0 + fract(star_val * 91.3) * 6.0) + star_val * 100.0);
 		float spark = exp(-d * d * 14.0) * twinkle;
-		vec3 s_col = mix(vec3(0.68, 0.86, 0.98), vec3(0.98, 0.82, 0.58), fract(star_val * 37.0));
-		col += s_col * spark * 1.65;
+		vec3 s_col = mix(vec3(0.68, 0.88, 1.0), vec3(1.0, 0.84, 0.60), fract(star_val * 37.0));
+		col += s_col * spark * 1.75;
 	}
 
 	// 6. Distant Key Star Corona & Bloom
 	vec3 sun_dir = normalize(vec3(0.45, 0.52, -0.72));
 	float sun_dot = max(dot(dir, sun_dir), 0.0);
-	col += vec3(1.0, 0.88, 0.65) * pow(sun_dot, 180.0) * 2.4;
-	col += vec3(0.28, 0.65, 0.88) * pow(sun_dot, 16.0) * 0.22;
+	col += vec3(1.0, 0.88, 0.65) * pow(sun_dot, 180.0) * 2.5;
+	col += vec3(0.28, 0.68, 0.92) * pow(sun_dot, 16.0) * 0.25;
 
 	COLOR = col;
 }
 """
+	if _nebula_tex == null and ResourceLoader.exists("res://assets/environments/ether_nebula_hdri.png"):
+		_nebula_tex = load("res://assets/environments/ether_nebula_hdri.png")
 	var sm := ShaderMaterial.new()
 	sm.shader = _sky_shader
+	if _nebula_tex != null:
+		sm.set_shader_parameter("nebula_pano", _nebula_tex)
 	return sm
 
 static func _create_planet_material() -> ShaderMaterial:
@@ -814,12 +855,10 @@ void fragment() {
 	float n = noise(p) * 0.6 + noise(p * 2.5) * 0.3 + noise(p * 6.0) * 0.1;
 	vec3 basalt = mix(vec3(0.06, 0.08, 0.13), vec3(0.16, 0.21, 0.28), n);
 
-	// Molten ember-orange industrial forge-veins & cities on Anvil
 	float forge_veins = smoothstep(0.67, 0.75, noise(p * 3.5 + vec3(TIME * 0.05, 0.0, 0.0)));
 	float pulse = 0.78 + 0.22 * sin(TIME * 2.2 + UV.x * 18.0);
 	vec3 ember_glow = vec3(0.95, 0.42, 0.10) * forge_veins * pulse * 1.45;
 
-	// Atmospheric cyan Fresnel rim
 	float fresnel = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 3.4);
 	vec3 atmo = vec3(0.18, 0.68, 0.88) * fresnel * 1.15;
 
@@ -869,9 +908,9 @@ void fragment() {
 	float stream1 = 0.5 + 0.5 * sin(UV.x * 24.0 + UV.y * 18.0 - TIME * 2.2);
 	float stream2 = 0.5 + 0.5 * cos(UV.x * 14.0 - UV.y * 32.0 + TIME * 1.5);
 	float filament = smoothstep(0.58, 0.95, stream1 * 0.6 + stream2 * 0.4);
-	vec3 col = mix(vec3(0.08, 0.48, 0.68), vec3(0.38, 0.82, 0.92), filament);
-	ALBEDO = col * (0.65 + filament * 0.85);
-	ALPHA = edge_fade * end_fade * (0.06 + filament * 0.18);
+	vec3 col = mix(vec3(0.08, 0.54, 0.78), vec3(0.42, 0.90, 1.0), filament);
+	ALBEDO = col * (0.75 + filament * 0.95);
+	ALPHA = edge_fade * end_fade * (0.08 + filament * 0.22);
 }
 """
 	var sm := ShaderMaterial.new()

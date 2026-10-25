@@ -547,26 +547,32 @@ func _build_acero_sluice_station(pos: Vector3 = Vector3(-38.0, 0.0, 25.0), rot: 
 	_stage_landmark_root.rotation_degrees = rot
 	add_child(_stage_landmark_root)
 
-	var hull_tex: Texture2D = load("res://assets/ships/acero/acero_hull.png")
+	var hull_tex: Texture2D = load("res://assets/ships/acero/acero_dreadnought_plate.png")
 
 	var armor_tex_mat := StandardMaterial3D.new()
 	armor_tex_mat.albedo_texture = hull_tex
-	armor_tex_mat.albedo_color = Color(1.65, 1.72, 1.85)
+	armor_tex_mat.albedo_color = Color(1.14, 1.20, 1.30)
 	armor_tex_mat.uv1_scale = Vector3(3.5, 3.5, 1.0)
-	armor_tex_mat.metallic = 0.45
-	armor_tex_mat.roughness = 0.40
+	armor_tex_mat.metallic = 0.56
+	armor_tex_mat.roughness = 0.34
+	armor_tex_mat.normal_enabled = true
+	armor_tex_mat.normal_texture = ProceduralMeshPrimitives._get_hull_normal_map()
+	armor_tex_mat.normal_scale = 0.55
 	armor_tex_mat.rim_enabled = true
 	armor_tex_mat.rim = 0.50
 	armor_tex_mat.emission_enabled = true
-	armor_tex_mat.emission = Color(0.09, 0.12, 0.17)
-	armor_tex_mat.emission_energy_multiplier = 0.35
+	armor_tex_mat.emission = Color(0.06, 0.09, 0.14)
+	armor_tex_mat.emission_energy_multiplier = 0.30
 
 	var dark_steel_mat := StandardMaterial3D.new()
 	dark_steel_mat.albedo_texture = hull_tex
-	dark_steel_mat.albedo_color = Color(1.15, 1.22, 1.34)
+	dark_steel_mat.albedo_color = Color(0.84, 0.90, 1.00)
 	dark_steel_mat.uv1_scale = Vector3(5.0, 5.0, 1.0)
-	dark_steel_mat.metallic = 0.52
-	dark_steel_mat.roughness = 0.36
+	dark_steel_mat.metallic = 0.62
+	dark_steel_mat.roughness = 0.30
+	dark_steel_mat.normal_enabled = true
+	dark_steel_mat.normal_texture = ProceduralMeshPrimitives._get_hull_normal_map()
+	dark_steel_mat.normal_scale = 0.45
 	dark_steel_mat.rim_enabled = true
 	dark_steel_mat.rim = 0.45
 
@@ -812,18 +818,26 @@ func _build_vinculados_sanctuary_spire(pos: Vector3 = Vector3(36.0, 8.0, -35.0),
 	add_child(_stage_landmark_root)
 
 	var ceramic := StandardMaterial3D.new()
-	ceramic.albedo_texture = load("res://assets/ships/vinculados/vinculados_hull.png")
-	ceramic.albedo_color = Color(1.0, 1.0, 1.0)
-	ceramic.metallic = 0.16
-	ceramic.roughness = 0.22
+	ceramic.albedo_texture = load("res://assets/ships/vinculados/vinculados_mecha_armor.png")
+	ceramic.albedo_color = Color(1.04, 1.05, 1.08)
+	ceramic.metallic = 0.18
+	ceramic.roughness = 0.20
+	ceramic.normal_enabled = true
+	ceramic.normal_texture = ProceduralMeshPrimitives._get_hull_normal_map()
+	ceramic.normal_scale = 0.50
+	ceramic.clearcoat_enabled = true
+	ceramic.clearcoat = 0.45
+	ceramic.clearcoat_roughness = 0.20
 	ceramic.rim_enabled = true
 	ceramic.rim = 0.65
 	ceramic.rim_tint = 0.40
 
 	var cobalt_blue := StandardMaterial3D.new()
-	cobalt_blue.albedo_color = Color(0.12, 0.22, 0.46)
-	cobalt_blue.metallic = 0.45
-	cobalt_blue.roughness = 0.35
+	cobalt_blue.albedo_color = Color(0.06, 0.18, 0.50)
+	cobalt_blue.metallic = 0.48
+	cobalt_blue.roughness = 0.28
+	cobalt_blue.clearcoat_enabled = true
+	cobalt_blue.clearcoat = 0.40
 
 	var frame_dark := StandardMaterial3D.new()
 	frame_dark.albedo_color = Color(0.12, 0.14, 0.20)
@@ -1044,20 +1058,25 @@ func _build_marea_corsair_haven(pos: Vector3 = Vector3(-26.0, 0.0, 4.0), rot: Ve
 	add_child(_stage_landmark_root)
 
 	var timber_mat := StandardMaterial3D.new()
-	timber_mat.albedo_texture = load("res://assets/ships/marea-libre/marea_hull.png")
-	timber_mat.albedo_color = Color(1.15, 1.08, 1.0)
-	timber_mat.metallic = 0.10
-	timber_mat.roughness = 0.58
+	timber_mat.albedo_texture = load("res://assets/ships/marea-libre/marea_ornate_timber.png")
+	timber_mat.albedo_color = Color(1.06, 0.96, 0.88)
+	timber_mat.metallic = 0.14
+	timber_mat.roughness = 0.44
+	timber_mat.normal_enabled = true
+	timber_mat.normal_texture = ProceduralMeshPrimitives._get_hull_normal_map()
+	timber_mat.normal_scale = 0.45
+	timber_mat.clearcoat_enabled = true
+	timber_mat.clearcoat = 0.52
 
 	var dark_timber := StandardMaterial3D.new()
-	dark_timber.albedo_color = Color(0.20, 0.13, 0.08)
-	dark_timber.metallic = 0.15
-	dark_timber.roughness = 0.60
+	dark_timber.albedo_color = Color(0.18, 0.11, 0.07)
+	dark_timber.metallic = 0.18
+	dark_timber.roughness = 0.48
 
 	var brass_mat := StandardMaterial3D.new()
-	brass_mat.albedo_color = Color(0.84, 0.66, 0.28)
-	brass_mat.metallic = 0.75
-	brass_mat.roughness = 0.28
+	brass_mat.albedo_color = Color(0.92, 0.72, 0.26)
+	brass_mat.metallic = 0.84
+	brass_mat.roughness = 0.22
 
 	var basalt_mat := StandardMaterial3D.new()
 	basalt_mat.albedo_color = Color(0.12, 0.13, 0.16)
@@ -1239,23 +1258,26 @@ func _build_acero_calm_bastion(pos: Vector3 = Vector3(-28.0, 0.0, 8.0), rot: Vec
 	_stage_landmark_root.rotation_degrees = rot
 	add_child(_stage_landmark_root)
 
-	var hull_tex: Texture2D = load("res://assets/ships/acero/acero_hull.png")
+	var hull_tex: Texture2D = load("res://assets/ships/acero/acero_dreadnought_plate.png")
 
 	var armor_mat := StandardMaterial3D.new()
 	armor_mat.albedo_texture = hull_tex
-	armor_mat.albedo_color = Color(1.5, 1.55, 1.65)
+	armor_mat.albedo_color = Color(1.14, 1.20, 1.30)
 	armor_mat.uv1_scale = Vector3(4.0, 4.0, 1.0)
-	armor_mat.metallic = 0.55
-	armor_mat.roughness = 0.38
+	armor_mat.metallic = 0.58
+	armor_mat.roughness = 0.34
+	armor_mat.normal_enabled = true
+	armor_mat.normal_texture = ProceduralMeshPrimitives._get_hull_normal_map()
+	armor_mat.normal_scale = 0.50
 	armor_mat.rim_enabled = true
 	armor_mat.rim = 0.5
 
 	var dark_steel := StandardMaterial3D.new()
 	dark_steel.albedo_texture = hull_tex
-	dark_steel.albedo_color = Color(1.1, 1.15, 1.25)
+	dark_steel.albedo_color = Color(0.84, 0.90, 1.00)
 	dark_steel.uv1_scale = Vector3(5.0, 5.0, 1.0)
 	dark_steel.metallic = 0.65
-	dark_steel.roughness = 0.30
+	dark_steel.roughness = 0.28
 
 	var furnace_amber := StandardMaterial3D.new()
 	furnace_amber.albedo_color = Color(1.0, 0.55, 0.15)
@@ -1359,10 +1381,12 @@ func _build_vinculados_crystal_chasm(pos: Vector3 = Vector3(-25.0, 0.0, 5.0), ro
 	add_child(_stage_landmark_root)
 
 	var ceramic := StandardMaterial3D.new()
-	ceramic.albedo_texture = load("res://assets/ships/vinculados/vinculados_hull.png")
-	ceramic.albedo_color = Color(1.0, 1.0, 1.0)
-	ceramic.metallic = 0.15
+	ceramic.albedo_texture = load("res://assets/ships/vinculados/vinculados_mecha_armor.png")
+	ceramic.albedo_color = Color(1.04, 1.05, 1.08)
+	ceramic.metallic = 0.18
 	ceramic.roughness = 0.20
+	ceramic.clearcoat_enabled = true
+	ceramic.clearcoat = 0.45
 	ceramic.rim_enabled = true
 	ceramic.rim = 0.6
 
@@ -1456,10 +1480,12 @@ func _build_vinculados_genesis_ring(pos: Vector3 = Vector3(-28.0, 4.0, 5.0), rot
 	add_child(_stage_landmark_root)
 
 	var ceramic := StandardMaterial3D.new()
-	ceramic.albedo_texture = load("res://assets/ships/vinculados/vinculados_hull.png")
-	ceramic.albedo_color = Color(1.0, 1.0, 1.0)
-	ceramic.metallic = 0.15
-	ceramic.roughness = 0.22
+	ceramic.albedo_texture = load("res://assets/ships/vinculados/vinculados_mecha_armor.png")
+	ceramic.albedo_color = Color(1.04, 1.05, 1.08)
+	ceramic.metallic = 0.18
+	ceramic.roughness = 0.20
+	ceramic.clearcoat_enabled = true
+	ceramic.clearcoat = 0.45
 	ceramic.rim_enabled = true
 	ceramic.rim = 0.7
 
