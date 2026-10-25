@@ -800,8 +800,8 @@ func _populate_shipyard_tab() -> void:
 	var active_sub_id := str(u_data.get("subsystem", ""))
 
 	for sub in sub_list:
-		var is_installed := (sub.id == active_sub_id)
-		var sub_card := _make_subsystem_card(sub, is_installed)
+		var is_installed: bool = (sub.id == active_sub_id)
+		var sub_card: Control = _make_subsystem_card(sub, is_installed)
 		_subsystems_vbox.add_child(sub_card)
 
 func _make_track_row(category: String, title: String, current_lvl: int, desc: String) -> Control:
@@ -844,8 +844,8 @@ func _make_track_row(category: String, title: String, current_lvl: int, desc: St
 	var tiers := RpgDefs.get_shipyard_tiers(category)
 	var next_lvl := current_lvl + 1
 	if next_lvl < tiers.size():
-		var target_tier := tiers[next_lvl]
-		var can_afford := SaveManager.eteron_credits >= target_tier.cost_eteron
+		var target_tier: RpgDefs.UpgradeTier = tiers[next_lvl]
+		var can_afford: bool = (SaveManager.eteron_credits >= target_tier.cost_eteron)
 		var up_btn := Button.new()
 		up_btn.text = "UPGRADE TO T%d (%d ◈)" % [next_lvl, target_tier.cost_eteron]
 		up_btn.custom_minimum_size = Vector2(180, 36)
@@ -913,7 +913,7 @@ func _make_subsystem_card(sub: RpgDefs.SubsystemDef, is_installed: bool) -> Cont
 		inst_lbl.add_theme_color_override("font_color", Color(0.35, 0.95, 0.75))
 		hbox.add_child(inst_lbl)
 	else:
-		var can_afford := SaveManager.eteron_credits >= sub.cost_eteron
+		var can_afford: bool = (SaveManager.eteron_credits >= sub.cost_eteron)
 		var inst_btn := Button.new()
 		inst_btn.text = "INSTALL (%d ◈)" % sub.cost_eteron
 		inst_btn.custom_minimum_size = Vector2(150, 34)
