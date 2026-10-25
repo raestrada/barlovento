@@ -65,25 +65,25 @@ var _turbo_btn: Button
 # Faction-Tailored 5-Slot Per-Ship Ability Decks (with explicit AP cost, 1-Round duration & effect tags)
 var _faction_ability_defs: Dictionary = {
     "acero": [
-        {"id": "prow_angle", "slot": 1, "label": "[1] Prow Angle · 1AP", "sub": "1RND · +45% Bow Arm", "cost": 1, "desc": "Angle heavy bow armor toward target (+45% frontal absorption for 1 full round). Click again to refund."},
-        {"id": "flak_screen", "slot": 2, "label": "[2] Flak Screen · 1AP", "sub": "1RND · -25% Enemy Hit", "cost": 1, "desc": "Point-defense flak curtain (-25% enemy incoming hit chance for 1 full round). Click again to refund."},
-        {"id": "broadside", "slot": 3, "label": "[3] Broadside · 2AP", "sub": "1RND · +45%DMG +30%Hit", "cost": 2, "desc": "Lock port/starboard heavy batteries (+45% salvo damage & +30% hit for 1 full round). Combo with [1] or [4]!"},
-        {"id": "furnace_burn", "slot": 4, "label": "[4] Furnace · 1AP", "sub": "1RND · +4.5m/s Surge", "cost": 1, "desc": "Emergency furnace thrust (+4.5 m/s speed surge for 1 round). Combo with [3] for Overdrive Salvo!"},
-        {"id": "shield_pulse", "slot": 5, "label": "[5] Bulkheads · 2AP", "sub": "INST · +40SHLD +20HP", "cost": 2, "desc": "Reinforce armored bulkheads (+40 Shield & +20 Hull immediately; refundable before [SPACE])."}
+        {"id": "prow_angle", "slot": 1, "label": "[1] PROW ANGLE [1 AP]", "sub": "+45% Bow Armor · 1 Rnd", "cost": 1, "desc": "Angle heavy bow armor toward target (+45% frontal absorption for 1 full round). Click again to refund."},
+        {"id": "flak_screen", "slot": 2, "label": "[2] FLAK SCREEN [1 AP]", "sub": "-25% Enemy Hit · 1 Rnd", "cost": 1, "desc": "Point-defense flak curtain (-25% enemy incoming hit chance for 1 full round). Click again to refund."},
+        {"id": "broadside", "slot": 3, "label": "[3] BROADSIDE [2 AP]", "sub": "+45% DMG · +30% Hit · 1R", "cost": 2, "desc": "Lock port/starboard heavy batteries (+45% salvo damage & +30% hit for 1 full round). Combo with [1] or [4]!"},
+        {"id": "furnace_burn", "slot": 4, "label": "[4] FURNACE [1 AP]", "sub": "+4.5m/s Surge · 1 Rnd", "cost": 1, "desc": "Emergency furnace thrust (+4.5 m/s speed surge for 1 round). Combo with [3] for Overdrive Salvo!"},
+        {"id": "shield_pulse", "slot": 5, "label": "[5] BULKHEADS [2 AP]", "sub": "+40 Shield / +20 Hull", "cost": 2, "desc": "Reinforce armored bulkheads (+40 Shield & +20 Hull immediately; refundable before [SPACE])."}
     ],
     "vinculados": [
-        {"id": "snap_pivot", "slot": 1, "label": "[1] Snap-Pivot · 1AP", "sub": "1RND · Lock Target Arc", "cost": 1, "desc": "Instant vernier torso pivot toward target without altering drift. Combo with [3] for Newtype Blitz!"},
-        {"id": "soul_lock", "slot": 2, "label": "[2] Soul Lock · 1AP", "sub": "1RND · +30%Hit +25%Crit", "cost": 1, "desc": "Neural harmonic lock (+30% accuracy & +25% crit chance for all weapons this round)."},
-        {"id": "beam_lance", "slot": 3, "label": "[3] Beam Lance · 2AP", "sub": "1RND · +40%DMG -65%Arm", "cost": 2, "desc": "Resonance particle lance (+40% damage, pierces 65% target armor for 1 full round)."},
-        {"id": "phase_dodge", "slot": 4, "label": "[4] Phase Dodge · 1AP", "sub": "1RND · +35% Evasion", "cost": 1, "desc": "High-G vector dodge (+35% evasion against all incoming fire for 1 full round)."},
-        {"id": "shield_pulse", "slot": 5, "label": "[5] I-Field · 2AP", "sub": "INST · +40SHLD +20HP", "cost": 2, "desc": "Harmonic I-Field barrier overcharge (+40 Shield & +20 Hull immediately; refundable before [SPACE])."}
+        {"id": "snap_pivot", "slot": 1, "label": "[1] SNAP-PIVOT [1 AP]", "sub": "Lock Target Arc · 1 Rnd", "cost": 1, "desc": "Instant vernier torso pivot toward target without altering drift. Combo with [3] for Newtype Blitz!"},
+        {"id": "soul_lock", "slot": 2, "label": "[2] SOUL LOCK [1 AP]", "sub": "+30% Hit · +25% Crit · 1R", "cost": 1, "desc": "Neural harmonic lock (+30% accuracy & +25% crit chance for all weapons this round)."},
+        {"id": "beam_lance", "slot": 3, "label": "[3] BEAM LANCE [2 AP]", "sub": "+40% DMG · Pierce 65%", "cost": 2, "desc": "Resonance particle lance (+40% damage, pierces 65% target armor for 1 full round)."},
+        {"id": "phase_dodge", "slot": 4, "label": "[4] PHASE DODGE [1 AP]", "sub": "+35% Evasion · 1 Rnd", "cost": 1, "desc": "High-G vector dodge (+35% evasion against all incoming fire for 1 full round)."},
+        {"id": "shield_pulse", "slot": 5, "label": "[5] I-FIELD [2 AP]", "sub": "+40 Shield / +20 Hull", "cost": 2, "desc": "Harmonic I-Field barrier overcharge (+40 Shield & +20 Hull immediately; refundable before [SPACE])."}
     ],
     "marea_libre": [
-        {"id": "trim_sails", "slot": 1, "label": "[1] Trim Sails · 1AP", "sub": "1RND · +3.5m/s Wind", "cost": 1, "desc": "Catch the Éther wind (+3.5 m/s speed along wind gradient). Combo with [3] for Boarding Surge!"},
-        {"id": "oar_sweep", "slot": 2, "label": "[2] Oar Sweep · 1AP", "sub": "1RND · 45° Broadside", "cost": 1, "desc": "Flank oars sweep (sharp 45° hull pivot for broadside alignment). Combo with [3] or [4]!"},
-        {"id": "chain_shot", "slot": 3, "label": "[3] Chain-Shot · 2AP", "sub": "1RND · +35%DMG & Slow", "cost": 2, "desc": "Plasma chain-shot (+35% damage & cuts target speed by 45% for 1 full round)."},
-        {"id": "harpoon", "slot": 4, "label": "[4] Harpoon · 1AP", "sub": "1RND · +30%Hit & Pull", "cost": 1, "desc": "Boarding grapple (+30% accuracy & intercept vector lock on target for 1 full round)."},
-        {"id": "shield_pulse", "slot": 5, "label": "[5] Plating · 2AP", "sub": "INST · +40SHLD +20HP", "cost": 2, "desc": "Timber & brass emergency repair (+40 Shield & +20 Hull immediately; refundable before [SPACE])."}
+        {"id": "trim_sails", "slot": 1, "label": "[1] TRIM SAILS [1 AP]", "sub": "+3.5m/s Wind · 1 Rnd", "cost": 1, "desc": "Catch the Éther wind (+3.5 m/s speed along wind gradient). Combo with [3] for Boarding Surge!"},
+        {"id": "oar_sweep", "slot": 2, "label": "[2] OAR SWEEP [1 AP]", "sub": "45° Broadside · 1 Rnd", "cost": 1, "desc": "Flank oars sweep (sharp 45° hull pivot for broadside alignment). Combo with [3] or [4]!"},
+        {"id": "chain_shot", "slot": 3, "label": "[3] CHAIN-SHOT [2 AP]", "sub": "+35% DMG · Slow 45%", "cost": 2, "desc": "Plasma chain-shot (+35% damage & cuts target speed by 45% for 1 full round)."},
+        {"id": "harpoon", "slot": 4, "label": "[4] HARPOON [1 AP]", "sub": "+30% Hit · Grapple 1R", "cost": 1, "desc": "Boarding grapple (+30% accuracy & intercept vector lock on target for 1 full round)."},
+        {"id": "shield_pulse", "slot": 5, "label": "[5] PLATING [2 AP]", "sub": "+40 Shield / +20 Hull", "cost": 2, "desc": "Timber & brass emergency repair (+40 Shield & +20 Hull immediately; refundable before [SPACE])."}
     ]
 }
 
@@ -212,9 +212,9 @@ func _build_ui() -> void:
     center_wrapper.anchor_right = 0.5
     center_wrapper.anchor_top = 1.0
     center_wrapper.anchor_bottom = 1.0
-    center_wrapper.offset_left = -388
-    center_wrapper.offset_right = 388
-    center_wrapper.offset_top = -146
+    center_wrapper.offset_left = -465
+    center_wrapper.offset_right = 465
+    center_wrapper.offset_top = -172
     center_wrapper.offset_bottom = -6
 
     # Micro Helm & Target Telemetry Bar
@@ -246,20 +246,20 @@ func _build_ui() -> void:
     center_wrapper.add_child(status_row)
 
     _telemetry_label = Label.new()
-    _telemetry_label.custom_minimum_size = Vector2(210, 15)
+    _telemetry_label.custom_minimum_size = Vector2(230, 16)
     _telemetry_label.clip_text = true
     _telemetry_label.add_theme_font_size_override("font_size", 10)
     _telemetry_label.add_theme_color_override("font_color", HudWidgets.COL_CYAN_BRIGHT)
     status_row.add_child(_telemetry_label)
 
     _target_status_label = Label.new()
-    _target_status_label.custom_minimum_size = Vector2(360, 15)
+    _target_status_label.custom_minimum_size = Vector2(400, 16)
     _target_status_label.clip_text = true
     _target_status_label.add_theme_font_size_override("font_size", 10)
     status_row.add_child(_target_status_label)
 
     _calm_status_label = Label.new()
-    _calm_status_label.custom_minimum_size = Vector2(120, 15)
+    _calm_status_label.custom_minimum_size = Vector2(130, 16)
     _calm_status_label.clip_text = true
     _calm_status_label.add_theme_font_size_override("font_size", 10)
     _calm_status_label.add_theme_color_override("font_color", Color(0.85, 0.40, 0.95))
@@ -268,14 +268,14 @@ func _build_ui() -> void:
     # Main Chamfered AP & Ability Pill Dock
     var ap_dock := PanelContainer.new()
     var dock_style := StyleBoxFlat.new()
-    dock_style.bg_color = Color(0.02, 0.06, 0.11, 0.88)
-    dock_style.border_color = Color(0.22, 0.78, 0.96, 0.65)
+    dock_style.bg_color = Color(0.018, 0.055, 0.10, 0.92)
+    dock_style.border_color = Color(0.25, 0.82, 0.98, 0.75)
     dock_style.set_border_width_all(1)
     dock_style.set_corner_radius_all(8)
-    dock_style.content_margin_left = 12
-    dock_style.content_margin_right = 12
+    dock_style.content_margin_left = 14
+    dock_style.content_margin_right = 14
     dock_style.content_margin_top = 8
-    dock_style.content_margin_bottom = 10
+    dock_style.content_margin_bottom = 8
     ap_dock.add_theme_stylebox_override("panel", dock_style)
     center_wrapper.add_child(ap_dock)
 
@@ -283,13 +283,13 @@ func _build_ui() -> void:
     dock_vbox.add_theme_constant_override("separation", 8)
     ap_dock.add_child(dock_vbox)
 
-    # Row 1 inside Dock: 12-pip Action Point Bar
+    # Row 1 inside Dock: Action Point Bar
     _ap_bar = HudWidgets.ActionPointBar.new()
     dock_vbox.add_child(_ap_bar)
 
     # Row 2 inside Dock: 5 Ability Buttons + Reset Pill + Resolve Turn Pill
     var pills_row := HBoxContainer.new()
-    pills_row.add_theme_constant_override("separation", 4)
+    pills_row.add_theme_constant_override("separation", 6)
     pills_row.alignment = BoxContainer.ALIGNMENT_CENTER
     dock_vbox.add_child(pills_row)
 
@@ -301,17 +301,17 @@ func _build_ui() -> void:
         pills_row.add_child(btn)
         _pill_buttons.append(btn)
 
-    _btn_reset_ap = _make_pill_btn("↺ RESET [Z]", false, func() -> void:
+    _btn_reset_ap = _make_pill_btn("↺ RESET\n[Z] REFUND", false, func() -> void:
         reset_all_ap()
     )
-    _btn_reset_ap.custom_minimum_size = Vector2(72, 36)
-    _btn_reset_ap.add_theme_color_override("font_color", Color(1.0, 0.78, 0.28))
+    _btn_reset_ap.custom_minimum_size = Vector2(92, 48)
+    _btn_reset_ap.add_theme_color_override("font_color", Color(1.0, 0.82, 0.35))
     pills_row.add_child(_btn_reset_ap)
 
-    _btn_resolve = _make_pill_btn("▶ RESOLVE [SPC]", true, func() -> void:
+    _btn_resolve = _make_pill_btn("▶ RESOLVE\nFASE [SPACE]", true, func() -> void:
         _on_resolve_pressed()
     )
-    _btn_resolve.custom_minimum_size = Vector2(98, 36)
+    _btn_resolve.custom_minimum_size = Vector2(118, 48)
     _btn_resolve.add_theme_color_override("font_color", HudWidgets.COL_GREEN)
     pills_row.add_child(_btn_resolve)
 
@@ -468,32 +468,48 @@ func _update_pill_buttons() -> void:
         if i < _current_deck.size():
             var ab: Dictionary = _current_deck[i]
             var aid: String = ab["id"]
+            var cost: int = int(ab.get("cost", 1))
             var active: bool = ship.is_ability_active(aid) if (ship != null and is_instance_valid(ship)) else false
-            var line1: String = ("✔ " + String(ab["label"])) if active else String(ab["label"])
+            var can_afford: bool = (ship != null and is_instance_valid(ship) and (ship.action_points >= cost or active or DevManager.god_mode or DevManager.infinite_ap))
+            var raw_label: String = String(ab["label"])
+            var line1: String = ("✔ " + raw_label) if active else raw_label
             var line2: String = String(ab.get("sub", ""))
             btn.text = "%s\n%s" % [line1, line2] if line2 != "" else line1
-            btn.tooltip_text = String(ab["desc"])
-            _set_pill_style(btn, active)
+            btn.tooltip_text = "%s\nCoste: %d AP | Duración: 1 Ronda\n%s" % [raw_label, cost, String(ab["desc"])]
+            _set_pill_style(btn, active, can_afford)
             btn.visible = true
         else:
             btn.visible = false
 
-func _set_pill_style(btn: Button, active: bool) -> void:
+func _set_pill_style(btn: Button, active: bool, can_afford: bool = true) -> void:
     if btn == null:
         return
     var st := StyleBoxFlat.new()
-    st.bg_color = Color(0.08, 0.34, 0.46, 0.96) if active else Color(0.03, 0.10, 0.17, 0.88)
-    st.border_color = Color(1.0, 0.88, 0.32) if active else Color(0.22, 0.68, 0.88, 0.65)
-    st.set_border_width_all(2 if active else 1)
+    if active:
+        st.bg_color = Color(0.12, 0.40, 0.54, 0.98)
+        st.border_color = Color(1.0, 0.88, 0.32)
+        st.set_border_width_all(2)
+        btn.add_theme_color_override("font_color", Color(1.0, 0.95, 0.45))
+    elif can_afford:
+        st.bg_color = Color(0.03, 0.11, 0.19, 0.92)
+        st.border_color = Color(0.28, 0.78, 0.96, 0.85)
+        st.set_border_width_all(1)
+        btn.add_theme_color_override("font_color", Color(0.92, 0.97, 1.0))
+    else:
+        st.bg_color = Color(0.02, 0.05, 0.09, 0.82)
+        st.border_color = Color(0.35, 0.45, 0.55, 0.45)
+        st.set_border_width_all(1)
+        btn.add_theme_color_override("font_color", Color(0.55, 0.65, 0.75, 0.65))
+
     st.set_corner_radius_all(6)
     st.set_content_margin_all(5)
     btn.add_theme_stylebox_override("normal", st)
+
     var st_hov := st.duplicate()
-    st_hov.bg_color = Color(0.12, 0.42, 0.58, 0.98) if active else Color(0.08, 0.22, 0.34, 0.95)
-    st_hov.border_color = Color(1.0, 0.92, 0.45) if active else HudWidgets.COL_CYAN_BRIGHT
+    st_hov.bg_color = Color(0.14, 0.46, 0.62, 0.98) if active else Color(0.08, 0.24, 0.38, 0.95)
+    st_hov.border_color = Color(1.0, 0.95, 0.55) if active else HudWidgets.COL_CYAN_BRIGHT
     st_hov.set_border_width_all(2)
     btn.add_theme_stylebox_override("hover", st_hov)
-    btn.add_theme_color_override("font_color", Color(1.0, 0.95, 0.45) if active else Color(0.88, 0.94, 1.0))
 
 func _format_ship_tab_text(idx: int, a: Ship, is_sel: bool) -> String:
     var short_pilot := a.pilot_name if a.pilot_name != "" else a.ship_name
@@ -676,21 +692,21 @@ func refresh() -> void:
 func _make_pill_btn(txt: String, glowing: bool, cb: Callable) -> Button:
     var b := Button.new()
     b.text = txt
-    b.custom_minimum_size = Vector2(96, 36)
-    b.clip_text = true
-    b.add_theme_font_size_override("font_size", 8)
+    b.custom_minimum_size = Vector2(124, 48)
+    b.clip_text = false
+    b.add_theme_font_size_override("font_size", 10)
     b.focus_mode = Control.FOCUS_NONE
 
     var st_norm := StyleBoxFlat.new()
-    st_norm.bg_color = Color(0.06, 0.24, 0.34, 0.92) if glowing else Color(0.03, 0.10, 0.17, 0.88)
-    st_norm.border_color = HudWidgets.COL_CYAN_BRIGHT if glowing else Color(0.22, 0.68, 0.88, 0.65)
+    st_norm.bg_color = Color(0.08, 0.28, 0.40, 0.95) if glowing else Color(0.03, 0.11, 0.19, 0.92)
+    st_norm.border_color = HudWidgets.COL_CYAN_BRIGHT if glowing else Color(0.28, 0.78, 0.96, 0.75)
     st_norm.set_border_width_all(2 if glowing else 1)
-    st_norm.set_corner_radius_all(5)
-    st_norm.set_content_margin_all(4)
+    st_norm.set_corner_radius_all(6)
+    st_norm.set_content_margin_all(5)
     b.add_theme_stylebox_override("normal", st_norm)
 
     var st_hov := st_norm.duplicate()
-    st_hov.bg_color = Color(0.10, 0.34, 0.48, 0.96)
+    st_hov.bg_color = Color(0.12, 0.38, 0.54, 0.98)
     st_hov.border_color = HudWidgets.COL_CYAN_BRIGHT
     st_hov.set_border_width_all(2)
     b.add_theme_stylebox_override("hover", st_hov)

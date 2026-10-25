@@ -478,36 +478,36 @@ class ActionPointBar extends Control:
     var drift_text: String = "/ 0"
 
     func _init() -> void:
-        custom_minimum_size = Vector2(640, 26)
+        custom_minimum_size = Vector2(760, 28)
         mouse_filter = Control.MOUSE_FILTER_IGNORE
 
     func _draw() -> void:
         var font := ThemeDB.fallback_font
-        draw_string(font, Vector2(2, 18), ship_label, HORIZONTAL_ALIGNMENT_LEFT, 144, 10, COL_CYAN_BRIGHT)
+        draw_string(font, Vector2(2, 19), ship_label, HORIZONTAL_ALIGNMENT_LEFT, 160, 12, COL_CYAN_BRIGHT)
 
-        var start_x := 150.0
-        var pip_w := 20.0
-        var pip_h := 14.0
-        var gap := 4.0
-        var py := 6.0
+        var start_x := 168.0
+        var pip_w := 24.0
+        var pip_h := 16.0
+        var gap := 5.0
+        var py := 5.0
 
         for i in range(max_ap):
             var px := start_x + float(i) * (pip_w + gap)
             var rect := Rect2(px, py, pip_w, pip_h)
             if i < current_ap:
-                draw_rect(Rect2(px - 1.5, py - 1.5, pip_w + 3, pip_h + 3), Color(0.22, 0.85, 1.0, 0.38), true)
+                draw_rect(Rect2(px - 1.5, py - 1.5, pip_w + 3, pip_h + 3), Color(0.22, 0.85, 1.0, 0.45), true)
                 draw_rect(rect, COL_CYAN, true)
-                draw_rect(Rect2(px + 2, py + 2, pip_w - 4, pip_h * 0.42), COL_CYAN_BRIGHT, true)
-                draw_rect(rect, Color(0.80, 0.98, 1.0, 0.98), false, 1.3)
+                draw_rect(Rect2(px + 2, py + 2, pip_w - 4, pip_h * 0.45), COL_CYAN_BRIGHT, true)
+                draw_rect(rect, Color(0.90, 0.98, 1.0, 0.98), false, 1.4)
             else:
-                draw_rect(rect, Color(0.03, 0.08, 0.14, 0.78), true)
-                draw_rect(rect, Color(0.22, 0.55, 0.72, 0.48), false, 1.0)
+                draw_rect(rect, Color(0.02, 0.07, 0.12, 0.85), true)
+                draw_rect(rect, Color(0.25, 0.58, 0.75, 0.55), false, 1.0)
 
-        var right_x := start_x + float(max_ap) * (pip_w + gap) + 8.0
-        draw_string(font, Vector2(right_x, 18), regen_text, HORIZONTAL_ALIGNMENT_LEFT, 138, 9, Color(0.45, 0.98, 0.78))
+        var right_x := start_x + float(max_ap) * (pip_w + gap) + 12.0
+        draw_string(font, Vector2(right_x, 19), regen_text, HORIZONTAL_ALIGNMENT_LEFT, 160, 11, Color(0.40, 1.0, 0.75))
 
-        var syn_col := Color(1.0, 0.88, 0.32) if synergy_text.begins_with("★") else COL_TEXT_MUTED
-        draw_string(font, Vector2(right_x + 140.0, 18), synergy_text, HORIZONTAL_ALIGNMENT_LEFT, 200, 9, syn_col)
+        var syn_col := Color(1.0, 0.88, 0.32) if synergy_text.begins_with("★") else Color(0.70, 0.85, 0.98)
+        draw_string(font, Vector2(right_x + 168.0, 19), synergy_text, HORIZONTAL_ALIGNMENT_LEFT, 260, 11, syn_col)
 
 
 # ==============================================================================

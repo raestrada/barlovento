@@ -119,8 +119,8 @@ func _ready() -> void:
 	_build_hud()
 	_set_selected(_player_ships[0])
 
-	AudioManager.play_battle_music(-10.0, LoreDB.selected_faction, LoreDB.current_stage_id)
-	AudioManager.start_ambient(-26.0)
+	AudioManager.play_battle_music(-3.0, LoreDB.selected_faction, LoreDB.current_stage_id)
+	AudioManager.start_ambient(-22.0)
 
 	TurnManager.phase_changed.connect(_on_phase_changed)
 	TurnManager.admiral_resolve_finished.connect(_on_admiral_resolve_finished)
@@ -360,7 +360,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.is_action_pressed("intercept_target"):
 			_intercept_target()
 		elif event is InputEventKey and event.keycode == KEY_M:
-			var track_title := AudioManager.next_battle_track(-10.0)
+			var track_title := AudioManager.next_battle_track(-3.0)
 			_add_combat_log("♪ NOW PLAYING: %s" % track_title, Color(0.65, 0.9, 1.0))
 		elif event is InputEventKey and event.keycode == KEY_Y:
 			if _ace_panel != null:
@@ -1949,9 +1949,9 @@ func _on_phase_changed(_phase: int) -> void:
 	var resolving := TurnManager.is_resolving()
 
 	if in_ace:
-		AudioManager.play_ace_tactical_music(-10.0)
+		AudioManager.play_ace_tactical_music(-3.0)
 	else:
-		AudioManager.play_battle_music(-10.0, LoreDB.selected_faction, LoreDB.current_stage_id)
+		AudioManager.play_battle_music(-3.0, LoreDB.selected_faction, LoreDB.current_stage_id)
 
 	if _turn_label_phase != null:
 		_turn_label_phase.text = "ACE PHASE" if in_ace else "ADMIRAL PHASE"
