@@ -266,6 +266,10 @@ func _ready() -> void:
 	_open_admiral_chart(true)
 	_save_battle_state(true)
 	if _story_overlay != null:
+		if _admiral_chart != null:
+			_admiral_chart.visible = false
+		if _tutorial_banner != null:
+			_tutorial_banner.visible = false
 		_story_overlay.show_intro(LoreDB.current_stage_id)
 
 func _physics_process(delta: float) -> void:
@@ -283,6 +287,8 @@ func _process(delta: float) -> void:
 	_update_3d_targeting_hud()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _story_overlay != null and _story_overlay.visible:
+		return
 	if _admiral_chart != null and _admiral_chart.visible:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.is_action_pressed("resolve"):
@@ -1870,7 +1876,9 @@ func _build_hud() -> void:
 
 func _on_story_completed() -> void:
 	if not _mission_completed:
-		_open_admiral_chart()
+		if _is_tutorial_stage and _tutorial_banner != null:
+			_tutorial_banner.visible = true
+		_open_admiral_chart(true)
 	else:
 		_return_to_stage_briefing()
 

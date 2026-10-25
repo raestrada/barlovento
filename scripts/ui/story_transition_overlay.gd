@@ -18,11 +18,13 @@ var _chapter_badge_lbl: Label
 var _summary_title_lbl: Label
 var _summary_body_lbl: Label
 
+var _left_panel: PanelContainer
 var _left_char_container: VBoxContainer
 var _left_portrait_rect: TextureRect
 var _left_name_lbl: Label
 var _left_role_lbl: Label
 
+var _right_panel: PanelContainer
 var _right_char_container: VBoxContainer
 var _right_portrait_rect: TextureRect
 var _right_name_lbl: Label
@@ -49,47 +51,51 @@ func _ready() -> void:
 	visible = false
 
 func _build_ui() -> void:
-	# 1. Translucent Tactical Glass Backdrop (keeps 3D ships & Star Sea clearly visible from Frame 0!)
+	# 1. Opaque Deep Cinema Backdrop (prevents Admiral Chart & HUD from bleeding through stage art & dialogues)
 	var dim_rect := ColorRect.new()
-	dim_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim_rect.color = Color(0.01, 0.02, 0.04, 0.28)
 	add_child(dim_rect)
+	dim_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim_rect.color = Color(0.01, 0.02, 0.04, 0.98)
 
-	# 2. Subtle Key Art Watermark Backdrop
+	# 2. Full-Clarity Cinematic Stage Key Art Backdrop
 	_backdrop_rect = TextureRect.new()
+	add_child(_backdrop_rect)
 	_backdrop_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_backdrop_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_backdrop_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	_backdrop_rect.modulate = Color(1.0, 1.0, 1.0, 0.12)
-	add_child(_backdrop_rect)
+	_backdrop_rect.modulate = Color(1.0, 1.0, 1.0, 0.88)
 
 	# 3. Top & Bottom Cinematic Letterbox Bars
 	var top_bar := ColorRect.new()
+	add_child(top_bar)
 	top_bar.custom_minimum_size = Vector2(0, 48)
 	top_bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	top_bar.color = Color(0.0, 0.0, 0.0, 0.85)
-	add_child(top_bar)
+	top_bar.color = Color(0.0, 0.0, 0.0, 0.90)
 
 	var bottom_bar := ColorRect.new()
+	add_child(bottom_bar)
 	bottom_bar.custom_minimum_size = Vector2(0, 48)
 	bottom_bar.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	bottom_bar.color = Color(0.0, 0.0, 0.0, 0.85)
-	add_child(bottom_bar)
+	bottom_bar.color = Color(0.0, 0.0, 0.0, 0.90)
 
-	# 4. Top Story Recap Card (Manga Synopsis Box)
+	# 4. Top Story Recap Card (Manga Synopsis Box - Centered)
 	_summary_panel = PanelContainer.new()
-	_summary_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	_summary_panel.position = Vector2(-420, 56)
-	_summary_panel.custom_minimum_size = Vector2(840, 105)
-
 	var sum_style := StyleBoxFlat.new()
-	sum_style.bg_color = Color(0.02, 0.05, 0.10, 0.92)
+	sum_style.bg_color = Color(0.015, 0.045, 0.09, 0.96)
 	sum_style.border_color = HudWidgets.COL_CYAN_BRIGHT
 	sum_style.set_border_width_all(1)
 	sum_style.set_corner_radius_all(6)
 	sum_style.set_content_margin_all(10)
 	_summary_panel.add_theme_stylebox_override("panel", sum_style)
 	add_child(_summary_panel)
+	_summary_panel.anchor_left = 0.5
+	_summary_panel.anchor_right = 0.5
+	_summary_panel.anchor_top = 0.0
+	_summary_panel.anchor_bottom = 0.0
+	_summary_panel.offset_left = -420
+	_summary_panel.offset_right = 420
+	_summary_panel.offset_top = 54
+	_summary_panel.offset_bottom = 158
 
 	var sum_vbox := VBoxContainer.new()
 	sum_vbox.add_theme_constant_override("separation", 3)
@@ -114,22 +120,38 @@ func _build_ui() -> void:
 	sum_vbox.add_child(_summary_body_lbl)
 
 	# 5. Character Portraits (Left Protagonist / Squadron Lead, Right Wingman / Adversary)
+	var left_card_style := StyleBoxFlat.new()
+	left_card_style.bg_color = Color(0.015, 0.045, 0.09, 0.92)
+	left_card_style.border_color = Color(0.25, 0.85, 1.0, 0.75)
+	left_card_style.set_border_width_all(1)
+	left_card_style.set_corner_radius_all(6)
+	left_card_style.set_content_margin_all(8)
+
+	_left_panel = PanelContainer.new()
+	_left_panel.add_theme_stylebox_override("panel", left_card_style)
+	add_child(_left_panel)
+	_left_panel.anchor_left = 0.0
+	_left_panel.anchor_right = 0.0
+	_left_panel.anchor_top = 1.0
+	_left_panel.anchor_bottom = 1.0
+	_left_panel.offset_left = 24
+	_left_panel.offset_right = 204
+	_left_panel.offset_top = -376
+	_left_panel.offset_bottom = -164
+
 	_left_char_container = VBoxContainer.new()
 	_left_char_container.alignment = BoxContainer.ALIGNMENT_END
-	_left_char_container.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	_left_char_container.position = Vector2(70, -360)
-	_left_char_container.custom_minimum_size = Vector2(170, 200)
-	add_child(_left_char_container)
+	_left_panel.add_child(_left_char_container)
 
 	_left_portrait_rect = TextureRect.new()
-	_left_portrait_rect.custom_minimum_size = Vector2(160, 160)
+	_left_portrait_rect.custom_minimum_size = Vector2(160, 152)
 	_left_portrait_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_left_portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	_left_char_container.add_child(_left_portrait_rect)
 
 	_left_name_lbl = Label.new()
 	_left_name_lbl.add_theme_font_size_override("font_size", 12)
-	_left_name_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.8))
+	_left_name_lbl.add_theme_color_override("font_color", Color(1.0, 0.92, 0.82))
 	_left_char_container.add_child(_left_name_lbl)
 
 	_left_role_lbl = Label.new()
@@ -137,15 +159,27 @@ func _build_ui() -> void:
 	_left_role_lbl.add_theme_color_override("font_color", HudWidgets.COL_CYAN_BRIGHT)
 	_left_char_container.add_child(_left_role_lbl)
 
+	var right_card_style := left_card_style.duplicate()
+	right_card_style.border_color = Color(1.0, 0.72, 0.28, 0.75)
+
+	_right_panel = PanelContainer.new()
+	_right_panel.add_theme_stylebox_override("panel", right_card_style)
+	add_child(_right_panel)
+	_right_panel.anchor_left = 1.0
+	_right_panel.anchor_right = 1.0
+	_right_panel.anchor_top = 1.0
+	_right_panel.anchor_bottom = 1.0
+	_right_panel.offset_left = -204
+	_right_panel.offset_right = -24
+	_right_panel.offset_top = -376
+	_right_panel.offset_bottom = -164
+
 	_right_char_container = VBoxContainer.new()
 	_right_char_container.alignment = BoxContainer.ALIGNMENT_END
-	_right_char_container.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	_right_char_container.position = Vector2(-230, -360)
-	_right_char_container.custom_minimum_size = Vector2(170, 200)
-	add_child(_right_char_container)
+	_right_panel.add_child(_right_char_container)
 
 	_right_portrait_rect = TextureRect.new()
-	_right_portrait_rect.custom_minimum_size = Vector2(160, 160)
+	_right_portrait_rect.custom_minimum_size = Vector2(160, 152)
 	_right_portrait_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_right_portrait_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	_right_char_container.add_child(_right_portrait_rect)
@@ -153,7 +187,7 @@ func _build_ui() -> void:
 	_right_name_lbl = Label.new()
 	_right_name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_right_name_lbl.add_theme_font_size_override("font_size", 12)
-	_right_name_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.8))
+	_right_name_lbl.add_theme_color_override("font_color", Color(1.0, 0.92, 0.82))
 	_right_char_container.add_child(_right_name_lbl)
 
 	_right_role_lbl = Label.new()
@@ -162,20 +196,24 @@ func _build_ui() -> void:
 	_right_role_lbl.add_theme_color_override("font_color", HudWidgets.COL_AMBER)
 	_right_char_container.add_child(_right_role_lbl)
 
-	# 6. Bottom Anime Visual Novel Dialogue Box
+	# 6. Bottom Anime Visual Novel Dialogue Box (Centered)
 	_dialogue_box = PanelContainer.new()
-	_dialogue_box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	_dialogue_box.position = Vector2(-460, -155)
-	_dialogue_box.custom_minimum_size = Vector2(920, 125)
-
 	var diag_style := StyleBoxFlat.new()
-	diag_style.bg_color = Color(0.02, 0.06, 0.12, 0.95)
+	diag_style.bg_color = Color(0.015, 0.05, 0.10, 0.97)
 	diag_style.border_color = HudWidgets.COL_CYAN_BRIGHT
 	diag_style.set_border_width_all(2)
 	diag_style.set_corner_radius_all(8)
 	diag_style.set_content_margin_all(14)
 	_dialogue_box.add_theme_stylebox_override("panel", diag_style)
 	add_child(_dialogue_box)
+	_dialogue_box.anchor_left = 0.5
+	_dialogue_box.anchor_right = 0.5
+	_dialogue_box.anchor_top = 1.0
+	_dialogue_box.anchor_bottom = 1.0
+	_dialogue_box.offset_left = -460
+	_dialogue_box.offset_right = 460
+	_dialogue_box.offset_top = -154
+	_dialogue_box.offset_bottom = -26
 
 	var diag_vbox := VBoxContainer.new()
 	diag_vbox.add_theme_constant_override("separation", 6)
@@ -209,24 +247,36 @@ func _build_ui() -> void:
 	_proceed_btn = Button.new()
 	_proceed_btn.text = "▶ PROCEED TO NEXT STAGE BRIEFING"
 	_proceed_btn.custom_minimum_size = Vector2(340, 42)
-	_proceed_btn.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	_proceed_btn.position = Vector2(-170, -80)
 	_proceed_btn.add_theme_font_size_override("font_size", 13)
 	_proceed_btn.add_theme_color_override("font_color", HudWidgets.COL_GREEN)
 	_proceed_btn.visible = false
 	_proceed_btn.pressed.connect(_on_proceed_pressed)
 	add_child(_proceed_btn)
+	_proceed_btn.anchor_left = 0.5
+	_proceed_btn.anchor_right = 0.5
+	_proceed_btn.anchor_top = 1.0
+	_proceed_btn.anchor_bottom = 1.0
+	_proceed_btn.offset_left = -170
+	_proceed_btn.offset_right = 170
+	_proceed_btn.offset_top = -90
+	_proceed_btn.offset_bottom = -48
 
 	# 8. Skip Story Button (top-right corner)
 	_skip_btn = Button.new()
 	_skip_btn.text = "⏭ SKIP STORY [ESC]"
 	_skip_btn.custom_minimum_size = Vector2(160, 30)
-	_skip_btn.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	_skip_btn.position = Vector2(-180, 10)
 	_skip_btn.add_theme_font_size_override("font_size", 10)
 	_skip_btn.add_theme_color_override("font_color", Color(0.75, 0.85, 0.95))
 	_skip_btn.pressed.connect(_finish_story)
 	add_child(_skip_btn)
+	_skip_btn.anchor_left = 1.0
+	_skip_btn.anchor_right = 1.0
+	_skip_btn.anchor_top = 0.0
+	_skip_btn.anchor_bottom = 0.0
+	_skip_btn.offset_left = -176
+	_skip_btn.offset_right = -16
+	_skip_btn.offset_top = 9
+	_skip_btn.offset_bottom = 39
 
 func show_intro(stage_id: String) -> void:
 	_current_mode = Mode.INTRO
@@ -255,11 +305,11 @@ func _setup_view() -> void:
 
 	var is_final: bool = _stage_id.ends_with("_stage_12") or _story_data.get("is_final_stage", false)
 	if _current_mode == Mode.OUTRO and is_final:
-		_backdrop_rect.modulate = Color(1.0, 1.0, 1.0, 0.90)
+		_backdrop_rect.modulate = Color(1.0, 1.0, 1.0, 0.96)
 		_chapter_badge_lbl.text = "★ GRAND FINALE // %s" % _story_data.get("title", _stage_id.to_upper())
 		_chapter_badge_lbl.add_theme_color_override("font_color", Color(1.0, 0.88, 0.35))
 	else:
-		_backdrop_rect.modulate = Color(1.0, 1.0, 1.0, 0.40)
+		_backdrop_rect.modulate = Color(1.0, 1.0, 1.0, 0.88)
 		_chapter_badge_lbl.text = "✦ %s" % _story_data.get("title", _stage_id.to_upper())
 		_chapter_badge_lbl.add_theme_color_override("font_color", HudWidgets.COL_AMBER)
 
@@ -275,6 +325,21 @@ func _setup_view() -> void:
 		_proceed_btn.visible = false
 		_dialogue_box.visible = true
 		_skip_btn.visible = true
+
+	# Pre-populate left/right character cards from dialogue beats so both interlocutors are framed cleanly
+	_left_portrait_rect.texture = null
+	_right_portrait_rect.texture = null
+	for b in _dialogue_beats:
+		var b_side: String = b.get("side", "left")
+		var b_port: String = b.get("portrait", "")
+		if b_side == "left" and _left_portrait_rect.texture == null and b_port != "" and ResourceLoader.exists(b_port):
+			_left_portrait_rect.texture = load(b_port)
+			_left_name_lbl.text = b.get("speaker", "")
+			_left_role_lbl.text = b.get("role", "")
+		elif b_side == "right" and _right_portrait_rect.texture == null and b_port != "" and ResourceLoader.exists(b_port):
+			_right_portrait_rect.texture = load(b_port)
+			_right_name_lbl.text = b.get("speaker", "")
+			_right_role_lbl.text = b.get("role", "")
 
 	_show_beat(_current_beat_index)
 
@@ -319,15 +384,19 @@ func _show_beat(index: int) -> void:
 			_left_portrait_rect.texture = port_tex
 		_left_name_lbl.text = speaker
 		_left_role_lbl.text = role
-		_left_char_container.modulate = Color(1.0, 1.0, 1.0, 1.0)
-		_right_char_container.modulate = Color(0.40, 0.42, 0.50, 0.65)
+		_left_panel.visible = (_left_portrait_rect.texture != null)
+		_right_panel.visible = (_right_portrait_rect.texture != null)
+		_left_panel.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		_right_panel.modulate = Color(0.42, 0.45, 0.54, 0.78)
 	else:
 		if port_tex != null:
 			_right_portrait_rect.texture = port_tex
 		_right_name_lbl.text = speaker
 		_right_role_lbl.text = role
-		_right_char_container.modulate = Color(1.0, 1.0, 1.0, 1.0)
-		_left_char_container.modulate = Color(0.40, 0.42, 0.50, 0.65)
+		_left_panel.visible = (_left_portrait_rect.texture != null)
+		_right_panel.visible = (_right_portrait_rect.texture != null)
+		_right_panel.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		_left_panel.modulate = Color(0.42, 0.45, 0.54, 0.78)
 
 	# Start typewriter effect
 	_full_line_text = full_text
