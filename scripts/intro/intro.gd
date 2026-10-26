@@ -58,4 +58,8 @@ func _proceed_to_game() -> void:
     tween.tween_callback(_change_scene)
 
 func _change_scene() -> void:
-    get_tree().change_scene_to_file(NEXT_SCENE_PATH)
+    var scene_trans = get_node_or_null("/root/SceneTransition")
+    if scene_trans != null:
+        scene_trans.load_scene(NEXT_SCENE_PATH, "acero")
+    else:
+        get_tree().change_scene_to_file(NEXT_SCENE_PATH)

@@ -612,5 +612,9 @@ func _return_to_main_menu() -> void:
 	t.tween_property(_fade_rect, "modulate:a", 1.0, 0.9)
 	t.tween_callback(func() -> void:
 		AudioManager.crossfade_to(AudioManager.MENU_MUSIC_PATH, -11.0, 1.2)
-		get_tree().change_scene_to_file(MAIN_MENU_PATH)
+		var scene_trans = get_node_or_null("/root/SceneTransition")
+		if scene_trans != null:
+			scene_trans.load_scene(MAIN_MENU_PATH, LoreDB.player_faction)
+		else:
+			get_tree().change_scene_to_file(MAIN_MENU_PATH)
 	)

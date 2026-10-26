@@ -23,6 +23,7 @@ TurnManager="*res://scripts/autoload/turn_manager.gd"
 AudioManager="*res://scripts/autoload/audio_manager.gd"
 SaveManager="*res://scripts/autoload/save_manager.gd"
 DevManager="*res://scripts/autoload/dev_manager.gd"
+SceneTransition="*res://scripts/autoload/scene_transition.gd"
 
 [rendering]
 

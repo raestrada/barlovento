@@ -1557,7 +1557,7 @@ func _build_hud() -> void:
 	menu_btn.theme = _hud_theme
 	menu_btn.pressed.connect(func() -> void:
 		AudioManager.play_sfx("ui_click", -8.0)
-		get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
+		_transition_to("res://scenes/menu/main_menu.tscn")
 	)
 	tr_btn_row.add_child(menu_btn)
 
@@ -1882,16 +1882,22 @@ func _on_story_completed() -> void:
 	else:
 		_return_to_stage_briefing()
 
+func _transition_to(scene_path: String) -> void:
+	if SceneTransition != null:
+		SceneTransition.load_scene(scene_path, LoreDB.player_faction)
+	else:
+		get_tree().change_scene_to_file(scene_path)
+
 func _return_to_stage_briefing() -> void:
 	var next_id := _get_next_stage_id()
 	if next_id != "":
 		LoreDB.return_to_briefing_stage_id = next_id
 		LoreDB.current_stage_id = next_id
 		LoreDB.open_hangar_on_load = true
-		get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
+		_transition_to("res://scenes/menu/main_menu.tscn")
 	else:
 		LoreDB.return_to_briefing_stage_id = ""
-		get_tree().change_scene_to_file("res://scenes/credits/credits.tscn")
+		_transition_to("res://scenes/credits/credits.tscn")
 
 func _refresh_fleet_panel() -> void:
 	if _order_panel != null:
@@ -2090,7 +2096,7 @@ func _build_defeat_overlay(layer: CanvasLayer) -> void:
 		LoreDB.current_stage_id,
 		func() -> void:
 			LoreDB.return_to_briefing_stage_id = LoreDB.current_stage_id
-			get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn"),
+			_transition_to("res://scenes/menu/main_menu.tscn"),
 		func() -> void: get_tree().reload_current_scene()
 	)
 
@@ -2099,7 +2105,7 @@ func _build_help_overlay(layer: CanvasLayer) -> void:
 		layer,
 		_hud_theme,
 		_toggle_help,
-		func() -> void: get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
+		func() -> void: _transition_to("res://scenes/menu/main_menu.tscn")
 	)
 
 func _toggle_help() -> void:
@@ -2245,7 +2251,7 @@ func _open_admiral_chart(immediate_camera: bool = false) -> void:
 		)
 		_admiral_chart.return_menu_requested.connect(func() -> void:
 			AudioManager.play_sfx("ui_click", -8.0)
-			get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")
+			_transition_to("res://scenes/menu/main_menu.tscn")
 		)
 		_admiral_layer.add_child(_admiral_chart)
 

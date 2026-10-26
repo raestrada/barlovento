@@ -157,7 +157,11 @@ func jump_to_stage(stage_id: String, faction: String) -> void:
 	SaveManager.unlock_stage(stage_id)
 	_panel.visible = false
 	stage_jumped.emit(stage_id)
-	get_tree().change_scene_to_file("res://scenes/sandbox/sandbox.tscn")
+	var scene_trans = get_node_or_null("/root/SceneTransition")
+	if scene_trans != null:
+		scene_trans.load_scene("res://scenes/sandbox/sandbox.tscn", faction)
+	else:
+		get_tree().change_scene_to_file("res://scenes/sandbox/sandbox.tscn")
 
 func _refresh_ui_state() -> void:
 	if _god_btn != null:

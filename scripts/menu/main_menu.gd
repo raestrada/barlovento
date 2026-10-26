@@ -1024,11 +1024,14 @@ func _switch_view(view: MenuView) -> void:
 		_briefing_container.visible = (view == MenuView.BRIEFING)
 
 func _transition_to_scene(scene_path: String) -> void:
-	var tween := create_tween()
-	tween.tween_property(_fade_rect, "color:a", 1.0, 0.45)
-	tween.tween_callback(func() -> void:
-		get_tree().change_scene_to_file(scene_path)
-	)
+	if SceneTransition != null:
+		SceneTransition.load_scene(scene_path, _selected_faction)
+	else:
+		var tween := create_tween()
+		tween.tween_property(_fade_rect, "color:a", 1.0, 0.45)
+		tween.tween_callback(func() -> void:
+			get_tree().change_scene_to_file(scene_path)
+		)
 
 func _make_menu_button(title: String, subtitle: String, highlighted: bool) -> Button:
 	var btn := Button.new()
